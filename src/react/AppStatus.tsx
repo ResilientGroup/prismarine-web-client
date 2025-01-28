@@ -15,6 +15,8 @@ export default ({
   children
 }) => {
   const [loadingDotIndex, setLoadingDotIndex] = useState(0)
+  const qsParams = new URLSearchParams(window.location.search)
+  const lockConnect = qsParams?.get('lockConnect') === 'true'
 
   useEffect(() => {
     const statusRunner = async () => {
@@ -65,7 +67,7 @@ export default ({
     >
       {isError && (
         <>
-          {backAction && <Button label="Back" onClick={backAction} />}
+          {!lockConnect && backAction && <Button label="Back" onClick={backAction} />}
           {actionsSlot}
           <Button onClick={() => window.location.reload()} label="Reset App (recommended)" />
         </>
