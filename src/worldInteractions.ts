@@ -6,6 +6,7 @@ import * as THREE from 'three'
 import { Vec3 } from 'vec3'
 import { LineMaterial } from 'three-stdlib'
 import { Entity } from 'prismarine-entity'
+import { subscribeKey } from 'valtio/utils'
 import destroyStage0 from '../assets/destroy_stage_0.png'
 import destroyStage1 from '../assets/destroy_stage_1.png'
 import destroyStage2 from '../assets/destroy_stage_2.png'
@@ -149,7 +150,16 @@ class WorldInteraction {
       const inCreative = bot.game.gameMode === 'creative'
       const pixelRatio = viewer.renderer.getPixelRatio()
       viewer.world.threejsCursorLineMaterial = new LineMaterial({
-        color: inCreative ? 0x40_80_ff : 0x00_00_00,
+        color: (() => {
+          switch (options.highlightBlockColor) {
+            case 'blue':
+              return 0x40_80_ff
+            case 'classic':
+              return 0x00_00_00
+            default:
+              return inCreative ? 0x40_80_ff : 0x00_00_00
+          }
+        })(),
         linewidth: Math.max(pixelRatio * 0.7, 1) * 2,
         // dashed: true,
         // dashSize: 5,
@@ -158,6 +168,8 @@ class WorldInteraction {
     upLineMaterial()
     // todo use gamemode update only
     bot.on('game', upLineMaterial)
+    // Update material when highlight color setting changes
+    subscribeKey(options, 'highlightBlockColor', upLineMaterial)
   }
 
   activateEntity (entity: Entity) {

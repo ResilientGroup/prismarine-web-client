@@ -235,6 +235,19 @@ export const guiOptionsScheme: {
     },
     {
       custom () {
+        return <Category>World</Category>
+      },
+      highlightBlockColor: {
+        text: 'Block Highlight Color',
+        values: [
+          ['auto', 'Auto'],
+          ['blue', 'Blue'],
+          ['classic', 'Classic']
+        ],
+      },
+    },
+    {
+      custom () {
         return <Category>Sign Editor</Category>
       },
       autoSignEditor: {

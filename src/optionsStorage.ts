@@ -96,6 +96,7 @@ const defaultOptions = {
   displayBossBars: false, // boss bar overlay was removed for some reason, enable safely
   disabledUiParts: [] as string[],
   neighborChunkUpdates: true,
+  highlightBlockColor: 'auto' as 'auto' | 'blue' | 'classic',
 }
 
 function getDefaultTouchControlsPositions () {
