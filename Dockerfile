@@ -6,9 +6,13 @@ WORKDIR /app
 COPY . /app
 # install pnpm
 RUN npm i -g pnpm@9.0.4
+# Build arguments
+ARG DOWNLOAD_SOUNDS=false
 # TODO need flat --no-root-optional
 RUN node ./scripts/dockerPrepare.mjs
 RUN pnpm i
+# Download sounds if flag is enabled
+RUN if [ "$DOWNLOAD_SOUNDS" = "true" ] ; then node scripts/downloadSoundsMap.mjs ; fi
 
 # TODO for development
 # EXPOSE 9090
