@@ -189,8 +189,16 @@ class WorldInteraction {
     }
   }
 
+  beforeUpdateChecks () {
+    if (!document.hasFocus()) {
+      // deactive all buttson
+      this.buttons.fill(false)
+    }
+  }
+
   // todo this shouldnt be done in the render loop, migrate the code to dom events to avoid delays on lags
   update () {
+    this.beforeUpdateChecks()
     const inSpectator = bot.game.gameMode === 'spectator'
     const inAdventure = bot.game.gameMode === 'adventure'
     const entity = getEntityCursor()
