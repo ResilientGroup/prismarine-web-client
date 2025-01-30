@@ -12,6 +12,7 @@ export type MessageFormatPart = Pick<TextComponent, 'hoverEvent' | 'clickEvent'>
   underlined?: boolean
   strikethrough?: boolean
   obfuscated?: boolean
+  extra?: MessageFormatPart[]
 }
 
 type MessageInput = {
@@ -44,12 +45,14 @@ export const formatMessage = (message: MessageInput, mcData: IndexedData = globa
       obfuscated: !!msg.obfuscated
     }
 
+    let messagePart
     if (msg.text) {
-      msglist.push({
+      messagePart = {
         ...msg,
         text: msg.text,
-        ...styles
-      })
+        ...styles,
+        extra: []
+      }
     } else if (msg.translate) {
       const tText = mcData?.language[msg.translate] ?? msg.translate
 
@@ -58,40 +61,43 @@ export const formatMessage = (message: MessageInput, mcData: IndexedData = globa
 
         let i = 0
         for (const [j, part] of splitted.entries()) {
-          msglist.push({ text: part, ...styles })
+          messagePart = { text: part, ...styles, extra: [] }
 
           if (j + 1 < splitted.length) {
             if (msg.with[i]) {
               const msgWith = msg.with[i]
               if (typeof msgWith === 'string') {
-                readMsg({
+                formatMessage({
                   ...styles,
                   text: msgWith
-                })
+                }).forEach((msg) => {messagePart.extra.push(msg)})
               } else {
-                readMsg({
+                formatMessage({
                   ...styles,
                   ...msgWith
-                })
+                }).forEach((msg) => {messagePart.extra.push(msg)})
               }
             }
             i++
           }
         }
       } else {
-        msglist.push({
+        messagePart = {
           ...msg,
           text: tText,
-          ...styles
-        })
+          ...styles,
+          extra: []
+        }
       }
     }
 
     if (msg.extra) {
       for (const ex of msg.extra) {
-        readMsg({ ...styles, ...ex })
+        formatMessage({ ...styles, ...ex }).forEach((msg) => { messagePart.extra?.push(msg) })
       }
     }
+
+    msglist.push(messagePart)
   }
 
   readMsg(message)

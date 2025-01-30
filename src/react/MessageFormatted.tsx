@@ -64,14 +64,14 @@ const clickEventToProps = (clickEvent: MessageFormatPart['clickEvent']) => {
 
 export const MessagePart = ({ part, ...props }: { part: MessageFormatPart } & ComponentProps<'span'>) => {
 
-  const { color, italic, bold, underlined, strikethrough, text, clickEvent, hoverEvent, obfuscated } = part
+  const { color, italic, bold, underlined, strikethrough, text, clickEvent, hoverEvent, obfuscated, extra } = part
 
   const clickProps = clickEventToProps(clickEvent)
   const hoverMessageRaw = hoverItemToText(hoverEvent)
   const hoverItemText = hoverMessageRaw && typeof hoverMessageRaw !== 'string' ? render(hoverMessageRaw).children.map(child => child.component.text).join('') : hoverMessageRaw
 
   const applyStyles = [
-    color ? colorF(color.toLowerCase()) + `; text-shadow: 1px 1px 0px ${getColorShadow(colorF(color.toLowerCase()).replace('color:', ''))}` : messageFormatStylesMap.white,
+    color ? colorF(color.toLowerCase()) + `; text-shadow: 1px 1px 0px ${getColorShadow(colorF(color.toLowerCase()).replace('color:', ''))}` : undefined,
     italic && messageFormatStylesMap.italic,
     bold && messageFormatStylesMap.bold,
     italic && messageFormatStylesMap.italic,
@@ -80,7 +80,11 @@ export const MessagePart = ({ part, ...props }: { part: MessageFormatPart } & Co
     obfuscated && messageFormatStylesMap.obfuscated
   ].filter(a => a !== false && a !== undefined).filter(Boolean)
 
-  return <span title={hoverItemText} style={parseInlineStyle(applyStyles.join(' '))} {...clickProps} {...props}>{text}</span>
+  return (
+    <span title={hoverItemText} style={parseInlineStyle(applyStyles.join(' '))} {...clickProps} {...props}>{text}
+      {extra?.map((part, i) => <MessagePart key={i} part={part} />)}
+    </span>
+  )
 }
 
 export default ({ parts, className }: { parts: readonly MessageFormatPart[], className?: string }) => {
@@ -108,6 +112,7 @@ export function getColorShadow (hex, dim = 0.25) {
 
 export function parseInlineStyle (style: string): Record<string, any> {
   const obj: Record<string, any> = {}
+  if (!style || style === '') return obj
   for (const rule of style.split(';')) {
     const [prop, value] = rule.split(':')
     const cssInJsProp = prop.trim().replaceAll(/-./g, (x) => x.toUpperCase()[1])

@@ -11,7 +11,10 @@ export default () => {
       setBossBars(prevBossBars => new Map(prevBossBars.set(bossBar.entityUUID, bossBar as any)))
     })
     bot.on('bossBarUpdated', (bossBar) => {
-      setBossBars(prevBossBars => new Map(prevBossBars.set(bossBar.entityUUID, bossBar as BossBarType)))
+      //setBossBars(prevBossBars => new Map(prevBossBars.set(bossBar.entityUUID, bossBar as any)))
+      const newBossBars = new Map(bossBars)
+      newBossBars.set(bossBar.entityUUID, bossBar as BossBarType)
+      setBossBars(newBossBars)
     })
     bot.on('bossBarDeleted', (bossBar) => {
       const newBossBars = new Map(bossBars)
