@@ -147,7 +147,7 @@ importers:
         version: 2.0.4
       net-browserify:
         specifier: github:zardoy/prismarinejs-net-browserify
-        version: https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/ab3721ca833308a0be099d14ea0053fbd8459ace
+        version: https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/624cc67c16f5e8b23b772e7eaabae16ba84b8590
       node-gzip:
         specifier: ^1.1.2
         version: 1.1.2
@@ -6633,8 +6633,8 @@ packages:
   neo-async@2.6.2:
     resolution: {integrity: sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==}
 
-  net-browserify@https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/ab3721ca833308a0be099d14ea0053fbd8459ace:
-    resolution: {tarball: https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/ab3721ca833308a0be099d14ea0053fbd8459ace}
+  net-browserify@https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/624cc67c16f5e8b23b772e7eaabae16ba84b8590:
+    resolution: {tarball: https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/624cc67c16f5e8b23b772e7eaabae16ba84b8590}
     version: 0.2.4
 
   nice-try@1.0.5:
@@ -17220,7 +17220,7 @@ snapshots:
 
   neo-async@2.6.2: {}
 
-  net-browserify@https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/ab3721ca833308a0be099d14ea0053fbd8459ace:
+  net-browserify@https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/624cc67c16f5e8b23b772e7eaabae16ba84b8590:
     dependencies:
       body-parser: 1.20.2
       express: 4.18.2
