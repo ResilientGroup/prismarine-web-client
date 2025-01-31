@@ -78,7 +78,7 @@
     "minecraft-protocol": "github:PrismarineJS/node-minecraft-protocol#master",
     "mineflayer-item-map-downloader": "github:zardoy/mineflayer-item-map-downloader",
     "mojangson": "^2.0.4",
-    "net-browserify": "file:../prismarinejs-net-browserify",
+    "net-browserify": "github:zardoy/prismarinejs-net-browserify",
     "node-gzip": "^1.1.2",
     "peerjs": "^1.5.0",
     "pixelarticons": "^1.8.1",
