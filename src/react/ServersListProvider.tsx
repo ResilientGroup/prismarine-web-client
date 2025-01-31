@@ -235,7 +235,7 @@ const Inner = ({ hidden, customServersList }: { hidden?: boolean, customServersL
             try {
               lastRequestStart = Date.now()
               if (signal.aborted) return
-              const response = await fetch(`https://api.mcstatus.io/v2/status/java/${server.ip}`, { 
+              const response = await fetch(`https://api.mcstatus.io/v2/status/java/${server.ip}`, {
                 // signal // DONT ADD SIGNAL IT WILL CRUSH JS RUNTIME
               })
               const data: ServerResponse = await response.json()

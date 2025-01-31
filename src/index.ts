@@ -300,6 +300,10 @@ async function connect (connectOptions: ConnectOptions) {
   if (connectOptions.proxy?.startsWith(':')) {
     connectOptions.proxy = `${location.protocol}//${location.hostname}${connectOptions.proxy}`
   }
+  if (connectOptions.proxy && location.port !== '80' && location.port !== '443' && !/:\d+$/.test(connectOptions.proxy)) {
+    const https = connectOptions.proxy.startsWith('https://') || location.protocol === 'https:'
+    connectOptions.proxy = `${connectOptions.proxy}:${https ? 443 : 80}`
+  }
   const proxy = cleanConnectIp(connectOptions.proxy, undefined)
   let { username } = connectOptions
 
