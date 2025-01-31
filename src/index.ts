@@ -887,6 +887,8 @@ async function connect (connectOptions: ConnectOptions) {
 
     console.log('Done!')
 
+    onGameLoad(() => {})
+
     if (appStatusState.isError) return
     setTimeout(() => {
       // todo
