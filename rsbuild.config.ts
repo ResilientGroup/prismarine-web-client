@@ -20,6 +20,7 @@ const execAsync = promisify(childProcess.exec)
 const buildingVersion = new Date().toISOString().split(':')[0]
 
 const dev = process.env.NODE_ENV === 'development'
+const disableServiceWorker = process.env.DISABLE_SERVICE_WORKER === 'true'
 
 let releaseTag
 let releaseChangelog
@@ -59,6 +60,7 @@ const appConfig = defineConfig({
             'process.env.DEPS_VERSIONS': JSON.stringify({}),
             'process.env.RELEASE_TAG': JSON.stringify(releaseTag),
             'process.env.RELEASE_CHANGELOG': JSON.stringify(releaseChangelog),
+            'process.env.DISABLE_SERVICE_WORKER': JSON.stringify(disableServiceWorker),
         },
     },
     server: {
@@ -124,15 +126,17 @@ const appConfig = defineConfig({
                         prep()
                     })
                     build.onAfterBuild(async () => {
-                        const { count, size, warnings } = await generateSW({
-                            // dontCacheBustURLsMatching: [new RegExp('...')],
-                            globDirectory: 'dist',
-                            skipWaiting: true,
-                            clientsClaim: true,
-                            additionalManifestEntries: getSwAdditionalEntries(),
-                            globPatterns: [],
-                            swDest: './dist/service-worker.js',
-                        })
+                        if (!disableServiceWorker) {
+                            const { count, size, warnings } = await generateSW({
+                                // dontCacheBustURLsMatching: [new RegExp('...')],
+                                globDirectory: 'dist',
+                                skipWaiting: true,
+                                clientsClaim: true,
+                                additionalManifestEntries: getSwAdditionalEntries(),
+                                globPatterns: [],
+                                swDest: './dist/service-worker.js',
+                            })
+                        }
                     })
                 }
                 build.onBeforeStartDevServer(() => prep())
