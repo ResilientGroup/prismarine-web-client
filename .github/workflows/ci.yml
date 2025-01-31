@@ -51,7 +51,7 @@ jobs:
         run: npm install -g pnpm@9.0.4
 
       - name: Run pnpm dedupe
-        run: pnpm dedupe --offline
+        run: pnpm dedupe
 
       - name: Check for changes
         run: |
