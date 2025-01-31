@@ -47,6 +47,7 @@ type AdditionalDisplayData = {
   formattedText: string
   textNameRight: string
   icon?: string
+  offline?: boolean
 }
 
 export interface AuthenticatedAccount {
@@ -138,6 +139,9 @@ export const updateAuthenticatedAccountData = (callback: (data: AuthenticatedAcc
 // todo move to base
 const normalizeIp = (ip: string) => ip.replace(/https?:\/\//, '').replace(/\/(:|$)/, '')
 
+const FETCH_DELAY = 100 // ms between each request
+const MAX_CONCURRENT_REQUESTS = 10
+
 const Inner = ({ hidden, customServersList }: { hidden?: boolean, customServersList?: string[] }) => {
   const [proxies, setProxies] = useState<readonly string[]>(localStorage['proxies'] ? JSON.parse(localStorage['proxies']) : getInitialProxies())
   const [selectedProxy, setSelectedProxy] = useState(proxyQs ?? localStorage.getItem('selectedProxy') ?? proxies?.[0] ?? '')
@@ -198,30 +202,69 @@ const Inner = ({ hidden, customServersList }: { hidden?: boolean, customServersL
 
   useUtilsEffect(({ signal }) => {
     const update = async () => {
-      for (const server of serversListSorted) {
-        const isInLocalNetwork = server.ip.startsWith('192.168.') || server.ip.startsWith('10.') || server.ip.startsWith('172.') || server.ip.startsWith('127.') || server.ip.startsWith('localhost')
-        if (isInLocalNetwork || signal.aborted) continue
-        // eslint-disable-next-line no-await-in-loop
-        await fetch(`https://api.mcstatus.io/v2/status/java/${server.ip}`, {
-          // TODO: bounty for this who fix it
-          // signal
-        }).then(async r => r.json()).then((data: ServerResponse) => {
-          const versionClean = data.version?.name_raw.replace(/^[^\d.]+/, '')
-          if (!versionClean) return
-          setAdditionalData(old => {
-            return ({
-              ...old,
-              [server.ip]: {
-                formattedText: data.motd?.raw ?? '',
-                textNameRight: `${versionClean} ${data.players?.online ?? '??'}/${data.players?.max ?? '??'}`,
-                icon: data.icon,
-              }
-            })
-          })
+      const queue = serversListSorted
+        .map(server => {
+          const isInLocalNetwork = server.ip.startsWith('192.168.') ||
+            server.ip.startsWith('10.') ||
+            server.ip.startsWith('172.') ||
+            server.ip.startsWith('127.') ||
+            server.ip.startsWith('localhost') ||
+            server.ip.startsWith(':')
+
+          const VALID_IP_OR_DOMAIN = server.ip.includes('.')
+          if (isInLocalNetwork || signal.aborted || !VALID_IP_OR_DOMAIN) return null
+
+          return server
         })
+        .filter(x => x !== null)
+
+      const activeRequests = new Set<Promise<void>>()
+
+      let lastRequestStart = 0
+      for (const server of queue) {
+        // Wait if at concurrency limit
+        if (activeRequests.size >= MAX_CONCURRENT_REQUESTS) {
+          // eslint-disable-next-line no-await-in-loop
+          await Promise.race(activeRequests)
+        }
+
+        // Create and track new request
+        // eslint-disable-next-line @typescript-eslint/no-loop-func
+        const request = new Promise<void>(resolve => {
+          setTimeout(async () => {
+            try {
+              lastRequestStart = Date.now()
+              if (signal.aborted) return
+              const response = await fetch(`https://api.mcstatus.io/v2/status/java/${server.ip}`, { signal })
+              const data: ServerResponse = await response.json()
+              const versionClean = data.version?.name_raw.replace(/^[^\d.]+/, '')
+
+              setAdditionalData(old => ({
+                ...old,
+                [server.ip]: {
+                  formattedText: data.motd?.raw ?? '',
+                  textNameRight: data.online ?
+                    `${versionClean} ${data.players?.online ?? '??'}/${data.players?.max ?? '??'}` :
+                    '',
+                  icon: data.icon,
+                  offline: !data.online
+                }
+              }))
+            } finally {
+              activeRequests.delete(request)
+              resolve()
+            }
+          }, lastRequestStart ? Math.max(0, FETCH_DELAY - (Date.now() - lastRequestStart)) : 0)
+        })
+
+        activeRequests.add(request)
       }
+
+      // Wait for remaining requests
+      await Promise.all(activeRequests)
     }
-    void update().catch((err) => {})
+
+    void update()
   }, [serversListSorted])
 
   const isEditScreenModal = useIsModalActive('editServer')
@@ -394,10 +437,10 @@ const Inner = ({ hidden, customServersList }: { hidden?: boolean, customServersL
         name: server.index.toString(),
         title: server.name || server.ip,
         detail: (server.versionOverride ?? '') + ' ' + (server.usernameOverride ?? ''),
-        // lastPlayed: server.lastJoined,
         formattedTextOverride: additional?.formattedText,
         worldNameRight: additional?.textNameRight ?? '',
         iconSrc: additional?.icon,
+        offline: additional?.offline
       }
     })}
     initialProxies={{

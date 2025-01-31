@@ -3,7 +3,7 @@ import Screen from './Screen'
 import Input from './Input'
 import Button from './Button'
 import SelectGameVersion from './SelectGameVersion'
-import { useIsSmallWidth } from './simpleHooks'
+import { useIsSmallWidth, usePassesWindowDimensions } from './simpleHooks'
 
 export interface BaseServerInfo {
   ip: string
@@ -32,6 +32,7 @@ interface Props {
 const ELEMENTS_WIDTH = 190
 
 export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQs, onQsConnect, placeholders, accounts, versions, allowAutoConnect }: Props) => {
+  const isSmallHeight = !usePassesWindowDimensions(null, 350)
   const qsParams = parseQs ? new URLSearchParams(window.location.search) : undefined
   const qsParamName = qsParams?.get('name')
   const qsParamIp = qsParams?.get('ip')
@@ -101,7 +102,7 @@ export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQ
         </>}
         <InputWithLabel required label="Server IP" value={serverIp} disabled={lockConnect && qsIpParts?.[0] !== null} onChange={({ target: { value } }) => setServerIp(value)} />
         <InputWithLabel label="Server Port" value={serverPort} disabled={lockConnect && qsIpParts?.[1] !== null} onChange={({ target: { value } }) => setServerPort(value)} placeholder='25565' />
-        <div style={{ gridColumn: smallWidth ? '' : 'span 2' }}>Overrides:</div>
+        {isSmallHeight ? <div style={{ gridColumn: 'span 2', marginTop: 10, }} /> : <div style={{ gridColumn: smallWidth ? '' : 'span 2' }}>Overrides:</div>}
         <div style={{
           display: 'flex',
           flexDirection: 'column',
