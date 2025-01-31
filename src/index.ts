@@ -53,7 +53,6 @@ import {
   hideModal,
   insertActiveModalStack,
   isGameActive,
-  loadedGameState,
   miscUiState,
   showModal
 } from './globalState'
@@ -883,12 +882,6 @@ async function connect (connectOptions: ConnectOptions) {
     }, false)
 
     console.log('Done!')
-
-    // todo
-    onGameLoad(async () => {
-      loadedGameState.serverIp = server.host ?? null
-      loadedGameState.username = username
-    })
 
     if (appStatusState.isError) return
     setTimeout(() => {

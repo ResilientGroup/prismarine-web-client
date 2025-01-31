@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { useSnapshot } from 'valtio'
 import { openURL } from 'prismarine-viewer/viewer/lib/simpleUtils'
 import { noCase } from 'change-case'
-import { loadedGameState, miscUiState, openOptionsMenu, showModal } from './globalState'
+import { gameAdditionalState, miscUiState, openOptionsMenu, showModal } from './globalState'
 import { AppOptions, options } from './optionsStorage'
 import Button from './react/Button'
 import { OptionMeta, OptionSlider } from './react/OptionsItems'
@@ -157,7 +157,7 @@ export const guiOptionsScheme: {
     {
       custom () {
         const { resourcePackInstalled } = useSnapshot(resourcePackState)
-        const { usingServerResourcePack } = useSnapshot(loadedGameState)
+        const { usingServerResourcePack } = useSnapshot(gameAdditionalState)
         const { enabledResourcepack } = useSnapshot(options)
         return <Button
           label={`Resource Pack: ${usingServerResourcePack ? 'SERVER ON' : resourcePackInstalled ? enabledResourcepack ? 'ON' : 'OFF' : 'NO'}`} inScreen onClick={async () => {

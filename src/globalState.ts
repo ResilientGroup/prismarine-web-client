@@ -146,12 +146,6 @@ export const miscUiState = proxy({
   displaySearchInput: false,
 })
 
-export const loadedGameState = proxy({
-  username: '',
-  serverIp: '' as string | null,
-  usingServerResourcePack: false,
-})
-
 export const isGameActive = (foregroundCheck: boolean) => {
   if (foregroundCheck && activeModalStack.length) return false
   return miscUiState.gameLoaded
@@ -165,7 +159,9 @@ export const gameAdditionalState = proxy({
   isSprinting: false,
   isSneaking: false,
   isZooming: false,
-  warps: [] as WorldWarp[]
+  warps: [] as WorldWarp[],
+
+  usingServerResourcePack: false,
 })
 
 window.gameAdditionalState = gameAdditionalState
