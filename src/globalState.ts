@@ -86,6 +86,13 @@ export const hideCurrentModal = (_data?, onHide?: () => void) => {
   }
 }
 
+export const hideAllModals = () => {
+  while (activeModalStack.length > 0) {
+    if (!hideModal()) break
+  }
+  return activeModalStack.length === 0
+}
+
 export const openOptionsMenu = (group: OptionsGroupType) => {
   showModal({ reactType: `options-${group}` })
 }

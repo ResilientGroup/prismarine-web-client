@@ -7,7 +7,7 @@ import { ControMax } from 'contro-max/build/controMax'
 import { CommandEventArgument, SchemaCommandInput } from 'contro-max/build/types'
 import { stringStartsWith } from 'contro-max/build/stringUtils'
 import { UserOverrideCommand, UserOverridesConfig } from 'contro-max/build/types/store'
-import { isGameActive, showModal, gameAdditionalState, activeModalStack, hideCurrentModal, miscUiState, loadedGameState, hideModal } from './globalState'
+import { isGameActive, showModal, gameAdditionalState, activeModalStack, hideCurrentModal, miscUiState, loadedGameState, hideModal, hideAllModals } from './globalState'
 import { goFullscreen, pointerLock, reloadChunks } from './utils'
 import { options } from './optionsStorage'
 import { openPlayerInventory } from './inventoryWindows'
@@ -740,19 +740,12 @@ window.addEventListener('keydown', (e) => {
   if (activeModalStack.length) {
     const hideAll = e.ctrlKey || e.metaKey
     if (hideAll) {
-      while (activeModalStack.length > 0) {
-        hideCurrentModal(undefined, () => {
-          if (!activeModalStack.length) {
-            pointerLock.justHitEscape = true
-          }
-        })
-      }
+      hideAllModals()
     } else {
-      hideCurrentModal(undefined, () => {
-        if (!activeModalStack.length) {
-          pointerLock.justHitEscape = true
-        }
-      })
+      hideCurrentModal()
+    }
+    if (activeModalStack.length === 0) {
+      pointerLock.justHitEscape = true
     }
   } else if (pointerLock.hasPointerLock) {
     document.exitPointerLock?.()
