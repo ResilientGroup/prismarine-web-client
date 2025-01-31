@@ -4,6 +4,7 @@ import { useSnapshot } from 'valtio'
 import { ConnectOptions } from '../connect'
 import { activeModalStack, hideCurrentModal, miscUiState, showModal } from '../globalState'
 import supportedVersions from '../supportedVersions.mjs'
+import { fetchServerStatus, isServerValid } from '../api/mcStatusApi'
 import ServersList from './ServersList'
 import AddServerOrConnect, { BaseServerInfo } from './AddServerOrConnect'
 import { useDidUpdateEffect } from './utils'
@@ -11,36 +12,11 @@ import { useIsModalActive } from './utilsApp'
 import { showOptionsModal } from './SelectOption'
 import { useCopyKeybinding } from './simpleHooks'
 
-interface StoreServerItem extends BaseServerInfo {
+export interface StoreServerItem extends BaseServerInfo {
   lastJoined?: number
   description?: string
   optionsOverride?: Record<string, any>
   autoLogin?: Record<string, string>
-}
-
-type ServerResponse = {
-  online: boolean
-  version?: {
-    name_raw: string
-  }
-  // display tooltip
-  players?: {
-    online: number
-    max: number
-    list: Array<{
-      name_raw: string
-      name_clean: string
-    }>
-  }
-  icon?: string
-  motd?: {
-    raw: string
-  }
-  // todo circle error icon
-  mods?: Array<{ name, version }>
-  // todo display via hammer icon
-  software?: string
-  plugins?: Array<{ name, version }>
 }
 
 type AdditionalDisplayData = {
@@ -200,19 +176,14 @@ const Inner = ({ hidden, customServersList }: { hidden?: boolean, customServersL
     return serversList.map((server, index) => ({ ...server, index })).sort((a, b) => (b.lastJoined ?? 0) - (a.lastJoined ?? 0))
   }, [serversList])
 
+  const isEditScreenModal = useIsModalActive('editServer')
+
   useUtilsEffect(({ signal }) => {
+    if (isEditScreenModal) return
     const update = async () => {
       const queue = serversListSorted
         .map(server => {
-          const isInLocalNetwork = server.ip.startsWith('192.168.') ||
-            server.ip.startsWith('10.') ||
-            server.ip.startsWith('172.') ||
-            server.ip.startsWith('127.') ||
-            server.ip.startsWith('localhost') ||
-            server.ip.startsWith(':')
-
-          const VALID_IP_OR_DOMAIN = server.ip.includes('.')
-          if (isInLocalNetwork || signal.aborted || !VALID_IP_OR_DOMAIN) return null
+          if (!isServerValid(server.ip) || signal.aborted) return null
 
           return server
         })
@@ -235,23 +206,13 @@ const Inner = ({ hidden, customServersList }: { hidden?: boolean, customServersL
             try {
               lastRequestStart = Date.now()
               if (signal.aborted) return
-              const response = await fetch(`https://api.mcstatus.io/v2/status/java/${server.ip}`, {
-                // signal // DONT ADD SIGNAL IT WILL CRUSH JS RUNTIME
-              })
-              const data: ServerResponse = await response.json()
-              const versionClean = data.version?.name_raw.replace(/^[^\d.]+/, '')
-
-              setAdditionalData(old => ({
-                ...old,
-                [server.ip]: {
-                  formattedText: data.motd?.raw ?? '',
-                  textNameRight: data.online ?
-                    `${versionClean} ${data.players?.online ?? '??'}/${data.players?.max ?? '??'}` :
-                    '',
-                  icon: data.icon,
-                  offline: !data.online
-                }
-              }))
+              const data = await fetchServerStatus(server.ip/* , signal */) // DONT ADD SIGNAL IT WILL CRUSH JS RUNTIME
+              if (data) {
+                setAdditionalData(old => ({
+                  ...old,
+                  [server.ip]: data
+                }))
+              }
             } finally {
               activeRequests.delete(request)
               resolve()
@@ -262,14 +223,11 @@ const Inner = ({ hidden, customServersList }: { hidden?: boolean, customServersL
         activeRequests.add(request)
       }
 
-      // Wait for remaining requests
       await Promise.all(activeRequests)
     }
 
     void update()
-  }, [serversListSorted])
-
-  const isEditScreenModal = useIsModalActive('editServer')
+  }, [serversListSorted, isEditScreenModal])
 
   useDidUpdateEffect(() => {
     if (serverEditScreen && !isEditScreenModal) {

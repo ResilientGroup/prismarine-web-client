@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react'
+import { fetchServerStatus, isServerValid } from '../api/mcStatusApi'
 import Screen from './Screen'
 import Input from './Input'
 import Button from './Button'
@@ -71,6 +72,53 @@ export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQ
     authenticatedAccountOverride,
   }
 
+  const [fetchedServerInfoIp, setFetchedServerInfoIp] = React.useState<string | undefined>(undefined)
+  const [serverOnline, setServerOnline] = React.useState(null as boolean | null)
+  const [onlinePlayersList, setOnlinePlayersList] = React.useState<string[]>([])
+
+  useEffect(() => {
+    const controller = new AbortController()
+
+    const checkServer = async () => {
+      if (!qsParamIp || !isServerValid(qsParamIp)) return
+
+      try {
+        const status = await fetchServerStatus(qsParamIp)
+        if (!status) return
+
+        setServerOnline(status.raw.online)
+        setOnlinePlayersList(status.raw.players?.list.map(p => p.name_raw) ?? [])
+        setFetchedServerInfoIp(qsParamIp)
+      } catch (err) {
+        console.error('Failed to fetch server status:', err)
+      }
+    }
+
+    void checkServer()
+    return () => controller.abort()
+  }, [qsParamIp])
+
+  const validateUsername = (username: string) => {
+    if (!username) return undefined
+    if (onlinePlayersList.includes(username)) {
+      return { border: 'red solid 1px' }
+    }
+    const MINECRAFT_USERNAME_REGEX = /^\w{3,16}$/
+    if (!MINECRAFT_USERNAME_REGEX.test(username)) {
+      return { border: 'red solid 1px' }
+    }
+    return undefined
+  }
+
+  const validateServerIp = () => {
+    if (!serverIp) return undefined
+    if (serverOnline) {
+      return { border: 'lightgreen solid 1px' }
+    } else {
+      return { border: 'red solid 1px' }
+    }
+  }
+
   useEffect(() => {
     if (qsParams?.get('autoConnect') === 'true' && qsParams?.get('ip') && allowAutoConnect) {
       onQsConnect?.(commonUseOptions)
@@ -100,7 +148,17 @@ export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQ
             <InputWithLabel label="Server Name" value={serverName} onChange={({ target: { value } }) => setServerName(value)} placeholder='Defaults to IP' />
           </div>
         </>}
-        <InputWithLabel required label="Server IP" value={serverIp} disabled={lockConnect && qsIpParts?.[0] !== null} onChange={({ target: { value } }) => setServerIp(value)} />
+        <InputWithLabel
+          required
+          label="Server IP"
+          value={serverIp}
+          disabled={lockConnect && qsIpParts?.[0] !== null}
+          onChange={({ target: { value } }) => {
+            setServerIp(value)
+            setServerOnline(false)
+          }}
+          validateInput={serverOnline === null || fetchedServerInfoIp !== serverIp ? undefined : validateServerIp}
+        />
         <InputWithLabel label="Server Port" value={serverPort} disabled={lockConnect && qsIpParts?.[1] !== null} onChange={({ target: { value } }) => setServerPort(value)} placeholder='25565' />
         {isSmallHeight ? <div style={{ gridColumn: 'span 2', marginTop: 10, }} /> : <div style={{ gridColumn: smallWidth ? '' : 'span 2' }}>Overrides:</div>}
         <div style={{
@@ -120,7 +178,14 @@ export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQ
         </div>
 
         <InputWithLabel label="Proxy Override" value={proxyOverride} disabled={lockConnect && qsParamProxy !== null} onChange={({ target: { value } }) => setProxyOverride(value)} placeholder={placeholders?.proxyOverride} />
-        <InputWithLabel label="Username Override" value={usernameOverride} disabled={!noAccountSelected || lockConnect && qsParamUsername !== null} onChange={({ target: { value } }) => setUsernameOverride(value)} placeholder={placeholders?.usernameOverride} />
+        <InputWithLabel
+          label="Username Override"
+          value={usernameOverride}
+          disabled={!noAccountSelected || lockConnect && qsParamUsername !== null}
+          onChange={({ target: { value } }) => setUsernameOverride(value)}
+          placeholder={placeholders?.usernameOverride}
+          validateInput={!serverOnline || fetchedServerInfoIp !== serverIp ? undefined : validateUsername}
+        />
         <label style={{
           display: 'flex',
           flexDirection: 'column',
