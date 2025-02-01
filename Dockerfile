@@ -38,5 +38,5 @@ RUN npm i -g pnpm@9.0.4
 RUN npm init -yp
 RUN pnpm i express github:zardoy/prismarinejs-net-browserify compression cors
 EXPOSE 8080
-VOLUME /app/dist
+VOLUME /app/public
 ENTRYPOINT ["node", "server.js", "--prod"]

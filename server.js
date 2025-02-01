@@ -30,8 +30,12 @@ app.get('/config.json', (req, res, next) => {
     config = require('./config.json')
   } catch {
     try {
-      config = require('./dist/config.json')
-    } catch { }
+      config = require('./public/config.json')
+    } catch {
+      try {
+        config = require('./dist/config.json')
+      } catch { }
+    }
   }
   res.json({
     ...config,
@@ -45,6 +49,11 @@ if (isProd) {
     res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp')
     next()
   })
+
+  // First serve from the override directory (volume mount)
+  app.use(express.static(path.join(__dirname, './public')))
+
+  // Then fallback to the original dist directory
   app.use(express.static(path.join(__dirname, './dist')))
 }
 
