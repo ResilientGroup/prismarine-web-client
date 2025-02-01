@@ -73,6 +73,6 @@ export const appQueryParamsArray = new Proxy({} as AppQsParamsArrayTransformed, 
 export const hasQueryParam = (param: keyof AppQsParams) => qsParams.has(param)
 
 // Helper function to get all query parameters as a URLSearchParams object
-export const getRawQueryParams = () => qsParams
+export const getRawQueryParams = () => qsParams;
 
-window.debugQueryParams = Object.fromEntries(qsParams.entries())
+(globalThis as any).debugQueryParams = Object.fromEntries(qsParams.entries())
