@@ -106,6 +106,7 @@ import { ItemsRenderer } from 'mc-assets/dist/itemsRenderer'
 import './mobileShim'
 import { parseFormattedMessagePacket } from './botUtils'
 import { getViewerVersionData, getWsProtocolStream } from './viewerConnector'
+import { appQueryParams, appQueryParamsArray } from './appParams'
 
 window.debug = debug
 window.THREE = THREE
@@ -238,7 +239,7 @@ function hideCurrentScreens () {
 }
 
 const loadSingleplayer = (serverOverrides = {}, flattenedServerOverrides = {}) => {
-  const serverSettingsQsRaw = new URLSearchParams(window.location.search).getAll('serverSetting')
+  const serverSettingsQsRaw = appQueryParamsArray.serverSetting ?? []
   const serverSettingsQs = serverSettingsQsRaw.map(x => x.split(':')).reduce<Record<string, string>>((acc, [key, value]) => {
     acc[key] = JSON.parse(value)
     return acc
@@ -701,7 +702,7 @@ async function connect (connectOptions: ConnectOptions) {
     setLoadingScreenStatus('Placing blocks (starting viewer)')
     localStorage.lastConnectOptions = JSON.stringify(connectOptions)
     connectOptions.onSuccessfulPlay?.()
-    if (process.env.NODE_ENV === 'development' && !localStorage.lockUrl && new URLSearchParams(location.search).size === 0) {
+    if (process.env.NODE_ENV === 'development' && !localStorage.lockUrl && !Object.keys(window.debugQueryParams).length) {
       lockUrl()
     }
     updateDataAfterJoin()
@@ -891,9 +892,7 @@ async function connect (connectOptions: ConnectOptions) {
 
     if (appStatusState.isError) return
     setTimeout(() => {
-      // todo
-      const qs = new URLSearchParams(window.location.search)
-      if (qs.get('suggest_save')) {
+      if (appQueryParams.suggest_save) {
         showNotification('Suggestion', 'Save the world to keep your progress!', false, undefined, async () => {
           const savePath = await saveToBrowserMemory()
           if (!savePath) return
@@ -925,8 +924,8 @@ async function connect (connectOptions: ConnectOptions) {
   if (!connectOptions.ignoreQs) {
     // todo cleanup
     customEvents.on('gameLoaded', () => {
-      const qs = new URLSearchParams(window.location.search)
-      for (let command of qs.getAll('command')) {
+      const commands = appQueryParamsArray.command ?? []
+      for (let command of commands) {
         if (!command.startsWith('/')) command = `/${command}`
         bot.chat(command)
       }
@@ -937,17 +936,14 @@ async function connect (connectOptions: ConnectOptions) {
 listenGlobalEvents()
 watchValue(miscUiState, async s => {
   if (s.appLoaded) { // fs ready
-    const qs = new URLSearchParams(window.location.search)
-    const moreServerOptions = {} as Record<string, any>
-    if (qs.has('version')) moreServerOptions.version = qs.get('version')
-    if (qs.get('singleplayer') === '1' || qs.get('sp') === '1') {
+    if (appQueryParams.singleplayer === '1' || appQueryParams.sp === '1') {
       loadSingleplayer({}, {
         worldFolder: undefined,
-        ...moreServerOptions
+        ...appQueryParams.version ? { version: appQueryParams.version } : {}
       })
     }
-    if (qs.get('loadSave')) {
-      const savePath = `/data/worlds/${qs.get('loadSave')}`
+    if (appQueryParams.loadSave) {
+      const savePath = `/data/worlds/${appQueryParams.loadSave}`
       try {
         await fs.promises.stat(savePath)
       } catch (err) {
@@ -1003,22 +999,19 @@ void window.fetch('config.json').then(async res => res.json()).then(c => c, (err
 // qs open actions
 downloadAndOpenFile().then((downloadAction) => {
   if (downloadAction) return
-  const qs = new URLSearchParams(window.location.search)
-  if (qs.get('reconnect') && process.env.NODE_ENV === 'development') {
-    const ip = qs.get('ip')
+  if (appQueryParams.reconnect && process.env.NODE_ENV === 'development') {
     const lastConnect = JSON.parse(localStorage.lastConnectOptions ?? {})
     void connect({
-      botVersion: qs.get('version') ?? undefined,
-      ...lastConnect, // todo mixing is not good idea
-      ip: ip || undefined
+      botVersion: appQueryParams.version ?? undefined,
+      ...lastConnect,
+      ip: appQueryParams.ip || undefined
     })
     return
   }
-  if (qs.get('ip') || qs.get('proxy')) {
-    const waitAppConfigLoad = !qs.get('proxy')
+  if (appQueryParams.ip || appQueryParams.proxy) {
+    const waitAppConfigLoad = !appQueryParams.proxy
     const openServerEditor = () => {
       hideModal()
-      // show server editor for connect or save
       showModal({ reactType: 'editServer' })
     }
     showModal({ reactType: 'empty' })
@@ -1040,12 +1033,12 @@ downloadAndOpenFile().then((downloadAction) => {
 
   void Promise.resolve().then(() => {
     // try to connect to peer
-    const peerId = qs.get('connectPeer')
+    const peerId = appQueryParams.connectPeer
     const peerOptions = {} as ConnectPeerOptions
-    if (qs.get('server')) {
-      peerOptions.server = qs.get('server')!
+    if (appQueryParams.server) {
+      peerOptions.server = appQueryParams.server
     }
-    const version = qs.get('peerVersion')
+    const version = appQueryParams.peerVersion
     if (peerId) {
       let username: string | null = options.guestUsername
       if (options.askGuestName) username = prompt('Enter your username', username)
@@ -1060,11 +1053,11 @@ downloadAndOpenFile().then((downloadAction) => {
     }
   })
 
-  if (qs.get('serversList')) {
+  if (appQueryParams.serversList) {
     showModal({ reactType: 'serversList' })
   }
 
-  const viewerWsConnect = qs.get('viewerConnect')
+  const viewerWsConnect = appQueryParams.viewerConnect
   if (viewerWsConnect) {
     void connect({
       username: `viewer-${Math.random().toString(36).slice(2, 10)}`,
@@ -1072,8 +1065,8 @@ downloadAndOpenFile().then((downloadAction) => {
     })
   }
 
-  if (qs.get('modal')) {
-    const modals = qs.get('modal')!.split(',')
+  if (appQueryParams.modal) {
+    const modals = appQueryParams.modal.split(',')
     for (const modal of modals) {
       showModal({ reactType: modal })
     }

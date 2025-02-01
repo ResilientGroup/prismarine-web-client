@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { appQueryParams } from '../appParams'
 import styles from './appStatus.module.css'
 import Button from './Button'
 import Screen from './Screen'
@@ -15,8 +16,7 @@ export default ({
   children
 }) => {
   const [loadingDotIndex, setLoadingDotIndex] = useState(0)
-  const qsParams = new URLSearchParams(window.location.search)
-  const lockConnect = qsParams?.get('lockConnect') === 'true'
+  const lockConnect = appQueryParams.lockConnect === 'true'
 
   useEffect(() => {
     const statusRunner = async () => {
