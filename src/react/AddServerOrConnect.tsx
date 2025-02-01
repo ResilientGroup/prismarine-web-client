@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react'
+import { appQueryParams } from '../appParams'
 import { fetchServerStatus, isServerValid } from '../api/mcStatusApi'
 import Screen from './Screen'
 import Input from './Input'
@@ -34,13 +35,12 @@ const ELEMENTS_WIDTH = 190
 
 export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQs, onQsConnect, placeholders, accounts, versions, allowAutoConnect }: Props) => {
   const isSmallHeight = !usePassesWindowDimensions(null, 350)
-  const qsParams = parseQs ? new URLSearchParams(window.location.search) : undefined
-  const qsParamName = qsParams?.get('name')
-  const qsParamIp = qsParams?.get('ip')
-  const qsParamVersion = qsParams?.get('version')
-  const qsParamProxy = qsParams?.get('proxy')
-  const qsParamUsername = qsParams?.get('username')
-  const qsParamLockConnect = qsParams?.get('lockConnect')
+  const qsParamName = parseQs ? appQueryParams.name : undefined
+  const qsParamIp = parseQs ? appQueryParams.ip : undefined
+  const qsParamVersion = parseQs ? appQueryParams.version : undefined
+  const qsParamProxy = parseQs ? appQueryParams.proxy : undefined
+  const qsParamUsername = parseQs ? appQueryParams.username : undefined
+  const qsParamLockConnect = parseQs ? appQueryParams.lockConnect : undefined
 
   const qsIpParts = qsParamIp?.split(':')
   const ipParts = initialData?.ip ? initialData?.ip.split(':') : undefined
@@ -120,7 +120,7 @@ export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQ
   }
 
   useEffect(() => {
-    if (qsParams?.get('autoConnect') === 'true' && qsParams?.get('ip') && allowAutoConnect) {
+    if (qsParamIp && qsParamVersion && allowAutoConnect) {
       onQsConnect?.(commonUseOptions)
     }
   }, [])
@@ -173,15 +173,15 @@ export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQ
               setVersionOverride(value)
             }}
             placeholder="Optional, but recommended to specify"
-            disabled={lockConnect && qsParamVersion !== null}
+            disabled={lockConnect}
           />
         </div>
 
-        <InputWithLabel label="Proxy Override" value={proxyOverride} disabled={lockConnect && qsParamProxy !== null} onChange={({ target: { value } }) => setProxyOverride(value)} placeholder={placeholders?.proxyOverride} />
+        <InputWithLabel label="Proxy Override" value={proxyOverride} disabled={lockConnect && (qsParamProxy !== null || !!placeholders?.proxyOverride)} onChange={({ target: { value } }) => setProxyOverride(value)} placeholder={placeholders?.proxyOverride} />
         <InputWithLabel
           label="Username Override"
           value={usernameOverride}
-          disabled={!noAccountSelected || lockConnect && qsParamUsername !== null}
+          disabled={!noAccountSelected || (lockConnect && qsParamUsername !== null)}
           onChange={({ target: { value } }) => setUsernameOverride(value)}
           placeholder={placeholders?.usernameOverride}
           validateInput={!serverOnline || fetchedServerInfoIp !== serverIp ? undefined : validateUsername}
@@ -201,6 +201,7 @@ export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQ
               fontSize: 13,
             }}
             defaultValue={initialAccount === true ? -2 : initialAccount === undefined ? -1 : (fallbackIfNotFound((accounts ?? []).indexOf(initialAccount)) ?? -2)}
+            disabled={lockConnect && qsParamUsername !== null}
           >
             <option value={-1}>Offline Account (Username)</option>
             {accounts?.map((account, i) => <option key={i} value={i}>{account} (Logged In)</option>)}

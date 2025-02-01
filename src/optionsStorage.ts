@@ -4,6 +4,7 @@ import { proxy, subscribe } from 'valtio/vanilla'
 // weird webpack configuration bug: it cant import valtio/utils in this file
 import { subscribeKey } from 'valtio/utils'
 import { omitObj } from '@zardoy/utils'
+import { appQueryParamsArray } from './appParams'
 
 const isDev = process.env.NODE_ENV === 'development'
 const defaultOptions = {
@@ -121,7 +122,8 @@ function getDefaultTouchControlsPositions () {
   } as Record<string, [number, number]>
 }
 
-const qsOptionsRaw = new URLSearchParams(location.search).getAll('setting')
+// const qsOptionsRaw = new URLSearchParams(location.search).getAll('setting')
+const qsOptionsRaw = appQueryParamsArray.setting ?? []
 export const qsOptions = Object.fromEntries(qsOptionsRaw.map(o => {
   const [key, value] = o.split(':')
   return [key, JSON.parse(value)]

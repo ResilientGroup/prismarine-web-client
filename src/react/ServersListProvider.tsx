@@ -4,6 +4,7 @@ import { useSnapshot } from 'valtio'
 import { ConnectOptions } from '../connect'
 import { activeModalStack, hideCurrentModal, miscUiState, showModal } from '../globalState'
 import supportedVersions from '../supportedVersions.mjs'
+import { appQueryParams } from '../appParams'
 import { fetchServerStatus, isServerValid } from '../api/mcStatusApi'
 import ServersList from './ServersList'
 import AddServerOrConnect, { BaseServerInfo } from './AddServerOrConnect'
@@ -70,8 +71,8 @@ const getInitialServersList = () => {
   return servers
 }
 
-const serversListQs = new URLSearchParams(window.location.search).get('serversList')
-const proxyQs = new URLSearchParams(window.location.search).get('proxy')
+const serversListQs = appQueryParams.serversList
+const proxyQs = appQueryParams.proxy
 
 const setNewServersList = (serversList: StoreServerItem[], force = false) => {
   if (serversListQs && !force) return
