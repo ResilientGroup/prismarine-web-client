@@ -26,20 +26,21 @@ if (!isProd) {
 app.get('/config.json', (req, res, next) => {
   // read original file config
   let config = {}
+  let publicConfig = {}
   try {
     config = require('./config.json')
   } catch {
     try {
-      config = require('./public/config.json')
-    } catch {
-      try {
-        config = require('./dist/config.json')
-      } catch { }
-    }
+      config = require('./dist/config.json')
+    } catch { }
   }
+  try {
+    publicConfig = require('./public/config.json')
+  } catch { }
   res.json({
     ...config,
     'defaultProxy': '', // use current url (this server)
+    ...publicConfig,
   })
 })
 if (isProd) {
