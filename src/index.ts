@@ -7,7 +7,7 @@ import './entities'
 import './globalDomListeners'
 import './mineflayer/maps'
 import './mineflayer/cameraShake'
-import './inventoryWindows'
+import { onGameLoad } from './inventoryWindows'
 import initCollisionShapes from './getCollisionInteractionShapes'
 import protocolMicrosoftAuth from 'minecraft-protocol/src/client/microsoftAuth'
 import microsoftAuthflow from './microsoftAuthflow'
@@ -98,7 +98,6 @@ import './mobileShim'
 import { parseFormattedMessagePacket } from './botUtils'
 import { getViewerVersionData, getWsProtocolStream } from './viewerConnector'
 import { updateCursor } from './cameraRotationControls'
-import { onGameLoad } from './inventoryWindows'
 
 window.debug = debug
 window.THREE = THREE
