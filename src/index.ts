@@ -70,7 +70,7 @@ import { startLocalServer, unsupportedLocalServerFeatures } from './createLocalS
 import defaultServerOptions from './defaultLocalServerOptions'
 import dayCycle from './dayCycle'
 
-import { onAppLoad, resourcepackReload } from './resourcePack'
+import { onAppLoad, resourcepackReload, resourcePackState } from './resourcePack'
 import { ConnectPeerOptions, connectToPeer } from './localServerMultiplayer'
 import CustomChannelClient from './customClient'
 import { registerServiceWorker } from './serviceWorker'
@@ -671,7 +671,17 @@ export async function connect (connectOptions: ConnectOptions) {
 
   const spawnEarlier = !singleplayer && !p2pMultiplayer
   // don't use spawn event, player can be dead
-  bot.once(spawnEarlier ? 'forcedMove' : 'health', () => {
+  bot.once(spawnEarlier ? 'forcedMove' : 'health', async () => {
+    if (resourcePackState.isServerInstalling) {
+      showNotification('Resource pack is being installed, please wait...')
+      await new Promise<void>(resolve => {
+        subscribe(resourcePackState, () => {
+          if (!resourcePackState.isServerInstalling) {
+            resolve()
+          }
+        })
+      })
+    }
     window.focus?.()
     errorAbortController.abort()
     const mcData = MinecraftData(bot.version)

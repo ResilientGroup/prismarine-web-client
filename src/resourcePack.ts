@@ -16,6 +16,7 @@ import { watchUnloadForCleanup } from './gameUnload'
 
 export const resourcePackState = proxy({
   resourcePackInstalled: false,
+  isServerInstalling: false
 })
 
 const getLoadedImage = async (url: string) => {
@@ -336,14 +337,24 @@ const prepareBlockstatesAndModels = async () => {
 }
 
 const downloadAndUseResourcePack = async (url: string): Promise<void> => {
-  console.log('Downloading server resource pack', url)
-  const response = await fetch(url)
-  const resourcePackData = await response.arrayBuffer()
-  showNotification('Installing resource pack...')
-  installTexturePack(resourcePackData, undefined, undefined, true).catch((err) => {
-    console.error(err)
-    showNotification('Failed to install resource pack: ' + err.message)
-  })
+  try {
+    resourcePackState.isServerInstalling = true
+    console.log('Downloading server resource pack', url)
+    const response = await fetch(url).catch((err) => {
+      console.log(`Ensure server on ${url} support CORS which is not required for regular client, but is required for the web client`)
+      console.error(err)
+      showNotification('Failed to download resource pack: ' + err.message)
+    })
+    if (!response) return
+    const resourcePackData = await response.arrayBuffer()
+    showNotification('Installing resource pack...')
+    await installTexturePack(resourcePackData, undefined, undefined, true).catch((err) => {
+      console.error(err)
+      showNotification('Failed to install resource pack: ' + err.message)
+    })
+  } finally {
+    resourcePackState.isServerInstalling = false
+  }
 }
 
 const waitForGameEvent = async () => {

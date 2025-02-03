@@ -30,7 +30,26 @@ export const pingServerVersion = async (ip: string, port?: number, preferredVers
 }
 
 const MAX_PACKET_SIZE = 2_097_152 // 2mb
-const MAX_PACKET_DEPTH = 20
+const CHAT_MAX_PACKET_DEPTH = 30
+
+const CHAT_VALIDATE_PACKETS = new Set([
+  'chat',
+  'system_chat',
+  'player_chat',
+  'profileless_chat',
+  'kick_disconnect',
+  'resource_pack_send',
+  'action_bar',
+  'set_title_text',
+  'set_title_subtitle',
+  'title',
+  'death_combat_event',
+  'server_data',
+  'scoreboard_objective',
+  'scoreboard_team',
+  'playerlist_header',
+  'boss_bar'
+])
 
 export const validatePacket = (name: string, data: any, fullBuffer: Buffer, isFromServer: boolean) => {
   // todo find out why chat is so slow with react
@@ -43,13 +62,15 @@ export const validatePacket = (name: string, data: any, fullBuffer: Buffer, isFr
     throw new Error(`Packet ${name} is too large: ${fullBuffer.length} bytes`)
   }
 
-  // todo count total number of objects instead of max depth
-  const maxDepth = getObjectMaxDepth(data)
-  if (maxDepth > MAX_PACKET_DEPTH) {
-    console.groupCollapsed(`Packet ${name} have too many nested objects: ${maxDepth}`)
-    console.log(data)
-    console.groupEnd()
-    throw new Error(`Packet ${name} have too many nested objects: ${maxDepth}`)
+  if (CHAT_VALIDATE_PACKETS.has(name)) {
+    // todo count total number of objects instead of max depth
+    const maxDepth = getObjectMaxDepth(data)
+    if (maxDepth > CHAT_MAX_PACKET_DEPTH) {
+      console.groupCollapsed(`Packet ${name} have too many nested objects: ${maxDepth}`)
+      console.log(data)
+      console.groupEnd()
+      throw new Error(`Packet ${name} have too many nested objects: ${maxDepth}`)
+    }
   }
 }
 
