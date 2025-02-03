@@ -22,6 +22,7 @@ import { gamepadUiCursorState, moveGamepadCursorByPx } from './react/GamepadUiCu
 import { completeTexturePackInstall, copyServerResourcePackToRegular, resourcePackState } from './resourcePack'
 import { showNotification } from './react/NotificationProvider'
 import { lastConnectOptions } from './react/AppStatusProvider'
+import { onCameraMove, onControInit } from './cameraRotationControls'
 
 
 export const customKeymaps = proxy(JSON.parse(localStorage.keymap || '{}')) as UserOverridesConfig
@@ -50,7 +51,11 @@ export const contro = new ControMax({
       command: ['Slash'],
       swapHands: ['KeyF'],
       zoom: ['KeyC'],
-      selectItem: ['KeyH'] // default will be removed
+      selectItem: ['KeyH'], // default will be removed
+      rotateCameraLeft: ['ArrowLeft'],
+      rotateCameraRight: ['ArrowRight'],
+      rotateCameraUp: ['ArrowUp'],
+      rotateCameraDown: ['ArrowDown']
     },
     ui: {
       toggleFullscreen: ['F11'],
@@ -91,6 +96,8 @@ export const contro = new ControMax({
 })
 window.controMax = contro
 export type Command = CommandEventArgument<typeof contro['_commandsRaw']>['command']
+
+onControInit()
 
 updateBinds(customKeymaps)
 
@@ -245,6 +252,73 @@ const inModalCommand = (command: Command, pressed: boolean) => {
   }
 }
 
+// Camera rotation controls
+const cameraRotationControls = {
+  activeDirections: new Set<'left' | 'right' | 'up' | 'down'>(),
+  interval: null as ReturnType<typeof setInterval> | null,
+  config: {
+    speed: 1, // movement per interval
+    interval: 5 // ms between movements
+  },
+  movements: {
+    left: { movementX: -0.5, movementY: 0 },
+    right: { movementX: 0.5, movementY: 0 },
+    up: { movementX: 0, movementY: -0.5 },
+    down: { movementX: 0, movementY: 0.5 }
+  },
+  updateMovement () {
+    if (cameraRotationControls.activeDirections.size === 0) {
+      if (cameraRotationControls.interval) {
+        clearInterval(cameraRotationControls.interval)
+        cameraRotationControls.interval = null
+      }
+      return
+    }
+
+    if (!cameraRotationControls.interval) {
+      cameraRotationControls.interval = setInterval(() => {
+        // Combine all active movements
+        const movement = { movementX: 0, movementY: 0 }
+        for (const direction of cameraRotationControls.activeDirections) {
+          movement.movementX += cameraRotationControls.movements[direction].movementX
+          movement.movementY += cameraRotationControls.movements[direction].movementY
+        }
+
+        onCameraMove({
+          ...movement,
+          type: 'keyboardRotation',
+          stopPropagation () {}
+        })
+      }, cameraRotationControls.config.interval)
+    }
+  },
+  start (direction: 'left' | 'right' | 'up' | 'down') {
+    cameraRotationControls.activeDirections.add(direction)
+    cameraRotationControls.updateMovement()
+  },
+  stop (direction: 'left' | 'right' | 'up' | 'down') {
+    cameraRotationControls.activeDirections.delete(direction)
+    cameraRotationControls.updateMovement()
+  },
+  handleCommand (command: string, pressed: boolean) {
+    const directionMap = {
+      'general.rotateCameraLeft': 'left',
+      'general.rotateCameraRight': 'right',
+      'general.rotateCameraUp': 'up',
+      'general.rotateCameraDown': 'down'
+    } as const
+
+    const direction = directionMap[command]
+    if (direction) {
+      if (pressed) cameraRotationControls.start(direction)
+      else cameraRotationControls.stop(direction)
+      return true
+    }
+    return false
+  }
+}
+window.cameraRotationControls = cameraRotationControls
+
 const setSneaking = (state: boolean) => {
   gameAdditionalState.isSneaking = state
   bot.setControlState('sneak', state)
@@ -275,7 +349,6 @@ const onTriggerOrReleased = (command: Command, pressed: boolean) => {
         } else if (pressed) {
           setSneaking(!gameAdditionalState.isSneaking)
         }
-
         break
       case 'general.attackDestroy':
         document.dispatchEvent(new MouseEvent(pressed ? 'mousedown' : 'mouseup', { button: 0 }))
@@ -285,6 +358,12 @@ const onTriggerOrReleased = (command: Command, pressed: boolean) => {
         break
       case 'general.zoom':
         gameAdditionalState.isZooming = pressed
+        break
+      case 'general.rotateCameraLeft':
+      case 'general.rotateCameraRight':
+      case 'general.rotateCameraUp':
+      case 'general.rotateCameraDown':
+        cameraRotationControls.handleCommand(command, pressed)
         break
     }
   }
@@ -370,6 +449,12 @@ contro.on('trigger', ({ command }) => {
       case 'general.toggleSneakOrDown':
       case 'general.sprint':
       case 'general.attackDestroy':
+      case 'general.rotateCameraLeft':
+      case 'general.rotateCameraRight':
+      case 'general.rotateCameraUp':
+      case 'general.rotateCameraDown':
+        // no-op
+        break
       case 'general.swapHands': {
         bot._client.write('entity_action', {
           entityId: bot.entity.id,

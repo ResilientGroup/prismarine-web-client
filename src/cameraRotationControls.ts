@@ -20,7 +20,7 @@ export type CameraMoveEvent = {
 
 export function onCameraMove (e: MouseEvent | CameraMoveEvent) {
   if (!isGameActive(true)) return
-  if (e.type !== 'touchmove' && !document.pointerLockElement) return
+  if (e.type === 'mousemove' && !document.pointerLockElement) return
   e.stopPropagation?.()
   const now = performance.now()
   // todo: limit camera movement for now to avoid unexpected jumps
@@ -50,20 +50,22 @@ window.addEventListener('mousemove', (e: MouseEvent) => {
   onCameraMove(e)
 }, { capture: true })
 
-contro.on('stickMovement', ({ stick, vector }) => {
-  if (!isGameActive(true)) return
-  if (stick !== 'right') return
-  let { x, z } = vector
-  if (Math.abs(x) < 0.18) x = 0
-  if (Math.abs(z) < 0.18) z = 0
-  onCameraMove({
-    movementX: x * 10,
-    movementY: z * 10,
-    type: 'stickMovement',
-    stopPropagation () {}
-  } as CameraMoveEvent)
-  miscUiState.usingGamepadInput = true
-})
+export const onControInit = () => {
+  contro.on('stickMovement', ({ stick, vector }) => {
+    if (!isGameActive(true)) return
+    if (stick !== 'right') return
+    let { x, z } = vector
+    if (Math.abs(x) < 0.18) x = 0
+    if (Math.abs(z) < 0.18) z = 0
+    onCameraMove({
+      movementX: x * 10,
+      movementY: z * 10,
+      type: 'stickMovement',
+      stopPropagation () {}
+    } as CameraMoveEvent)
+    miscUiState.usingGamepadInput = true
+  })
+}
 
 function pointerLockChangeCallback () {
   if (notificationProxy.id === 'pointerlockchange') {
