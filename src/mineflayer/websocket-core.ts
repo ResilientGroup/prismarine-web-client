@@ -14,8 +14,9 @@ class CustomDuplex extends Duplex {
 }
 
 export const getWebsocketStream = async (host: string) => {
-  host = host.replace('ws://', '').replace('wss://', '')
-  const ws = new WebSocket(`ws://${host}`)
+  const baseProtocol = location.protocol === 'https:' ? 'wss' : host.startsWith('ws://') ? 'ws' : 'wss'
+  const hostClean = host.replace('ws://', '').replace('wss://', '')
+  const ws = new WebSocket(`${baseProtocol}://${hostClean}`)
   const clientDuplex = new CustomDuplex(undefined, data => {
     ws.send(data)
   })
