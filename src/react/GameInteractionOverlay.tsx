@@ -1,10 +1,11 @@
 import { useRef } from 'react'
-import { useSnapshot } from 'valtio'
+import { subscribe, useSnapshot } from 'valtio'
 import { useUtilsEffect } from '@zardoy/react-util'
 import { options } from '../optionsStorage'
 import { activeModalStack, isGameActive, miscUiState } from '../globalState'
 import worldInteractions from '../worldInteractions'
 import { onCameraMove, CameraMoveEvent } from '../cameraRotationControls'
+import { pointerLock } from '../utils'
 import { handleMovementStickDelta, joystickPointer } from './TouchAreasControls'
 
 /** after what time of holding the finger start breaking the block */
@@ -185,3 +186,13 @@ export default function GameInteractionOverlay ({ zIndex }: { zIndex: number }) 
   if (modalStack.length > 0 || !currentTouch) return null
   return <GameInteractionOverlayInner zIndex={zIndex} />
 }
+
+subscribe(activeModalStack, () => {
+  if (activeModalStack.length === 0) {
+    if (isGameActive(false)) {
+      void pointerLock.requestPointerLock()
+    }
+  } else {
+    document.exitPointerLock?.()
+  }
+})

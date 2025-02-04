@@ -1,6 +1,8 @@
 import { Client } from 'minecraft-protocol'
 import { appQueryParams } from '../appParams'
-import { validatePacket } from './minecraft-protocol-extra'
+import { downloadAllMinecraftData, getVersionAutoSelect } from '../connect'
+import { pingServerVersion, validatePacket } from './minecraft-protocol-extra'
+import { getWebsocketStream } from './websocket-core'
 
 customEvents.on('mineflayerBotCreated', () => {
   // todo move more code here
@@ -13,3 +15,18 @@ customEvents.on('mineflayerBotCreated', () => {
     })
   }
 })
+
+
+export const getServerInfo = async (ip: string, port?: number, preferredVersion = getVersionAutoSelect(), ping = false) => {
+  await downloadAllMinecraftData()
+  const isWebSocket = ip.startsWith('ws://') || ip.startsWith('wss://')
+  let stream
+  if (isWebSocket) {
+    stream = (await getWebsocketStream(ip)).mineflayerStream
+  }
+  return pingServerVersion(ip, port, {
+    ...(stream ? { stream } : {}),
+    ...(ping ? { noPongTimeout: 3000 } : {}),
+    ...(preferredVersion ? { version: preferredVersion } : {}),
+  })
+}

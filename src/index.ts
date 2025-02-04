@@ -88,7 +88,7 @@ import { saveToBrowserMemory } from './react/PauseScreen'
 import { ViewerWrapper } from 'prismarine-viewer/viewer/lib/viewerWrapper'
 import './devReload'
 import './water'
-import { ConnectOptions, downloadMcDataOnConnect, getVersionAutoSelect, downloadOtherGameData } from './connect'
+import { ConnectOptions, downloadMcDataOnConnect, getVersionAutoSelect, downloadOtherGameData, downloadAllMinecraftData } from './connect'
 import { ref, subscribe } from 'valtio'
 import { signInMessageState } from './react/SignInMessageProvider'
 import { updateAuthenticatedAccountData, updateLoadedServerData } from './react/ServersListProvider'
@@ -99,9 +99,11 @@ import { ItemsRenderer } from 'mc-assets/dist/itemsRenderer'
 import './mobileShim'
 import { parseFormattedMessagePacket } from './botUtils'
 import { getViewerVersionData, getWsProtocolStream } from './viewerConnector'
+import { getWebsocketStream } from './mineflayer/websocket-core'
 import { appQueryParams, appQueryParamsArray } from './appParams'
 import { updateCursor } from './cameraRotationControls'
 import { pingServerVersion } from './mineflayer/minecraft-protocol-extra'
+import { getServerInfo } from './mineflayer/mc-protocol'
 
 window.debug = debug
 window.THREE = THREE
@@ -262,7 +264,8 @@ export async function connect (connectOptions: ConnectOptions) {
   miscUiState.singleplayer = singleplayer
   miscUiState.flyingSquid = singleplayer || p2pMultiplayer
   const { renderDistance: renderDistanceSingleplayer, multiplayerRenderDistance } = options
-  const server = cleanConnectIp(connectOptions.server, '25565')
+  const isWebSocket = connectOptions.server?.startsWith('ws://') || connectOptions.server?.startsWith('wss://')
+  const server = isWebSocket ? { host: connectOptions.server, port: undefined } : cleanConnectIp(connectOptions.server, '25565')
   if (connectOptions.proxy?.startsWith(':')) {
     connectOptions.proxy = `${location.protocol}//${location.hostname}${connectOptions.proxy}`
   }
@@ -352,9 +355,10 @@ export async function connect (connectOptions: ConnectOptions) {
     signal: errorAbortController.signal
   })
 
-  if (proxy && !connectOptions.viewerWsConnect) {
-    console.log(`using proxy ${proxy.host}:${proxy.port || location.port}`)
+  let clientDataStream
 
+  if (proxy && !connectOptions.viewerWsConnect && !isWebSocket) {
+    console.log(`using proxy ${proxy.host}:${proxy.port || location.port}`)
     net['setProxy']({ hostname: proxy.host, port: proxy.port })
   }
 
@@ -366,11 +370,14 @@ export async function connect (connectOptions: ConnectOptions) {
     Object.assign(serverOptions, connectOptions.serverOverridesFlat ?? {})
     setLoadingScreenStatus('Downloading minecraft data')
     await Promise.all([
-      window._LOAD_MC_DATA(), // download mc data before we can use minecraft-data at all
+      downloadAllMinecraftData(), // download mc data before we can use minecraft-data at all
       downloadOtherGameData()
     ])
     setLoadingScreenStatus(loggingInMsg)
+    let dataDownloaded = false
     const downloadMcData = async (version: string) => {
+      if (dataDownloaded) return
+      dataDownloaded = true
       if (connectOptions.authenticatedAccount && (versionToNumber(version) < versionToNumber('1.19.4') || versionToNumber(version) >= versionToNumber('1.21'))) {
         // todo support it (just need to fix .export crash)
         throw new Error('Microsoft authentication is only supported on 1.19.4 - 1.20.6 (at least for now)')
@@ -378,6 +385,7 @@ export async function connect (connectOptions: ConnectOptions) {
 
       await downloadMcDataOnConnect(version)
       try {
+        // TODO! reload only after login packet (delay viewer display) so no unecessary reload after server one is isntalled
         await resourcepackReload(version)
       } catch (err) {
         console.error(err)
@@ -386,8 +394,10 @@ export async function connect (connectOptions: ConnectOptions) {
           throw err
         }
       }
+      setLoadingScreenStatus('Loading minecraft assets')
       viewer.world.blockstatesModels = await import('mc-assets/dist/blockStatesModels.json')
       void viewer.setVersion(version, options.useVersionsTextures === 'latest' ? version : options.useVersionsTextures)
+      miscUiState.loadedDataVersion = version
     }
 
     const downloadVersion = connectOptions.botVersion || (singleplayer ? serverOptions.version : undefined)
@@ -436,13 +446,17 @@ export async function connect (connectOptions: ConnectOptions) {
     } else if (connectOptions.server) {
       const versionAutoSelect = getVersionAutoSelect()
       setLoadingScreenStatus(`Fetching server version. Preffered: ${versionAutoSelect}`)
-      const autoVersionSelect = await pingServerVersion(server.host!, server.port ? Number(server.port) : undefined, versionAutoSelect)
+      const autoVersionSelect = await getServerInfo(server.host!, server.port ? Number(server.port) : undefined, versionAutoSelect)
       initialLoadingText = `Connecting to server ${server.host} with version ${autoVersionSelect.version}`
       connectOptions.botVersion = autoVersionSelect.version
     } else {
       initialLoadingText = 'We have no idea what to do'
     }
     setLoadingScreenStatus(initialLoadingText)
+
+    if (isWebSocket) {
+      clientDataStream = (await getWebsocketStream(server.host!)).mineflayerStream
+    }
 
     let newTokensCacheResult = null as any
     const cachedTokens = typeof connectOptions.authenticatedAccount === 'object' ? connectOptions.authenticatedAccount.cachedTokens : {}
@@ -458,7 +472,6 @@ export async function connect (connectOptions: ConnectOptions) {
       connectingServer: server.host
     }) : undefined
 
-    let clientDataStream
     if (p2pMultiplayer) {
       clientDataStream = await connectToPeer(connectOptions.peerId!, connectOptions.peerOptions)
     }
@@ -473,7 +486,7 @@ export async function connect (connectOptions: ConnectOptions) {
     }
 
     if (connectOptions.botVersion) {
-      miscUiState.loadedDataVersion = connectOptions.botVersion
+      await downloadMcData(connectOptions.botVersion)
     }
 
     bot = mineflayer.createBot({
@@ -562,7 +575,7 @@ export async function connect (connectOptions: ConnectOptions) {
 
       bot.emit('inject_allowed')
       bot._client.emit('connect')
-    } else if (connectOptions.viewerWsConnect) {
+    } else if (clientDataStream) {
       // bot.emit('inject_allowed')
       bot._client.emit('connect')
     } else {

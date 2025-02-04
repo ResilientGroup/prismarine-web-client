@@ -1,7 +1,7 @@
 import EventEmitter from 'events'
 import clientAutoVersion from 'minecraft-protocol/src/client/autoVersion'
 
-export const pingServerVersion = async (ip: string, port?: number, preferredVersion?: string) => {
+export const pingServerVersion = async (ip: string, port?: number, mergeOptions: Record<string, any> = {}) => {
   const fakeClient = new EventEmitter() as any
   fakeClient.on('error', (err) => {
     throw new Error(err.message ?? err)
@@ -9,13 +9,15 @@ export const pingServerVersion = async (ip: string, port?: number, preferredVers
   const options = {
     host: ip,
     port,
-    version: preferredVersion,
-    noPongTimeout: Infinity // disable timeout
+    noPongTimeout: Infinity, // disable timeout
+    ...mergeOptions,
   }
-  // let latency = 0
-  // fakeClient.autoVersionHooks = [(res) => {
-  //   latency = res.latency
-  // }]
+  let latency = 0
+  let fullInfo = null
+  fakeClient.autoVersionHooks = [(res) => {
+    latency = res.latency
+    fullInfo = res
+  }]
 
   // TODO! use client.socket.destroy() instead of client.end() for faster cleanup
   await clientAutoVersion(fakeClient, options)
@@ -25,7 +27,8 @@ export const pingServerVersion = async (ip: string, port?: number, preferredVers
   })
   return {
     version: fakeClient.version,
-    // latency,
+    latency,
+    fullInfo,
   }
 }
 
