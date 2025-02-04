@@ -5,7 +5,7 @@ import './globals'
 import './devtools'
 import './entities'
 import './globalDomListeners'
-import './mineflayer/mc-protocol'
+import { getServerInfo } from './mineflayer/mc-protocol'
 import './mineflayer/maps'
 import './mineflayer/cameraShake'
 import './shims/patchShims'
@@ -103,7 +103,6 @@ import { getWebsocketStream } from './mineflayer/websocket-core'
 import { appQueryParams, appQueryParamsArray } from './appParams'
 import { updateCursor } from './cameraRotationControls'
 import { pingServerVersion } from './mineflayer/minecraft-protocol-extra'
-import { getServerInfo } from './mineflayer/mc-protocol'
 
 window.debug = debug
 window.THREE = THREE
