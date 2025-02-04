@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
-import BossBar, { BossBarType } from './BossBarOverlay'
-import './BossBarOverlay.css'
 import { useSnapshot } from 'valtio'
 import { miscUiState } from '../globalState'
+import './BossBarOverlay.css'
+import BossBar, { BossBarType } from './BossBarOverlay'
 
 
 export default () => {
