@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react'
 import BossBar, { BossBarType } from './BossBarOverlay'
 import './BossBarOverlay.css'
+import { useSnapshot } from 'valtio'
+import { miscUiState } from '../globalState'
 
 
 export default () => {
+  const { currentTouch } = useSnapshot(miscUiState)
   const [bossBars, setBossBars] = useState(new Map<string, BossBarType>())
   const addBossBar = (bossBar: BossBarType) => {
     setBossBars(prevBossBars => new Map(prevBossBars.set(bossBar.entityUUID, bossBar)))
@@ -31,7 +34,7 @@ export default () => {
   }, [])
 
   return (
-    <div className="bossBars" id="bossBars">
+    <div className={`bossBars ${currentTouch ? 'mobile' : ''}`} id="bossBars">
       {[...bossBars.values()].map(bar => (
         <BossBar key={bar.entityUUID} bar={bar} />
       ))}

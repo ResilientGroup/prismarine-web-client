@@ -10,7 +10,7 @@
   pointer-events: none;
 }
 
-#mobile-top ~ .bossBars {
+.bossBars.mobile {
   top: 18px;
 }
 
