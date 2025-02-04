@@ -399,10 +399,7 @@ export async function connect (connectOptions: ConnectOptions) {
       miscUiState.loadedDataVersion = version
     }
 
-    const downloadVersion = connectOptions.botVersion || (singleplayer ? serverOptions.version : undefined)
-    if (downloadVersion) {
-      await downloadMcData(downloadVersion)
-    }
+    let finalVersion = connectOptions.botVersion || (singleplayer ? serverOptions.version : undefined)
 
     if (singleplayer) {
       // SINGLEPLAYER EXPLAINER:
@@ -443,11 +440,13 @@ export async function connect (connectOptions: ConnectOptions) {
     } else if (p2pMultiplayer) {
       initialLoadingText = 'Connecting to peer'
     } else if (connectOptions.server) {
-      const versionAutoSelect = getVersionAutoSelect()
-      setLoadingScreenStatus(`Fetching server version. Preffered: ${versionAutoSelect}`)
-      const autoVersionSelect = await getServerInfo(server.host!, server.port ? Number(server.port) : undefined, versionAutoSelect)
-      initialLoadingText = `Connecting to server ${server.host} with version ${autoVersionSelect.version}`
-      connectOptions.botVersion = autoVersionSelect.version
+      if (!finalVersion) {
+        const versionAutoSelect = getVersionAutoSelect()
+        setLoadingScreenStatus(`Fetching server version. Preffered: ${versionAutoSelect}`)
+        const autoVersionSelect = await getServerInfo(server.host!, server.port ? Number(server.port) : undefined, versionAutoSelect)
+        finalVersion = autoVersionSelect.version
+      }
+      initialLoadingText = `Connecting to server ${server.host} with version ${finalVersion}`
     } else {
       initialLoadingText = 'We have no idea what to do'
     }
@@ -478,20 +477,21 @@ export async function connect (connectOptions: ConnectOptions) {
       const { version, time } = await getViewerVersionData(connectOptions.viewerWsConnect)
       console.log('Latency:', Date.now() - time, 'ms')
       // const version = '1.21.1'
-      connectOptions.botVersion = version
+      finalVersion = version
       await downloadMcData(version)
       setLoadingScreenStatus(`Connecting to WebSocket server ${connectOptions.viewerWsConnect}`)
       clientDataStream = await getWsProtocolStream(connectOptions.viewerWsConnect)
     }
 
-    if (connectOptions.botVersion) {
-      await downloadMcData(connectOptions.botVersion)
+    if (finalVersion) {
+      // ensure data is downloaded
+      await downloadMcData(finalVersion)
     }
 
     bot = mineflayer.createBot({
       host: server.host,
       port: server.port ? +server.port : undefined,
-      version: connectOptions.botVersion || false,
+      version: finalVersion || false,
       ...clientDataStream ? {
         stream: clientDataStream,
       } : {},
