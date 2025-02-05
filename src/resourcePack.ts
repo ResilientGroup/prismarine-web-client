@@ -289,41 +289,47 @@ const prepareBlockstatesAndModels = async () => {
   if (appStatusState.status) {
     setLoadingScreenStatus('Reading resource pack blockstates and models')
   }
-  const readData = async (namespaceDir: string) => {
-    const blockstatesPath = `${basePath}/assets/${namespaceDir}/blockstates`
-    const modelsPath = `${basePath}/assets/${namespaceDir}/models/block` // todo also models/item
-    const getAllJson = async (path: string, type: 'models' | 'blockstates') => {
-      if (!(await existsAsync(path))) return
-      const files = await fs.promises.readdir(path)
-      const jsons = {} as Record<string, any>
-      await Promise.all(files.map(async (file) => {
-        const filePath = `${path}/${file}`
-        if (file.endsWith('.json')) {
-          const contents = await fs.promises.readFile(filePath, 'utf8')
-          let name = file.replace('.json', '')
-          if (type === 'models') {
-            name = `block/${name}`
-          }
-          const parsed = JSON.parse(contents)
-          if (namespaceDir === 'minecraft') {
-            jsons[name] = parsed
-          }
-          jsons[`${namespaceDir}:${name}`] = parsed
-          if (type === 'models') {
-            for (let texturePath of Object.values(parsed.textures ?? {})) {
-              if (typeof texturePath !== 'string') continue
-              if (texturePath.startsWith('#')) continue
-              if (!texturePath.includes(':')) texturePath = `minecraft:${texturePath}`
-              usedTextures.add(texturePath as string)
-            }
+
+  const readModelData = async (path: string, type: 'models' | 'blockstates', namespaceDir: string) => {
+    if (!(await existsAsync(path))) return
+    const files = await fs.promises.readdir(path)
+    const jsons = {} as Record<string, any>
+    await Promise.all(files.map(async (file) => {
+      const filePath = `${path}/${file}`
+      if (file.endsWith('.json')) {
+        const contents = await fs.promises.readFile(filePath, 'utf8')
+        let name = file.replace('.json', '')
+        if (type === 'models') {
+          name = `${path.endsWith('block') ? 'block' : 'item'}/${name}`
+        }
+        const parsed = JSON.parse(contents)
+        if (namespaceDir === 'minecraft') {
+          jsons[name] = parsed
+        }
+        jsons[`${namespaceDir}:${name}`] = parsed
+        if (type === 'models') {
+          for (let texturePath of Object.values(parsed.textures ?? {})) {
+            if (typeof texturePath !== 'string') continue
+            if (texturePath.startsWith('#')) continue
+            if (!texturePath.includes(':')) texturePath = `minecraft:${texturePath}`
+            usedTextures.add(texturePath as string)
           }
         }
-      }))
-      return jsons
-    }
-    Object.assign(viewer.world.customBlockStates!, await getAllJson(blockstatesPath, 'blockstates'))
-    Object.assign(viewer.world.customModels!, await getAllJson(modelsPath, 'models'))
+      }
+    }))
+    return jsons
   }
+
+  const readData = async (namespaceDir: string) => {
+    const blockstatesPath = `${basePath}/assets/${namespaceDir}/blockstates`
+    const blockModelsPath = `${basePath}/assets/${namespaceDir}/models/block`
+    const itemModelsPath = `${basePath}/assets/${namespaceDir}/models/item`
+
+    Object.assign(viewer.world.customBlockStates!, await readModelData(blockstatesPath, 'blockstates', namespaceDir))
+    Object.assign(viewer.world.customModels!, await readModelData(blockModelsPath, 'models', namespaceDir))
+    Object.assign(viewer.world.customModels!, await readModelData(itemModelsPath, 'models', namespaceDir))
+  }
+
   try {
     const assetsDirs = await fs.promises.readdir(join(basePath, 'assets'))
     for (const assetsDir of assetsDirs) {

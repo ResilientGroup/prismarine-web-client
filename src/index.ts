@@ -5,11 +5,13 @@ import './globals'
 import './devtools'
 import './entities'
 import './globalDomListeners'
-import { getServerInfo } from './mineflayer/mc-protocol'
 import './mineflayer/maps'
 import './mineflayer/cameraShake'
 import './shims/patchShims'
-import { onGameLoad } from './inventoryWindows'
+import './mineflayer/java-tester/index'
+import { getServerInfo } from './mineflayer/mc-protocol'
+import { onGameLoad, renderSlot } from './inventoryWindows'
+import { RenderItem } from './mineflayer/items'
 import initCollisionShapes from './getCollisionInteractionShapes'
 import protocolMicrosoftAuth from 'minecraft-protocol/src/client/microsoftAuth'
 import microsoftAuthflow from './microsoftAuthflow'
@@ -159,35 +161,42 @@ const viewer: import('prismarine-viewer/viewer/lib/viewer').Viewer = new Viewer(
 window.viewer = viewer
 viewer.getMineflayerBot = () => bot
 // todo unify
-viewer.entities.getItemUv = (idOrName: number | string) => {
+viewer.entities.getItemUv = (item) => {
+  const idOrName = item.itemId ?? item.blockId
   try {
     const name = typeof idOrName === 'number' ? loadedData.items[idOrName]?.name : idOrName
-    // TODO
-    if (!viewer.world.itemsAtlasParser) throw new Error('itemsAtlasParser not loaded yet')
-    const itemsRenderer = new ItemsRenderer('latest', viewer.world.blockstatesModels, viewer.world.itemsAtlasParser, viewer.world.blocksAtlasParser)
-    const textureInfo = itemsRenderer.getItemTexture(name)
-    if (!textureInfo) throw new Error(`Texture not found for item ${name}`)
-    const tex = 'type' in textureInfo ? textureInfo : textureInfo.left
-    const [x, y, w, h] = tex.slice
-    const textureThree = tex.type === 'blocks' ? viewer.world.material.map! : viewer.entities.itemsTexture!
+    if (!name) throw new Error(`Item not found: ${idOrName}`)
+
+    const renderInfo = renderSlot({
+      name,
+      nbt: null,
+      ...item
+    })
+
+    if (!renderInfo) throw new Error(`Failed to get render info for item ${name}`)
+
+    const textureThree = renderInfo.texture === 'blocks' ? viewer.world.material.map! : viewer.entities.itemsTexture!
     const img = textureThree.image
-    const [u, v, su, sv] = [x / img.width, y / img.height, (w / img.width), (h / img.height)]
-    const uvInfo = {
-      u,
-      v,
-      su,
-      sv
+
+    if (renderInfo.blockData || renderInfo.slice) {
+      // Get slice coordinates from either block or item texture
+      const [x, y, w, h] = renderInfo.blockData ? renderInfo.blockData.left.slice : renderInfo.slice
+      const [u, v, su, sv] = [x / img.width, y / img.height, (w / img.width), (h / img.height)]
+      return {
+        u, v, su, sv,
+        texture: textureThree
+      }
     }
-    return {
-      ...uvInfo,
-      texture: textureThree
-    }
+
+    throw new Error(`Invalid render info for item ${name}`)
   } catch (err) {
     reportError?.(err)
+    // Return default UV coordinates for missing texture
     return {
       u: 0,
       v: 0,
-      size: 16 / viewer.world.material.map!.image.width,
+      su: 16 / viewer.world.material.map!.image.width,
+      sv: 16 / viewer.world.material.map!.image.width,
       texture: viewer.world.material.map!
     }
   }
