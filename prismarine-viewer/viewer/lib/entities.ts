@@ -427,7 +427,9 @@ export class Entities extends EventEmitter {
 
   getItemMesh (item) {
     if (item.blockId || this.isBlock(item.itemId)) {
-      const block = loadedData.blocks[item.blockId ?? item.itemId]
+      const block = item.blockId
+        ? loadedData.blocks[item.blockId]
+        : loadedData.blocksByName[loadedData.items[item.itemId].name]
       const mesh = getBlockMesh(this.viewer.world.material, block.name, {})
       const SCALE = 0.5
       mesh.scale.set(SCALE, SCALE, SCALE)
