@@ -115,7 +115,7 @@ customEvents.on('gameLoaded', () => {
       if (viewer.entities.entities[e.id]) {
         if (loadedSkinEntityIds.has(e.id)) return
         loadedSkinEntityIds.add(e.id)
-        viewer.entities.updatePlayerSkin(e.id, e.username, true, true)
+        viewer.entities.updatePlayerSkin(e.id, e.username, e.uuid, true, true)
       }
     }
   }
