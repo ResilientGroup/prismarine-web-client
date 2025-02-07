@@ -9,6 +9,7 @@ import PItem, { Item } from 'prismarine-item'
 import { versionToNumber } from 'prismarine-viewer/viewer/prepare/utils'
 import { getRenamedData } from 'flying-squid/dist/blockRenames'
 import PrismarineChatLoader from 'prismarine-chat'
+import { BlockModel } from 'mc-assets'
 import Generic95 from '../assets/generic_95.png'
 import { appReplacableResources } from './generated/resources'
 import { activeModalStack, hideCurrentModal, hideModal, miscUiState, showModal } from './globalState'
@@ -175,7 +176,7 @@ const getImage = ({ path = undefined as string | undefined, texture = undefined 
 
 export const renderSlot = (slot: GeneralInputItem, debugIsQuickbar = false): {
   texture: string,
-  blockData?: Record<string, { slice, path }>,
+  blockData?: Record<string, { slice, path }> & { resolvedModel: BlockModel },
   scale?: number,
   slice?: number[],
 } | undefined => {

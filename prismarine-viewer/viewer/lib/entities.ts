@@ -14,6 +14,7 @@ import { flat, fromFormattedString } from '@xmcl/text-component'
 import mojangson from 'mojangson'
 import { snakeCase } from 'change-case'
 import { Item } from 'prismarine-item'
+import { BlockModel } from 'mc-assets'
 import { EntityMetadataVersions } from '../../../src/mcDataTypes'
 import * as Entity from './entity/EntityMesh'
 import { getMesh } from './entity/EntityMesh'
@@ -21,7 +22,7 @@ import { WalkingGeneralSwing } from './entity/animations'
 import { disposeObject } from './threeJsUtils'
 import { armorModels } from './entity/objModels'
 import { Viewer } from './viewer'
-import { getBlockMesh } from './holdingBlock'
+import { getBlockMeshFromModel } from './holdingBlock'
 const { loadTexture } = globalThis.isElectron ? require('./utils.electron.js') : require('./utils')
 
 export const TWEEN_DURATION = 120
@@ -222,6 +223,8 @@ export class Entities extends EventEmitter {
     su?: number;
     sv?: number;
     size?: number;
+  } | {
+    resolvedModel: BlockModel
   })
 
   constructor (public viewer: Viewer) {
@@ -420,31 +423,26 @@ export class Entities extends EventEmitter {
     return typeof component === 'string' ? component : component.text ?? ''
   }
 
-  isBlock (itemId) {
-    const item = loadedData.items[itemId]
-    return !!loadedData.blocksByName[item.name]
-  }
-
-  getItemMesh (item) {
-    if (item.blockId || this.isBlock(item.itemId)) {
-      const block = item.blockId
-        ? loadedData.blocks[item.blockId]
-        : loadedData.blocksByName[loadedData.items[item.itemId].name]
-      const mesh = getBlockMesh(this.viewer.world.material, block.name, {})
-      const SCALE = 0.5
-      mesh.scale.set(SCALE, SCALE, SCALE)
-      mesh.position.set(0, 0.2, 0)
+  getItemMesh (item, isDropped = false) {
+    const textureUv = this.getItemUv?.(item)
+    if (textureUv && 'resolvedModel' in textureUv) {
+      const mesh = getBlockMeshFromModel(this.viewer.world.material, textureUv.resolvedModel, item.name ?? item.itemId)
+      if (isDropped) {
+        const SCALE = 0.5
+        mesh.scale.set(SCALE, SCALE, SCALE)
+        mesh.position.set(0, 0.2, 0)
+      }
       const outerGroup = new THREE.Group()
       outerGroup.add(mesh)
       return {
         mesh: outerGroup,
+        isBlock: true,
         itemsTexture: null,
         itemsTextureFlipped: null,
       }
     }
 
     // TODO: Render proper model (especially for blocks) instead of flat texture
-    const textureUv = this.getItemUv?.(item)
     if (textureUv) {
       // todo use geometry buffer uv instead!
       const { u, v, size, su, sv, texture } = textureUv
@@ -479,6 +477,7 @@ export class Entities extends EventEmitter {
       ])
       return {
         mesh,
+        isBlock: false,
         itemsTexture,
         itemsTextureFlipped,
       }
@@ -524,7 +523,7 @@ export class Entities extends EventEmitter {
       if (entity.name === 'item') {
         const item = entity.metadata?.find((m: any) => typeof m === 'object' && m?.itemCount)
         if (item) {
-          const object = this.getItemMesh(item)
+          const object = this.getItemMesh(item, true)
           if (object) {
             mesh = object.mesh
             mesh.scale.set(0.5, 0.5, 0.5)

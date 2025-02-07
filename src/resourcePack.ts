@@ -31,7 +31,7 @@ const getLoadedImage = async (url: string) => {
 }
 
 const texturePackBasePath = '/data/resourcePacks/'
-export const uninstallTexturePack = async (name = 'default') => {
+export const uninstallResourcePack = async (name = 'default') => {
   if (await existsAsync('/resourcepack/pack.mcmeta')) {
     await removeFileRecursiveAsync('/resourcepack')
     gameAdditionalState.usingServerResourcePack = false
@@ -69,10 +69,11 @@ export const installTexturePackFromHandle = async () => {
   // await completeTexturePackInstall()
 }
 
-export const installTexturePack = async (file: File | ArrayBuffer, displayName = file['name'], name = 'default', isServer = false) => {
+export const installResourcepackPack = async (file: File | ArrayBuffer, displayName = file['name'], name = 'default', isServer = false) => {
+  console.time('processResourcePack')
   const installPath = isServer ? '/resourcepack/' : texturePackBasePath + name
   try {
-    await uninstallTexturePack(name)
+    await uninstallResourcePack(name)
   } catch (err) {
   }
   const showLoader = !isServer
@@ -97,6 +98,7 @@ export const installTexturePack = async (file: File | ArrayBuffer, displayName =
   }
   const createdDirs = new Set<string>()
   const copyTasks = [] as Array<Promise<void>>
+  console.time('resourcePackCopy')
   await Promise.all(allFilesArr.map(async ([path, file]) => {
     const writePath = join(installPath, path)
     if (path.endsWith('/')) return
@@ -115,8 +117,10 @@ export const installTexturePack = async (file: File | ArrayBuffer, displayName =
     done++
     upStatus()
   }))
-  console.log('resource pack install done')
+  console.timeEnd('resourcePackCopy')
   await completeTexturePackInstall(displayName, name, isServer)
+  console.log('resource pack install done')
+  console.timeEnd('processResourcePack')
 }
 
 // or enablement
@@ -348,16 +352,18 @@ const downloadAndUseResourcePack = async (url: string): Promise<void> => {
     resourcePackState.isServerInstalling = true
     resourcePackState.isServerDownloading = true
     console.log('Downloading server resource pack', url)
+    console.time('downloadServerResourcePack')
     const response = await fetch(url).catch((err) => {
       console.log(`Ensure server on ${url} support CORS which is not required for regular client, but is required for the web client`)
       console.error(err)
       showNotification('Failed to download resource pack: ' + err.message)
     })
+    console.timeEnd('downloadServerResourcePack')
     if (!response) return
     resourcePackState.isServerDownloading = false
     const resourcePackData = await response.arrayBuffer()
     showNotification('Installing resource pack...')
-    await installTexturePack(resourcePackData, undefined, undefined, true).catch((err) => {
+    await installResourcepackPack(resourcePackData, undefined, undefined, true).catch((err) => {
       console.error(err)
       showNotification('Failed to install resource pack: ' + err.message)
     })

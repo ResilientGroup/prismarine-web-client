@@ -178,9 +178,14 @@ viewer.entities.getItemUv = (item) => {
     const textureThree = renderInfo.texture === 'blocks' ? viewer.world.material.map! : viewer.entities.itemsTexture!
     const img = textureThree.image
 
-    if (renderInfo.blockData || renderInfo.slice) {
+    if (renderInfo.blockData) {
+      return {
+        resolvedModel: renderInfo.blockData.resolvedModel,
+      }
+    }
+    if (renderInfo.slice) {
       // Get slice coordinates from either block or item texture
-      const [x, y, w, h] = renderInfo.blockData ? renderInfo.blockData.left.slice : renderInfo.slice
+      const [x, y, w, h] = renderInfo.slice
       const [u, v, su, sv] = [x / img.width, y / img.height, (w / img.width), (h / img.height)]
       return {
         u, v, su, sv,
