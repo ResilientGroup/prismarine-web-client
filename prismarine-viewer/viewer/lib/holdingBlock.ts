@@ -249,7 +249,7 @@ export default class HoldingBlock {
     this.objectOuterGroup.scale.set(scale, scale, scale)
   }
 
-  async initHandObject (material: THREE.Material, blockstatesModels: any, blocksAtlases: any, handItem?: HandItemBlock) {
+  async initHandObject (handItem?: HandItemBlock) {
     let animatingCurrent = false
     if (!this.swingAnimation && !this.blockSwapAnimation && this.isDifferentItem(handItem)) {
       animatingCurrent = true
@@ -414,7 +414,7 @@ export default class HoldingBlock {
 }
 
 export const getBlockMeshFromModel = (material: THREE.Material, model: BlockModel, name: string) => {
-  const blockProvider = worldBlockProvider(viewer.world.blockstatesModels, viewer.world.blocksAtlases, 'latest')
+  const blockProvider = worldBlockProvider(viewer.world.blockstatesModels, viewer.world.blocksAtlasParser!.atlas, 'latest')
   const worldRenderModel = blockProvider.transformModel(model, {
     name,
     properties: {}

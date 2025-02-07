@@ -460,11 +460,11 @@ const updateAllReplacableTextures = async () => {
 const repeatArr = (arr, i) => Array.from({ length: i }, () => arr)
 
 const updateTextures = async () => {
-  const blocksFiles = Object.keys(viewer.world.blocksAtlases.latest.textures)
-  const itemsFiles = Object.keys(viewer.world.itemsAtlases.latest.textures)
+  const origBlocksFiles = Object.keys(viewer.world.sourceData.blocksAtlases.latest.textures)
+  const origItemsFiles = Object.keys(viewer.world.sourceData.itemsAtlases.latest.textures)
   const { usedTextures: extraBlockTextures = new Set<string>() } = await prepareBlockstatesAndModels() ?? {}
-  const blocksData = await getResourcepackTiles('blocks', [...blocksFiles, ...extraBlockTextures])
-  const itemsData = await getResourcepackTiles('items', itemsFiles)
+  const blocksData = await getResourcepackTiles('blocks', [...origBlocksFiles, ...extraBlockTextures])
+  const itemsData = await getResourcepackTiles('items', origItemsFiles)
   await updateAllReplacableTextures()
   viewer.world.customTextures = {}
   if (blocksData) {

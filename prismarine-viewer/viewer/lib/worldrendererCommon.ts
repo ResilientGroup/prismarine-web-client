@@ -117,8 +117,10 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   itemsAtlasParser: AtlasParser | undefined
   blocksAtlasParser: AtlasParser | undefined
 
-  blocksAtlases = blocksAtlases
-  itemsAtlases = itemsAtlases
+  sourceData = {
+    blocksAtlases,
+    itemsAtlases
+  }
   customTextures: {
     items?: CustomTexturesData
     blocks?: CustomTexturesData
@@ -320,8 +322,8 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   }
 
   async updateTexturesData (resourcePackUpdate = false, prioritizeBlockTextures?: string[]) {
-    const blocksAssetsParser = new AtlasParser(this.blocksAtlases, blocksAtlasLatest, blocksAtlasLegacy)
-    const itemsAssetsParser = new AtlasParser(this.itemsAtlases, itemsAtlasLatest, itemsAtlasLegacy)
+    const blocksAssetsParser = new AtlasParser(this.sourceData.blocksAtlases, blocksAtlasLatest, blocksAtlasLegacy)
+    const itemsAssetsParser = new AtlasParser(this.sourceData.itemsAtlases, itemsAtlasLatest, itemsAtlasLegacy)
 
     const blockTexturesChanges = {} as Record<string, string>
     const date = new Date()

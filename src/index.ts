@@ -181,6 +181,7 @@ viewer.entities.getItemUv = (item) => {
     if (renderInfo.blockData) {
       return {
         resolvedModel: renderInfo.blockData.resolvedModel,
+        modelName: renderInfo.modelName!
       }
     }
     if (renderInfo.slice) {

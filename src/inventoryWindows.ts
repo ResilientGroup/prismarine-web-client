@@ -179,6 +179,7 @@ export const renderSlot = (slot: GeneralInputItem, debugIsQuickbar = false): {
   blockData?: Record<string, { slice, path }> & { resolvedModel: BlockModel },
   scale?: number,
   slice?: number[],
+  modelName?: string
 } | undefined => {
   let itemModelName = slot.name
   const originalItemName = itemModelName
@@ -212,7 +213,8 @@ export const renderSlot = (slot: GeneralInputItem, debugIsQuickbar = false): {
     // is block
     return {
       texture: 'blocks',
-      blockData: itemTexture
+      blockData: itemTexture,
+      modelName: itemModelName
     }
   }
 }

@@ -225,6 +225,7 @@ export class Entities extends EventEmitter {
     size?: number;
   } | {
     resolvedModel: BlockModel
+    modelName: string
   })
 
   constructor (public viewer: Viewer) {
@@ -426,7 +427,7 @@ export class Entities extends EventEmitter {
   getItemMesh (item, isDropped = false) {
     const textureUv = this.getItemUv?.(item)
     if (textureUv && 'resolvedModel' in textureUv) {
-      const mesh = getBlockMeshFromModel(this.viewer.world.material, textureUv.resolvedModel, item.name ?? item.itemId)
+      const mesh = getBlockMeshFromModel(this.viewer.world.material, textureUv.resolvedModel, textureUv.modelName)
       if (isDropped) {
         const SCALE = 0.5
         mesh.scale.set(SCALE, SCALE, SCALE)
