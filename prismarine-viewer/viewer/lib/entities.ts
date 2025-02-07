@@ -879,15 +879,38 @@ function addArmorModel (entityMesh: THREE.Object3D, slotType: string, item: Item
     return
   }
   const itemParts = item.name.split('_')
-  const armorMaterial = itemParts[0]
-  if (!armorMaterial) {
+  let texturePath
+  const isPlayerHead = slotType === 'head' && item.name === 'player_head'
+  if (isPlayerHead) {
     removeArmorModel(entityMesh, slotType)
-    return
+    if (item.nbt) {
+      const itemNbt = nbt.simplify(item.nbt)
+      try {
+        let textureData
+        if (itemNbt.SkullOwner) {
+          textureData = itemNbt.SkullOwner.Properties.textures[0]?.Value
+        } else {
+          textureData = itemNbt['minecraft:profile']?.Properties?.find(p => p.name === 'textures')?.value
+        }
+        if (textureData) {
+          const decodedData = JSON.parse(Buffer.from(textureData, 'base64').toString())
+          texturePath = decodedData.textures?.SKIN?.url
+        }
+      } catch (err) {
+        console.error('Error decoding player head texture:', err)
+      }
+    } else {
+      texturePath = stevePng
+    }
   }
-  // TODO: Support resource pack
-  // TODO: Support mirroring on certain parts of the model
-  const texturePath = armorModels[`${armorMaterial}Layer${layer}${overlay ? 'Overlay' : ''}`]
+  const armorMaterial = itemParts[0]
+  if (!texturePath) {
+    // TODO: Support resource pack
+    // TODO: Support mirroring on certain parts of the model
+    texturePath = armorModels[`${armorMaterial}Layer${layer}${overlay ? 'Overlay' : ''}`]
+  }
   if (!texturePath || !armorModels.armorModel[slotType]) {
+    removeArmorModel(entityMesh, slotType)
     return
   }
 
@@ -908,7 +931,9 @@ function addArmorModel (entityMesh: THREE.Object3D, slotType: string, item: Item
     mesh = getMesh(viewer.world, texturePath, armorModels.armorModel[slotType])
     mesh.name = meshName
     material = mesh.material
-    material.side = THREE.DoubleSide
+    if (!isPlayerHead) {
+      material.side = THREE.DoubleSide
+    }
   }
   if (armorMaterial === 'leather' && !overlay) {
     const color = (item.nbt?.value as any)?.display?.value?.color?.value
