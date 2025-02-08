@@ -886,7 +886,7 @@ function getGeneralEntitiesMetadata (entity: { name; metadata }): Partial<UnionT
     get (target, p, receiver) {
       if (typeof p !== 'string' || !entityData) return
       const index = entityData.metadataKeys?.indexOf(p)
-      return entity.metadata[index ?? -1]
+      return entity.metadata?.[index ?? -1]
     },
   })
 }

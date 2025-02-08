@@ -60,8 +60,9 @@ import {
 } from './globalState'
 
 import {
-  pointerLock, setLoadingScreenStatus, parseServerAddress
+  pointerLock, parseServerAddress
 } from './utils'
+import { setLoadingScreenStatus } from './appStatus'
 import { isCypress } from './standaloneUtils'
 
 import {
