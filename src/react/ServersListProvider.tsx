@@ -20,6 +20,7 @@ export interface StoreServerItem extends BaseServerInfo {
   description?: string
   optionsOverride?: Record<string, any>
   autoLogin?: Record<string, string>
+  numConnects?: number // Track number of connections
 }
 
 type AdditionalDisplayData = {
@@ -113,6 +114,43 @@ export const updateAuthenticatedAccountData = (callback: (data: AuthenticatedAcc
   const accounts = JSON.parse(localStorage['authenticatedAccounts'] || '[]') as AuthenticatedAccount[]
   const newAccounts = callback(accounts)
   localStorage['authenticatedAccounts'] = JSON.stringify(newAccounts)
+}
+
+interface ServerConnectionHistory {
+  ip: string
+  numConnects: number
+  lastConnected: number
+  version?: string
+}
+
+export function updateServerConnectionHistory (ip: string, version?: string) {
+  try {
+    const history: ServerConnectionHistory[] = JSON.parse(localStorage.getItem('serverConnectionHistory') || '[]')
+    const existingServer = history.find(s => s.ip === ip)
+    if (existingServer) {
+      existingServer.numConnects++
+      existingServer.lastConnected = Date.now()
+      if (version) existingServer.version = version
+    } else {
+      history.push({
+        ip,
+        numConnects: 1,
+        lastConnected: Date.now(),
+        version
+      })
+    }
+    localStorage.setItem('serverConnectionHistory', JSON.stringify(history))
+  } catch (err) {
+    console.error('Failed to update server connection history:', err)
+  }
+}
+
+export function getServerConnectionHistory (): ServerConnectionHistory[] {
+  try {
+    return JSON.parse(localStorage.getItem('serverConnectionHistory') || '[]')
+  } catch {
+    return []
+  }
 }
 
 // todo move to base
@@ -351,9 +389,9 @@ const Inner = ({ hidden, customServersList }: { hidden?: boolean, customServersL
               ip,
               lastJoined: Date.now(),
               versionOverride: overrides.versionOverride,
+              numConnects: 1
             }]
-            // setServersList(newServersList)
-            setNewServersList(newServersList) // component is not mounted
+            setNewServersList(newServersList)
             miscUiState.loadedServerIndex = (newServersList.length - 1).toString()
           }
 
@@ -362,8 +400,8 @@ const Inner = ({ hidden, customServersList }: { hidden?: boolean, customServersL
             const server = serversList.find(s => s.ip === ip)
             if (server) {
               server.lastJoined = Date.now()
-              // setServersList([...serversList])
-              setNewServersList(serversList) // component is not mounted
+              server.numConnects = (server.numConnects || 0) + 1
+              setNewServersList(serversList)
             }
           }
 

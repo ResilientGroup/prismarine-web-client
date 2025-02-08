@@ -214,3 +214,55 @@ export const reportWarningOnce = (id: string, message: string) => {
   reportedWarnings.add(id)
   console.warn(message)
 }
+
+export interface ParsedServerAddress {
+  host: string
+  port?: string
+  version?: string
+  isWebSocket: boolean
+}
+
+export const parseServerAddress = (address: string | undefined): ParsedServerAddress => {
+  if (!address) {
+    return { host: '', isWebSocket: false }
+  }
+
+  const isWebSocket = address.startsWith('ws://') || address.startsWith('wss://')
+  if (isWebSocket) {
+    return { host: address, isWebSocket: true }
+  }
+
+  // Check for version in format host:version or host:port:version
+  const parts = address.split(':')
+  if (parts.length === 2 && parts[1].includes('.')) {
+    return {
+      host: parts[0],
+      version: parts[1],
+      isWebSocket: false
+    }
+  }
+
+  if (parts.length === 3) {
+    return {
+      host: parts[0],
+      port: parts[1],
+      version: parts[2],
+      isWebSocket: false
+    }
+  }
+
+  // Standard host:port format
+  const hostPort = /:\d+$/.exec(address)
+  if (hostPort) {
+    return {
+      host: address.slice(0, -hostPort[0].length),
+      port: hostPort[0].slice(1),
+      isWebSocket: false
+    }
+  }
+
+  return {
+    host: address,
+    isWebSocket: false
+  }
+}

@@ -60,7 +60,7 @@ import {
 } from './globalState'
 
 import {
-  pointerLock, setLoadingScreenStatus
+  pointerLock, setLoadingScreenStatus, parseServerAddress
 } from './utils'
 import { isCypress } from './standaloneUtils'
 
@@ -93,7 +93,7 @@ import './water'
 import { ConnectOptions, downloadMcDataOnConnect, getVersionAutoSelect, downloadOtherGameData, downloadAllMinecraftData } from './connect'
 import { ref, subscribe } from 'valtio'
 import { signInMessageState } from './react/SignInMessageProvider'
-import { updateAuthenticatedAccountData, updateLoadedServerData } from './react/ServersListProvider'
+import { updateAuthenticatedAccountData, updateLoadedServerData, updateServerConnectionHistory } from './react/ServersListProvider'
 import { versionToNumber } from 'prismarine-viewer/viewer/prepare/utils'
 import packetsPatcher from './packetsPatcher'
 import { mainMenuState } from './react/MainMenuRenderApp'
@@ -105,6 +105,7 @@ import { getWebsocketStream } from './mineflayer/websocket-core'
 import { appQueryParams, appQueryParamsArray } from './appParams'
 import { updateCursor } from './cameraRotationControls'
 import { pingServerVersion } from './mineflayer/minecraft-protocol-extra'
+import { states } from 'minecraft-protocol'
 
 window.debug = debug
 window.THREE = THREE
@@ -255,18 +256,6 @@ const removeAllListeners = () => {
   listeners = []
 }
 
-const cleanConnectIp = (host: string | undefined, defaultPort: string | undefined) => {
-  const hostPort = host && /:\d+$/.exec(host)
-  if (hostPort) {
-    return {
-      host: host.slice(0, -hostPort[0].length),
-      port: hostPort[0].slice(1)
-    }
-  } else {
-    return { host, port: defaultPort }
-  }
-}
-
 export async function connect (connectOptions: ConnectOptions) {
   if (miscUiState.gameLoaded) return
   miscUiState.hasErrors = false
@@ -277,9 +266,17 @@ export async function connect (connectOptions: ConnectOptions) {
   const p2pMultiplayer = !!connectOptions.peerId
   miscUiState.singleplayer = singleplayer
   miscUiState.flyingSquid = singleplayer || p2pMultiplayer
+
+  // Track server connection in history
+  if (!singleplayer && !p2pMultiplayer && connectOptions.server) {
+    const parsedServer = parseServerAddress(connectOptions.server)
+    updateServerConnectionHistory(parsedServer.host, connectOptions.botVersion)
+  }
+
   const { renderDistance: renderDistanceSingleplayer, multiplayerRenderDistance } = options
-  const isWebSocket = connectOptions.server?.startsWith('ws://') || connectOptions.server?.startsWith('wss://')
-  const server = isWebSocket ? { host: connectOptions.server, port: undefined } : cleanConnectIp(connectOptions.server, '25565')
+
+  const parsedServer = parseServerAddress(connectOptions.server)
+  const server = { host: parsedServer.host, port: parsedServer.port }
   if (connectOptions.proxy?.startsWith(':')) {
     connectOptions.proxy = `${location.protocol}//${location.hostname}${connectOptions.proxy}`
   }
@@ -287,7 +284,8 @@ export async function connect (connectOptions: ConnectOptions) {
     const https = connectOptions.proxy.startsWith('https://') || location.protocol === 'https:'
     connectOptions.proxy = `${connectOptions.proxy}:${https ? 443 : 80}`
   }
-  const proxy = cleanConnectIp(connectOptions.proxy, undefined)
+  const parsedProxy = parseServerAddress(connectOptions.proxy)
+  const proxy = { host: parsedProxy.host, port: parsedProxy.port }
   let { username } = connectOptions
 
   if (connectOptions.server) {
@@ -332,8 +330,7 @@ export async function connect (connectOptions: ConnectOptions) {
   }
   let lastPacket = undefined as string | undefined
   const onPossibleErrorDisconnect = () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
-    if (lastPacket && bot?._client && bot._client.state !== 'play') {
+    if (lastPacket && bot?._client && bot._client.state !== states.PLAY) {
       appStatusState.descriptionHint = `Last Server Packet: ${lastPacket}`
     }
   }
@@ -371,7 +368,7 @@ export async function connect (connectOptions: ConnectOptions) {
 
   let clientDataStream
 
-  if (proxy && !connectOptions.viewerWsConnect && !isWebSocket) {
+  if (proxy && !connectOptions.viewerWsConnect && !parsedServer.isWebSocket) {
     console.log(`using proxy ${proxy.host}:${proxy.port || location.port}`)
     net['setProxy']({ hostname: proxy.host, port: proxy.port })
   }
@@ -458,7 +455,7 @@ export async function connect (connectOptions: ConnectOptions) {
       if (!finalVersion) {
         const versionAutoSelect = getVersionAutoSelect()
         setLoadingScreenStatus(`Fetching server version. Preffered: ${versionAutoSelect}`)
-        const autoVersionSelect = await getServerInfo(server.host!, server.port ? Number(server.port) : undefined, versionAutoSelect)
+        const autoVersionSelect = await getServerInfo(server.host, server.port ? Number(server.port) : undefined, versionAutoSelect)
         finalVersion = autoVersionSelect.version
       }
       initialLoadingText = `Connecting to server ${server.host} with version ${finalVersion}`
@@ -467,8 +464,8 @@ export async function connect (connectOptions: ConnectOptions) {
     }
     setLoadingScreenStatus(initialLoadingText)
 
-    if (isWebSocket) {
-      clientDataStream = (await getWebsocketStream(server.host!)).mineflayerStream
+    if (parsedServer.isWebSocket) {
+      clientDataStream = (await getWebsocketStream(server.host)).mineflayerStream
     }
 
     let newTokensCacheResult = null as any

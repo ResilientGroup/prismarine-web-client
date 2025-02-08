@@ -1,8 +1,11 @@
 import React from 'react'
+import { parseServerAddress } from '../utils'
+import { getServerConnectionHistory } from './ServersListProvider'
 import Singleplayer from './Singleplayer'
 import Input from './Input'
 import Button from './Button'
 import PixelartIcon, { pixelartIcons } from './PixelartIcon'
+
 import Select from './Select'
 import { BaseServerInfo } from './AddServerOrConnect'
 import { useIsSmallWidth } from './simpleHooks'
@@ -18,6 +21,11 @@ interface Props extends React.ComponentProps<typeof Singleplayer> {
   setUsername: (username: string) => void
   onProfileClick?: () => void
   setQuickConnectIp?: (ip: string) => void
+  serverHistory?: Array<{
+    ip: string
+    versionOverride?: string
+    numConnects: number
+  }>
 }
 
 export interface SavedProxiesLocalStorage {
@@ -33,6 +41,13 @@ type ProxyStatusResult = {
 
 export default ({ initialProxies, updateProxies: updateProxiesProp, joinServer, username, setUsername, onProfileClick, setQuickConnectIp, ...props }: Props) => {
   const [proxies, setProxies] = React.useState(initialProxies)
+  const [connectionHistory] = React.useState(() => getServerConnectionHistory()
+    .sort((a, b) => b.numConnects - a.numConnects)
+    .map(server => ({
+      ip: server.ip,
+      versionOverride: server.version,
+      numConnects: server.numConnects
+    })))
 
   const updateProxies = (newData: SavedProxiesLocalStorage) => {
     setProxies(newData)
@@ -60,21 +75,18 @@ export default ({ initialProxies, updateProxies: updateProxiesProp, joinServer, 
     firstRowChildrenOverride={<form
       style={{ width: '100%', display: 'flex', justifyContent: 'center' }} onSubmit={(e) => {
         e.preventDefault()
-        let ip = serverIp
-        let version
+        const ip = serverIp
         let msAuth = false
         const parts = ip.split(':')
         if (parts.at(-1) === 'ms') {
           msAuth = true
           parts.pop()
         }
-        if (parts.length > 1 && parts.at(-1)!.includes('.')) {
-          version = parts.at(-1)!
-          ip = parts.slice(0, -1).join(':')
-        }
+
+        const parsed = parseServerAddress(parts.join(':'))
         joinServer({
-          ip,
-          versionOverride: version,
+          ip: parsed.host,
+          versionOverride: parsed.version,
           authenticatedAccountOverride: msAuth ? true : undefined, // todo popup selector
         }, {
           shouldSave: save,
@@ -97,7 +109,17 @@ export default ({ initialProxies, updateProxies: updateProxiesProp, joinServer, 
             setServerIp(value)
           }}
           width={isSmallWidth ? 120 : 180}
+          list="server-history"
+          autoComplete="on"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck="false"
         />
+        <datalist id="server-history">
+          {connectionHistory.map((server) => (
+            <option key={server.ip} value={`${server.ip}${server.versionOverride ? `:${server.versionOverride}` : ''}`} />
+          ))}
+        </datalist>
         <label style={{ fontSize: 10, display: 'flex', alignItems: 'center', gap: 5, height: '100%', marginTop: '-1px' }}>
           <input
             type='checkbox' checked={save}
@@ -128,7 +150,14 @@ export default ({ initialProxies, updateProxies: updateProxiesProp, joinServer, 
             }}
           />
           <PixelartIcon iconName='user' styles={{ fontSize: 14, color: 'lightgray', marginLeft: 2 }} onClick={onProfileClick} />
-          <Input rootStyles={{ width: 80 }} value={username} onChange={({ target: { value } }) => setUsername(value)} />
+          <Input
+            rootStyles={{ width: 80 }}
+            value={username}
+            onChange={({ target: { value } }) => setUsername(value)}
+            autoCorrect="off"
+            autoCapitalize="off"
+            spellCheck="false"
+          />
         </div>
       </div>
     }

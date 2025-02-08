@@ -227,7 +227,7 @@ export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQ
             onClick={() => {
               onQsConnect?.(commonUseOptions)
             }}
-          >Connect</ButtonWrapper>
+          ><strong>Connect</strong></ButtonWrapper>
         </div>}
       </div>
     </form>
