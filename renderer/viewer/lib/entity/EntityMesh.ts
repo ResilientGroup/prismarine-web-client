@@ -304,6 +304,7 @@ export function getMesh (
   mesh.scale.set(1 / 16, 1 / 16, 1 / 16)
 
   if (textureOffset) {
+    // todo(memory) dont clone
     const loadedTexture = blocksTexture.clone()
     loadedTexture.offset.set(textureOffset[0], textureOffset[1])
     loadedTexture.needsUpdate = true
