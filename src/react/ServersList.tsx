@@ -1,6 +1,4 @@
 import React from 'react'
-import { parseServerAddress } from '../utils'
-import { getServerConnectionHistory } from './ServersListProvider'
 import Singleplayer from './Singleplayer'
 import Input from './Input'
 import Button from './Button'
@@ -11,7 +9,7 @@ import { BaseServerInfo } from './AddServerOrConnect'
 import { useIsSmallWidth } from './simpleHooks'
 
 interface Props extends React.ComponentProps<typeof Singleplayer> {
-  joinServer: (info: BaseServerInfo, additional: {
+  joinServer: (info: BaseServerInfo | string, additional: {
     shouldSave?: boolean
     index?: number
   }) => void
@@ -39,15 +37,18 @@ type ProxyStatusResult = {
   status: 'success' | 'error' | 'unknown'
 }
 
-export default ({ initialProxies, updateProxies: updateProxiesProp, joinServer, username, setUsername, onProfileClick, setQuickConnectIp, ...props }: Props) => {
+export default ({
+  initialProxies,
+  updateProxies: updateProxiesProp,
+  joinServer,
+  username,
+  setUsername,
+  onProfileClick,
+  setQuickConnectIp,
+  serverHistory,
+  ...props
+}: Props) => {
   const [proxies, setProxies] = React.useState(initialProxies)
-  const [connectionHistory] = React.useState(() => getServerConnectionHistory()
-    .sort((a, b) => b.numConnects - a.numConnects)
-    .map(server => ({
-      ip: server.ip,
-      versionOverride: server.version,
-      numConnects: server.numConnects
-    })))
 
   const updateProxies = (newData: SavedProxiesLocalStorage) => {
     setProxies(newData)
@@ -75,22 +76,7 @@ export default ({ initialProxies, updateProxies: updateProxiesProp, joinServer, 
     firstRowChildrenOverride={<form
       style={{ width: '100%', display: 'flex', justifyContent: 'center' }} onSubmit={(e) => {
         e.preventDefault()
-        const ip = serverIp
-        let msAuth = false
-        const parts = ip.split(':')
-        if (parts.at(-1) === 'ms') {
-          msAuth = true
-          parts.pop()
-        }
-
-        const parsed = parseServerAddress(parts.join(':'))
-        joinServer({
-          ip: parsed.host,
-          versionOverride: parsed.version,
-          authenticatedAccountOverride: msAuth ? true : undefined, // todo popup selector
-        }, {
-          shouldSave: save,
-        })
+        joinServer(serverIp, { shouldSave: save })
       }}
     >
       <div
@@ -116,7 +102,7 @@ export default ({ initialProxies, updateProxies: updateProxiesProp, joinServer, 
           spellCheck="false"
         />
         <datalist id="server-history">
-          {connectionHistory.map((server) => (
+          {serverHistory?.map((server) => (
             <option key={server.ip} value={`${server.ip}${server.versionOverride ? `:${server.versionOverride}` : ''}`} />
           ))}
         </datalist>

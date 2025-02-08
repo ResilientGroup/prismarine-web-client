@@ -22,6 +22,7 @@ export type ConnectOptions = {
   authenticatedAccount?: AuthenticatedAccount | true
   peerOptions?: any
   viewerWsConnect?: string
+  saveServerToHistory?: boolean
 }
 
 export const getVersionAutoSelect = (autoVersionSelect = options.serversAutoVersionSelect) => {

@@ -269,7 +269,7 @@ export async function connect (connectOptions: ConnectOptions) {
   miscUiState.flyingSquid = singleplayer || p2pMultiplayer
 
   // Track server connection in history
-  if (!singleplayer && !p2pMultiplayer && connectOptions.server) {
+  if (!singleplayer && !p2pMultiplayer && connectOptions.server && connectOptions.saveServerToHistory !== false) {
     const parsedServer = parseServerAddress(connectOptions.server)
     updateServerConnectionHistory(parsedServer.host, connectOptions.botVersion)
   }

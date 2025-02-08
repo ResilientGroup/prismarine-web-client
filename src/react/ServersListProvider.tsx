@@ -8,6 +8,7 @@ import { appQueryParams } from '../appParams'
 import { fetchServerStatus, isServerValid } from '../api/mcStatusApi'
 import { pingServerVersion } from '../mineflayer/minecraft-protocol-extra'
 import { getServerInfo } from '../mineflayer/mc-protocol'
+import { parseServerAddress } from '../utils'
 import ServersList from './ServersList'
 import AddServerOrConnect, { BaseServerInfo } from './AddServerOrConnect'
 import { useDidUpdateEffect } from './utils'
@@ -349,7 +350,25 @@ const Inner = ({ hidden, customServersList }: { hidden?: boolean, customServersL
   /> : null
 
   const serversListJsx = <ServersList
-    joinServer={(overrides, { shouldSave }) => {
+    joinServer={(overridesOrIp, { shouldSave }) => {
+      let overrides: BaseServerInfo
+      if (typeof overridesOrIp === 'string') {
+        let msAuth = false
+        const parts = overridesOrIp.split(':')
+        if (parts.at(-1) === 'ms') {
+          msAuth = true
+          parts.pop()
+        }
+        const parsed = parseServerAddress(parts.join(':'))
+        overrides = {
+          ip: parsed.host,
+          versionOverride: parsed.version,
+          authenticatedAccountOverride: msAuth ? true : undefined, // todo popup selector
+        }
+      } else {
+        overrides = overridesOrIp
+      }
+
       const indexOrIp = overrides.ip
       let ip = indexOrIp
       let server: StoreServerItem | undefined
@@ -383,6 +402,7 @@ const Inner = ({ hidden, customServersList }: { hidden?: boolean, customServersL
         ignoreQs: true,
         autoLoginPassword: server?.autoLogin?.[username],
         authenticatedAccount,
+        saveServerToHistory: shouldSave,
         onSuccessfulPlay () {
           if (shouldSave && !serversList.some(s => s.ip === ip)) {
             const newServersList: StoreServerItem[] = [...serversList, {
@@ -471,6 +491,13 @@ const Inner = ({ hidden, customServersList }: { hidden?: boolean, customServersL
       setSelectedIndex(i)
     }}
     selectedRow={selectedIndex}
+    serverHistory={getServerConnectionHistory()
+      .sort((a, b) => b.numConnects - a.numConnects)
+      .map(server => ({
+        ip: server.ip,
+        versionOverride: server.version,
+        numConnects: server.numConnects
+      }))}
   />
   return <>
     {serversListJsx}
