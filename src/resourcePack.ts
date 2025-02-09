@@ -401,7 +401,10 @@ export const onAppLoad = () => {
           cancel: !forced,
           minecraftJsonMessage: promptMessagePacket,
         })
-      if (!choice) return
+      if (!choice) {
+        bot.denyResourcePack()
+        return
+      }
       await new Promise(resolve => {
         setTimeout(resolve, 500)
       })

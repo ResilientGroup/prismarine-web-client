@@ -290,7 +290,7 @@ export async function connect (connectOptions: ConnectOptions) {
   let { username } = connectOptions
 
   if (connectOptions.server) {
-    console.log(`connecting to ${server.host}:${server.port}`)
+    console.log(`connecting to ${server.host}:${server.port ?? 25_565}`)
   }
   console.log('using player username', username)
 
@@ -369,7 +369,7 @@ export async function connect (connectOptions: ConnectOptions) {
 
   let clientDataStream
 
-  if (proxy && !connectOptions.viewerWsConnect && !parsedServer.isWebSocket) {
+  if (connectOptions.server && !connectOptions.viewerWsConnect && !parsedServer.isWebSocket) {
     console.log(`using proxy ${proxy.host}:${proxy.port || location.port}`)
     net['setProxy']({ hostname: proxy.host, port: proxy.port })
   }

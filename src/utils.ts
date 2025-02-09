@@ -193,6 +193,8 @@ export const parseServerAddress = (address: string | undefined): ParsedServerAdd
     return { host: '', isWebSocket: false }
   }
 
+  address = address.replace(/^https?:\/\//, '')
+
   const isWebSocket = address.startsWith('ws://') || address.startsWith('wss://')
   if (isWebSocket) {
     return { host: address, isWebSocket: true }
