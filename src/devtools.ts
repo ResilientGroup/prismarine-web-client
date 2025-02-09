@@ -2,6 +2,7 @@
 
 import fs from 'fs'
 import { WorldRendererThree } from 'renderer/viewer/lib/worldrendererThree'
+import { enable, disable, enabled } from 'debug'
 import { getEntityCursor } from './worldInteractions'
 
 window.cursorBlockRel = (x = 0, y = 0, z = 0) => {
@@ -72,3 +73,21 @@ window.downloadFile = async (path: string) => {
   a.click()
   URL.revokeObjectURL(url)
 }
+
+Object.defineProperty(window, 'debugToggle', {
+  get () {
+    localStorage.debug = localStorage.debug === '*' ? '' : '*'
+    if (enabled('*')) {
+      disable()
+      return 'disabled debug'
+    } else {
+      enable('*')
+      return 'enabled debug'
+    }
+  },
+  set (v) {
+    enable(v)
+    localStorage.debug = v
+    console.log('Enabled debug for', v)
+  }
+})
