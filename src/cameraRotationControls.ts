@@ -72,7 +72,7 @@ function pointerLockChangeCallback () {
     hideNotification()
   }
   if (viewer.renderer.xr.isPresenting) return // todo
-  if (!pointerLock.hasPointerLock && activeModalStack.length === 0) {
+  if (!pointerLock.hasPointerLock && activeModalStack.length === 0 && miscUiState.gameLoaded) {
     showModal({ reactType: 'pause-screen' })
   }
 }

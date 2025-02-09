@@ -60,8 +60,8 @@ import {
 } from './globalState'
 
 import {
-  pointerLock, parseServerAddress
-} from './utils'
+  pointerLock } from './utils'
+import { parseServerAddress } from './parseServerAddress'
 import { setLoadingScreenStatus } from './appStatus'
 import { isCypress } from './standaloneUtils'
 
@@ -285,7 +285,7 @@ export async function connect (connectOptions: ConnectOptions) {
     const https = connectOptions.proxy.startsWith('https://') || location.protocol === 'https:'
     connectOptions.proxy = `${connectOptions.proxy}:${https ? 443 : 80}`
   }
-  const parsedProxy = parseServerAddress(connectOptions.proxy)
+  const parsedProxy = parseServerAddress(connectOptions.proxy, false)
   const proxy = { host: parsedProxy.host, port: parsedProxy.port }
   let { username } = connectOptions
 

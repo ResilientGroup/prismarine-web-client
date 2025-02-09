@@ -8,7 +8,8 @@ export default defineConfig({
       '../../src/markdownToFormattedText.test.ts',
       '../../src/react/parseKeybindingName.test.ts',
       'lib/mesher/test/tests.test.ts',
-      'sign-renderer/tests.test.ts'
+      'sign-renderer/tests.test.ts',
+      '../../src/utils.test.ts'
     ],
   },
 })
