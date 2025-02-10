@@ -49,7 +49,7 @@ export default () => {
     opacity={(isChatActive ? chatOpacityOpened : chatOpacity) / 100}
     messages={messages}
     opened={isChatActive}
-    placeholder={forwardChat && viewerConnection ? undefined : 'Chat forwarding is not enabled in the plugin settings'}
+    placeholder={forwardChat || !viewerConnection ? undefined : 'Chat forwarding is not enabled in the plugin settings'}
     sendMessage={(message) => {
       const builtinHandled = tryHandleBuiltinCommand(message)
       if (miscUiState.loadedServerIndex && (message.startsWith('/login') || message.startsWith('/register'))) {
