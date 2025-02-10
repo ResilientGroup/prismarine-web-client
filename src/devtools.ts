@@ -44,17 +44,50 @@ customEvents.on('gameLoaded', () => {
   })
 })
 
-window.inspectPacket = (packetName, fullOrListener: boolean | ((...args) => void) = false) => {
-  const listener = typeof fullOrListener === 'function' ? fullOrListener : (...args) => console.log('packet', packetName, fullOrListener ? args : args[0])
+window.inspectPacket = (packetName, isFromClient = false, fullOrListener: boolean | ((...args) => void) = false) => {
+  const listener = typeof fullOrListener === 'function'
+    ? (name, ...args) => fullOrListener(name, ...args)
+    : (name, ...args) => {
+      const displayName = name === packetName ? name : `${name} (${packetName})`
+      console.log('packet', displayName, fullOrListener ? args : args[0])
+    }
+
+  // Pre-compile regex if using wildcards
+  const pattern = typeof packetName === 'string' && packetName.includes('*')
+    ? new RegExp('^' + packetName.replaceAll('*', '.*') + '$')
+    : null
+
+  const packetsListener = (name, data) => {
+    if (pattern) {
+      if (pattern.test(name)) {
+        listener(name, data)
+      }
+    } else if (name === packetName) {
+      listener(name, data)
+    }
+  }
+
   const attach = () => {
-    bot?._client.prependListener(packetName, listener)
+    if (isFromClient) {
+      bot?._client.prependListener('writePacket', packetsListener)
+    } else {
+      bot?._client.prependListener('packet_name', packetsListener)
+    }
+  }
+  const detach = () => {
+    if (isFromClient) {
+      bot?._client.removeListener('writePacket', packetsListener)
+    } else {
+      bot?._client.removeListener('packet_name', packetsListener)
+    }
   }
   attach()
   customEvents.on('mineflayerBotCreated', attach)
+
   const returnobj = {}
   Object.defineProperty(returnobj, 'detach', {
     get () {
-      bot?.removeListener(packetName, listener)
+      detach()
       customEvents.removeListener('mineflayerBotCreated', attach)
       return true
     },

@@ -15,6 +15,7 @@ import { RenderItem } from './mineflayer/items'
 import initCollisionShapes from './getCollisionInteractionShapes'
 import protocolMicrosoftAuth from 'minecraft-protocol/src/client/microsoftAuth'
 import microsoftAuthflow from './microsoftAuthflow'
+import { Duplex } from 'stream'
 
 import 'core-js/features/array/at'
 import 'core-js/features/promise/with-resolvers'
@@ -56,11 +57,10 @@ import {
   insertActiveModalStack,
   isGameActive,
   miscUiState,
-  showModal
+  showModal,
+  gameAdditionalState
 } from './globalState'
 
-import {
-  pointerLock } from './utils'
 import { parseServerAddress } from './parseServerAddress'
 import { setLoadingScreenStatus } from './appStatus'
 import { isCypress } from './standaloneUtils'
@@ -101,12 +101,14 @@ import { mainMenuState } from './react/MainMenuRenderApp'
 import { ItemsRenderer } from 'mc-assets/dist/itemsRenderer'
 import './mobileShim'
 import { parseFormattedMessagePacket } from './botUtils'
-import { getViewerVersionData, getWsProtocolStream } from './viewerConnector'
+import { getViewerVersionData, getWsProtocolStream, handleCustomChannel } from './viewerConnector'
 import { getWebsocketStream } from './mineflayer/websocket-core'
 import { appQueryParams, appQueryParamsArray } from './appParams'
 import { updateCursor } from './cameraRotationControls'
 import { pingServerVersion } from './mineflayer/minecraft-protocol-extra'
 import { states } from 'minecraft-protocol'
+import { initMotionTracking } from './react/uiMotion'
+import { UserError } from './mineflayer/userError'
 
 window.debug = debug
 window.THREE = THREE
@@ -305,6 +307,7 @@ export async function connect (connectOptions: ConnectOptions) {
     ended = true
     viewer.resetAll()
     localServer = window.localServer = window.server = undefined
+    gameAdditionalState.viewerConnection = false
 
     renderWrapper.postRender = () => { }
     if (bot) {
@@ -367,7 +370,7 @@ export async function connect (connectOptions: ConnectOptions) {
     signal: errorAbortController.signal
   })
 
-  let clientDataStream
+  let clientDataStream: Duplex | undefined
 
   if (connectOptions.server && !connectOptions.viewerWsConnect && !parsedServer.isWebSocket) {
     console.log(`using proxy ${proxy.host}:${proxy.port || location.port}`)
@@ -392,7 +395,7 @@ export async function connect (connectOptions: ConnectOptions) {
       dataDownloaded = true
       if (connectOptions.authenticatedAccount && (versionToNumber(version) < versionToNumber('1.19.4') || versionToNumber(version) >= versionToNumber('1.21'))) {
         // todo support it (just need to fix .export crash)
-        throw new Error('Microsoft authentication is only supported on 1.19.4 - 1.20.6 (at least for now)')
+        throw new UserError('Microsoft authentication is only supported on 1.19.4 - 1.20.6 (at least for now)')
       }
 
       await downloadMcDataOnConnect(version)
@@ -460,6 +463,8 @@ export async function connect (connectOptions: ConnectOptions) {
         finalVersion = autoVersionSelect.version
       }
       initialLoadingText = `Connecting to server ${server.host} with version ${finalVersion}`
+    } else if (connectOptions.viewerWsConnect) {
+      initialLoadingText = `Connecting to Mineflayer WebSocket server ${connectOptions.viewerWsConnect}`
     } else {
       initialLoadingText = 'We have no idea what to do'
     }
@@ -487,13 +492,24 @@ export async function connect (connectOptions: ConnectOptions) {
       clientDataStream = await connectToPeer(connectOptions.peerId!, connectOptions.peerOptions)
     }
     if (connectOptions.viewerWsConnect) {
-      const { version, time } = await getViewerVersionData(connectOptions.viewerWsConnect)
+      const { version, time, requiresPass } = await getViewerVersionData(connectOptions.viewerWsConnect)
+      let password
+      if (requiresPass) {
+        password = prompt('Enter password')
+        if (!password) {
+          throw new UserError('Password is required')
+        }
+      }
       console.log('Latency:', Date.now() - time, 'ms')
       // const version = '1.21.1'
       finalVersion = version
       await downloadMcData(version)
       setLoadingScreenStatus(`Connecting to WebSocket server ${connectOptions.viewerWsConnect}`)
-      clientDataStream = await getWsProtocolStream(connectOptions.viewerWsConnect)
+      clientDataStream = (await getWsProtocolStream(connectOptions.viewerWsConnect)).clientDuplex
+      if (password) {
+        clientDataStream.write(password)
+      }
+      gameAdditionalState.viewerConnection = true
     }
 
     if (finalVersion) {
@@ -506,7 +522,7 @@ export async function connect (connectOptions: ConnectOptions) {
       port: server.port ? +server.port : undefined,
       version: finalVersion || false,
       ...clientDataStream ? {
-        stream: clientDataStream,
+        stream: clientDataStream as any,
       } : {},
       ...singleplayer || p2pMultiplayer ? {
         keepAlive: false,
@@ -533,7 +549,7 @@ export async function connect (connectOptions: ConnectOptions) {
             protocolMicrosoftAuth.authenticate(client, options),
             new Promise((_r, reject) => {
               signInMessageState.abortController.signal.addEventListener('abort', () => {
-                reject(new Error('Aborted by user'))
+                reject(new UserError('Aborted by user'))
               })
             })
           ])
@@ -574,6 +590,9 @@ export async function connect (connectOptions: ConnectOptions) {
       // "mapDownloader-saveInternal": false, // do not save into memory, todo must be implemeneted as we do really care of ram
     }) as unknown as typeof __type_bot
     window.bot = bot
+    if (connectOptions.viewerWsConnect) {
+      void handleCustomChannel()
+    }
     customEvents.emit('mineflayerBotCreated')
     if (singleplayer || p2pMultiplayer) {
       // in case of p2pMultiplayer there is still flying-squid on the host side
@@ -646,7 +665,7 @@ export async function connect (connectOptions: ConnectOptions) {
   }
   if (!bot) return
 
-  const p2pConnectTimeout = p2pMultiplayer ? setTimeout(() => { throw new Error('Spawn timeout. There might be error on the other side, check console.') }, 20_000) : undefined
+  const p2pConnectTimeout = p2pMultiplayer ? setTimeout(() => { throw new UserError('Spawn timeout. There might be error on the other side, check console.') }, 20_000) : undefined
 
   // bot.on('inject_allowed', () => {
   //   loadingScreen.maybeRecoverable = false
@@ -745,13 +764,12 @@ export async function connect (connectOptions: ConnectOptions) {
 
     bot.on('physicsTick', () => updateCursor())
 
-
     void initVR()
+    initMotionTracking()
 
     renderWrapper.postRender = () => {
       viewer.setFirstPersonCamera(null, bot.entity.yaw, bot.entity.pitch)
     }
-
 
     // Link WorldDataEmitter and Viewer
     viewer.connect(worldView)

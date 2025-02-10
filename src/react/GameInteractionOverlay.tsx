@@ -2,7 +2,7 @@ import { useRef, useEffect } from 'react'
 import { subscribe, useSnapshot } from 'valtio'
 import { useUtilsEffect } from '@zardoy/react-util'
 import { options } from '../optionsStorage'
-import { activeModalStack, isGameActive, miscUiState } from '../globalState'
+import { activeModalStack, gameAdditionalState, isGameActive, miscUiState } from '../globalState'
 import worldInteractions from '../worldInteractions'
 import { onCameraMove, CameraMoveEvent } from '../cameraRotationControls'
 import { pointerLock } from '../utils'
@@ -291,7 +291,7 @@ export default function GameInteractionOverlay ({ zIndex }: { zIndex: number }) 
 
 subscribe(activeModalStack, () => {
   if (activeModalStack.length === 0) {
-    if (isGameActive(false)) {
+    if (isGameActive(false) && !gameAdditionalState.viewerConnection) {
       void pointerLock.requestPointerLock()
     }
   } else {
