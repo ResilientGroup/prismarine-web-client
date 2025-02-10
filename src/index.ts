@@ -393,10 +393,10 @@ export async function connect (connectOptions: ConnectOptions) {
     const downloadMcData = async (version: string) => {
       if (dataDownloaded) return
       dataDownloaded = true
-      if (connectOptions.authenticatedAccount && (versionToNumber(version) < versionToNumber('1.19.4') || versionToNumber(version) >= versionToNumber('1.21'))) {
-        // todo support it (just need to fix .export crash)
-        throw new UserError('Microsoft authentication is only supported on 1.19.4 - 1.20.6 (at least for now)')
-      }
+      // if (connectOptions.authenticatedAccount && (versionToNumber(version) < versionToNumber('1.19.4') || versionToNumber(version) >= versionToNumber('1.21'))) {
+      //   // todo support it (just need to fix .export crash)
+      //   throw new UserError('Microsoft authentication is only supported on 1.19.4 - 1.20.6 (at least for now)')
+      // }
 
       await downloadMcDataOnConnect(version)
       try {
