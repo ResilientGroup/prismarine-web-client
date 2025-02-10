@@ -174,7 +174,10 @@ export const handleCustomChannel = async () => {
           isRepl: true,
           level: data.isError ? 'error' : undefined
         })
-
+        // Limit to 500 messages by removing oldest ones
+        if (mineflayerConsoleState.messages.length > 500) {
+          mineflayerConsoleState.messages = mineflayerConsoleState.messages.slice(-500)
+        }
         break
       }
       case 'console': {
@@ -184,7 +187,10 @@ export const handleCustomChannel = async () => {
           text: data.message,
           level: data.level
         })
-
+        // Limit to 500 messages by removing oldest ones
+        if (mineflayerConsoleState.messages.length > 500) {
+          mineflayerConsoleState.messages = mineflayerConsoleState.messages.slice(-500)
+        }
         break
       }
       case 'ui': {

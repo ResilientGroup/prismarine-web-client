@@ -180,10 +180,3 @@ export const reportWarningOnce = (id: string, message: string) => {
   reportedWarnings.add(id)
   console.warn(message)
 }
-
-export interface ParsedServerAddress {
-  host: string
-  port?: string
-  version?: string
-  isWebSocket: boolean
-}

@@ -1,4 +1,3 @@
-import { ParsedServerAddress } from './utils'
 
 
 export const parseServerAddress = (address: string | undefined, removeHttp = true): ParsedServerAddress => {
@@ -40,4 +39,11 @@ export const parseServerAddress = (address: string | undefined, removeHttp = tru
     ...(version ? { version } : {}),
     isWebSocket: false
   }
+}
+
+export interface ParsedServerAddress {
+  host: string
+  port?: string
+  version?: string
+  isWebSocket: boolean
 }
