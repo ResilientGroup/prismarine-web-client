@@ -18,9 +18,6 @@ import protocolMicrosoftAuth from 'minecraft-protocol/src/client/microsoftAuth'
 import microsoftAuthflow from './microsoftAuthflow'
 import { Duplex } from 'stream'
 
-import 'core-js/features/array/at'
-import 'core-js/features/promise/with-resolvers'
-
 import './scaleInterface'
 import { initWithRenderer } from './topRightStats'
 import PrismarineBlock from 'prismarine-block'
