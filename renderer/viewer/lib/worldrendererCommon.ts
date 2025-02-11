@@ -124,6 +124,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   customTextures: {
     items?: CustomTexturesData
     blocks?: CustomTexturesData
+    armor?: CustomTexturesData
   } = {}
   workersProcessAverageTime = 0
   workersProcessAverageTimeCount = 0

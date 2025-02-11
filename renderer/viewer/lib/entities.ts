@@ -20,7 +20,7 @@ import * as Entity from './entity/EntityMesh'
 import { getMesh } from './entity/EntityMesh'
 import { WalkingGeneralSwing } from './entity/animations'
 import { disposeObject } from './threeJsUtils'
-import { armorModels } from './entity/objModels'
+import { armorModel, armorTextures } from './entity/armorModels'
 import { Viewer } from './viewer'
 import { getBlockMeshFromModel } from './holdingBlock'
 const { loadTexture } = globalThis.isElectron ? require('./utils.electron.js') : require('./utils')
@@ -950,11 +950,11 @@ function addArmorModel (entityMesh: THREE.Object3D, slotType: string, item: Item
   }
   const armorMaterial = itemParts[0]
   if (!texturePath) {
-    // TODO: Support resource pack
     // TODO: Support mirroring on certain parts of the model
-    texturePath = armorModels[`${armorMaterial}Layer${layer}${overlay ? 'Overlay' : ''}`]
+    const armorTextureName = `${armorMaterial}_layer_${layer}${overlay ? '_overlay' : ''}`
+    texturePath = viewer.world.customTextures.armor?.textures[armorTextureName]?.src ?? armorTextures[armorTextureName]
   }
-  if (!texturePath || !armorModels.armorModel[slotType]) {
+  if (!texturePath || !armorModel[slotType]) {
     removeArmorModel(entityMesh, slotType)
     return
   }
@@ -973,7 +973,7 @@ function addArmorModel (entityMesh: THREE.Object3D, slotType: string, item: Item
       material.map = texture
     })
   } else {
-    mesh = getMesh(viewer.world, texturePath, armorModels.armorModel[slotType])
+    mesh = getMesh(viewer.world, texturePath, armorModel[slotType])
     mesh.name = meshName
     material = mesh.material
     if (!isPlayerHead) {
