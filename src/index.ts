@@ -1,6 +1,7 @@
 /* eslint-disable import/order */
 import './importsWorkaround'
 import './styles.css'
+import './testCrasher'
 import './globals'
 import './devtools'
 import './entities'
@@ -159,6 +160,8 @@ const isIphone = ua.getDevice().model === 'iPhone' // todo ipad?
 if (isIphone) {
   document.documentElement.style.setProperty('--hud-bottom-max', '21px') // env-safe-aria-inset-bottom
 }
+
+if (appQueryParams.testCrashApp === '2') throw new Error('test')
 
 // Create viewer
 const viewer: import('renderer/viewer/lib/viewer').Viewer = new Viewer(renderer)
