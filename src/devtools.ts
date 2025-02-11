@@ -71,13 +71,7 @@ window.inspectPacket = (packetName, isFromClient = false, fullOrListener: boolea
     }
   }
   const packetListener = (data, { name }) => {
-    if (pattern) {
-      if (pattern.test(name)) {
-        listener(name, data)
-      }
-    } else if (name === packetName) {
-      listener(name, data)
-    }
+    packetNameListener(name, data)
   }
 
   const attach = () => {
