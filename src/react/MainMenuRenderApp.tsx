@@ -159,7 +159,7 @@ export default () => {
           await refreshApp()
         }}
         onVersionTextClick={async () => {
-          openGithub('/releases')
+          openGithub(process.env.RELEASE_LINK)
         }}
         versionText={process.env.RELEASE_TAG}
       />
