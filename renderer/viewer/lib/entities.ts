@@ -991,6 +991,8 @@ function addArmorModel (entityMesh: THREE.Object3D, slotType: string, item: Item
       material.color.setHex(0xB5_6D_51) // default brown color
     }
     addArmorModel(entityMesh, slotType, item, layer, true)
+  } else {
+    material.color.setHex(0xFF_FF_FF)
   }
   const group = new THREE.Object3D()
   group.name = `armor_${slotType}${overlay ? '_overlay' : ''}`
