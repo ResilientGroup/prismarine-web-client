@@ -85,6 +85,7 @@ const handleMessage = data => {
     world ??= new World(data.config.version)
     world.config = { ...world.config, ...data.config }
     globalThis.world = world
+    globalThis.Vec3 = Vec3
   }
 
   switch (data.type) {

@@ -165,15 +165,27 @@ class WorldInteraction {
       }
     })
 
-    bot.on('blockBreakProgressObserved', (block: Block, destroyStage: number) => {
-      if (this.cursorBlock?.position.equals(block.position)) {
-        this.setBreakState(block, destroyStage)
+    //@ts-expect-error mineflayer types are wrong
+    bot.on('blockBreakProgressObserved', (block: Block, destroyStage: number, entity: Entity) => {
+      if (this.cursorBlock?.position.equals(block.position) && entity.id === bot.entity.id) {
+        if (!this.buttons[0]) {
+          // Simulate left mouse button press
+          this.buttons[0] = true
+          this.update()
+        }
+        // this.setBreakState(block, destroyStage)
       }
     })
 
-    bot.on('blockBreakProgressEnd', (block: Block) => {
-      if (this.currentBreakBlock?.block.position.equals(block.position)) {
-        this.stopBreakAnimation()
+    //@ts-expect-error mineflayer types are wrong
+    bot.on('blockBreakProgressEnd', (block: Block, entity: Entity) => {
+      if (this.currentBreakBlock?.block.position.equals(block.position) && entity.id === bot.entity.id) {
+        if (!this.buttons[0]) {
+          // Simulate left mouse button press
+          this.buttons[0] = false
+          this.update()
+        }
+        // this.stopBreakAnimation()
       }
     })
 

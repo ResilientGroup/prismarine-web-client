@@ -114,7 +114,7 @@ export class Viewer {
         })
       }
       if (!this.world.loadedChunks[`${sectionX},${sectionZ}`]) {
-        console.debug('[should be unreachable] setBlockStateId called for unloaded chunk', pos)
+        // console.debug('[should be unreachable] setBlockStateId called for unloaded chunk', pos)
       }
       this.world.setBlockStateId(pos, stateId)
     }

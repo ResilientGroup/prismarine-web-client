@@ -78,8 +78,21 @@ export default ({
   const chatInput = useRef<HTMLInputElement>(null!)
   const chatMessages = useRef<HTMLDivElement>(null)
   const openedChatWasAtBottom = useRef(false)
+  const wasAtBottomBeforeOpen = useRef(false)
   const chatHistoryPos = useRef(sendHistoryRef.current.length)
   const inputCurrentlyEnteredValue = useRef('')
+
+  const isAtBottom = () => {
+    if (!chatMessages.current) return true
+    const { scrollTop, scrollHeight, clientHeight } = chatMessages.current
+    return Math.abs(scrollHeight - clientHeight - scrollTop) < 1
+  }
+
+  const scrollToBottom = () => {
+    if (chatMessages.current) {
+      chatMessages.current.scrollTop = chatMessages.current.scrollHeight
+    }
+  }
 
   const setSendHistory = (newHistory: string[]) => {
     sendHistoryRef.current = newHistory
@@ -120,6 +133,11 @@ export default ({
       if (!usingTouch) {
         chatInput.current.focus()
       }
+      // Check if was at bottom before opening
+      wasAtBottomBeforeOpen.current = isAtBottom()
+      if (wasAtBottomBeforeOpen.current) {
+        scrollToBottom()
+      }
       const unsubscribe = subscribe(chatInputValueGlobal, () => {
         if (!chatInputValueGlobal.value) return
         updateInputValue(chatInputValueGlobal.value)
@@ -129,7 +147,7 @@ export default ({
       return unsubscribe
     }
     if (!opened && chatMessages.current) {
-      chatMessages.current.scrollTop = chatMessages.current.scrollHeight
+      scrollToBottom()
     }
   }, [opened])
 
@@ -143,18 +161,31 @@ export default ({
   useEffect(() => {
     if ((!opened || (opened && openedChatWasAtBottom.current)) && chatMessages.current) {
       openedChatWasAtBottom.current = false
-      // stay at bottom on messages changes
-      chatMessages.current.scrollTop = chatMessages.current.scrollHeight
+      // stay at bottom on messages changes only if we were at bottom
+      if (isAtBottom()) {
+        scrollToBottom()
+      }
     }
   }, [messages])
 
   useMemo(() => {
     if ((opened && chatMessages.current)) {
-      const wasAtBottom = chatMessages.current.scrollTop === chatMessages.current.scrollHeight - chatMessages.current.clientHeight
-      openedChatWasAtBottom.current = wasAtBottom
-      // console.log(wasAtBottom, chatMessages.current.scrollTop, chatMessages.current.scrollHeight - chatMessages.current.clientHeight)
+      openedChatWasAtBottom.current = isAtBottom()
     }
   }, [messages])
+
+  // Add scroll handler to track scroll position
+  useEffect(() => {
+    const messagesEl = chatMessages.current
+    if (!messagesEl) return
+
+    const handleScroll = () => {
+      openedChatWasAtBottom.current = isAtBottom()
+    }
+
+    messagesEl.addEventListener('scroll', handleScroll)
+    return () => messagesEl.removeEventListener('scroll', handleScroll)
+  }, [])
 
   const auxInputFocus = (fireKey: string) => {
     chatInput.current.focus()
@@ -249,6 +280,8 @@ export default ({
               if (result !== false) {
                 onClose?.()
               }
+              // Always scroll to bottom after sending a message
+              scrollToBottom()
             }
           }}
           >
