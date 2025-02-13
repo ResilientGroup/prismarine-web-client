@@ -46,6 +46,7 @@ const defaultOptions = {
   unimplementedContainers: false,
   dayCycleAndLighting: true,
   loadPlayerSkins: true,
+  renderEars: true,
   lowMemoryMode: false,
   starfieldRendering: true,
   enabledResourcepack: null as string | null,

@@ -350,12 +350,14 @@ export class Entities extends EventEmitter {
       playerObject.skin.map = skinTexture
       playerObject.skin.modelType = inferModelType(skinTexture.image)
 
-      const earsCanvas = document.createElement('canvas')
-      loadEarsToCanvasFromSkin(earsCanvas, image)
-      if (isCanvasBlank(earsCanvas)) {
-        playerObject.ears.map = null
-        playerObject.ears.visible = false
-      } else {
+      let renderEars = this.viewer.world.config.renderEars || username === 'deadmau5'
+      let earsCanvas
+      if (renderEars) {
+        earsCanvas = document.createElement('canvas')
+        loadEarsToCanvasFromSkin(earsCanvas, image)
+        renderEars = !isCanvasBlank(earsCanvas)
+      }
+      if (renderEars) {
         const earsTexture = new THREE.CanvasTexture(earsCanvas)
         earsTexture.magFilter = THREE.NearestFilter
         earsTexture.minFilter = THREE.NearestFilter
@@ -363,6 +365,9 @@ export class Entities extends EventEmitter {
         //@ts-expect-error
         playerObject.ears.map = earsTexture
         playerObject.ears.visible = true
+      } else {
+        playerObject.ears.map = null
+        playerObject.ears.visible = false
       }
       this.onSkinUpdate?.()
       if (capeUrl) {
