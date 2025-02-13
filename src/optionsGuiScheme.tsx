@@ -93,7 +93,7 @@ export const guiOptionsScheme: {
       },
       handDisplay: {},
       renderEars: {
-        tooltip: 'Support rendering Deadmau5 ears for all players if their skin contains textures for it',
+        tooltip: 'Enable rendering Deadmau5 ears for all players if their skin contains textures for it',
       },
       renderDebug: {
         values: [
