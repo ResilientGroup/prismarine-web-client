@@ -190,6 +190,18 @@ class WorldInteraction {
       }
     })
 
+    // Handle acknowledge_player_digging packet
+    bot._client.on('acknowledge_player_digging', (data: { location: { x: number, y: number, z: number }, block: number, status: number, successful: boolean } | { sequenceId: number }) => {
+      if ('location' in data && !data.successful) {
+        const packetPos = new Vec3(data.location.x, data.location.y, data.location.z)
+        if (this.cursorBlock?.position.equals(packetPos)) {
+          this.buttons[0] = false
+          this.update()
+          this.stopBreakAnimation()
+        }
+      }
+    })
+
     const upLineMaterial = () => {
       const inCreative = bot.game.gameMode === 'creative'
       const pixelRatio = viewer.renderer.getPixelRatio()
