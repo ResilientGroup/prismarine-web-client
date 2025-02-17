@@ -24,7 +24,7 @@ import { Viewer } from './viewer'
 import { getBlockMeshFromModel } from './holdingBlock'
 import { ItemSpecificContextProperties } from './basePlayerState'
 import { loadSkinImage, getLookupUrl, stevePngUrl, steveTexture } from './utils/skins'
-const { loadTexture } = globalThis.isElectron ? require('./utils.electron.js') : require('./utils')
+import { loadTexture } from './utils'
 
 export const TWEEN_DURATION = 120
 

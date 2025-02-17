@@ -146,3 +146,5 @@ Object.defineProperty(window, 'debugToggle', {
     console.log('Enabled debug for', v)
   }
 })
+
+window.holdingBlock = (viewer.world as WorldRendererThree).holdingBlock

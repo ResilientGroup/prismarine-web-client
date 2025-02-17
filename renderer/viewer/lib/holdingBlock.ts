@@ -870,8 +870,3 @@ export const getBlockMeshFromModel = (material: THREE.Material, model: BlockMode
   })
   return getThreeBlockModelGroup(material, [[worldRenderModel]], undefined, 'plains', loadedData)
 }
-
-setTimeout(() => {
-  //@ts-expect-error
-  window.holdingBlock = viewer.world.holdingBlock
-})

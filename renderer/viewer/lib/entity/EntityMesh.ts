@@ -5,12 +5,10 @@ import { Vec3 } from 'vec3'
 import spectralArrowTexture from '../../../../node_modules/mc-assets/dist/other-textures/1.21.2/entity/projectiles/spectral_arrow.png'
 import tippedArrowTexture from '../../../../node_modules/mc-assets/dist/other-textures/1.21.2/entity/projectiles/tipped_arrow.png'
 import { WorldRendererCommon } from '../worldrendererCommon'
+import { loadTexture } from '../utils'
 import entities from './entities.json'
 import { externalModels } from './objModels'
 import externalTexturesJson from './externalTextures.json'
-// import { loadTexture } from globalThis.isElectron ? '../utils.electron.js' : '../utils';
-
-const { loadTexture } = globalThis.isElectron ? require('../utils.electron.js') : require('../utils')
 
 interface ElemFace {
   dir: [number, number, number]
@@ -323,11 +321,11 @@ export function getMesh (
       loadedTexture.wrapS = THREE.RepeatWrapping
       loadedTexture.wrapT = THREE.RepeatWrapping
       material.map = loadedTexture
-      const actualWidth = loadedTexture.image?.width
+      const actualWidth = loadedTexture.image.width
       if (actualWidth && textureWidth !== actualWidth) {
         loadedTexture.repeat.x = textureWidth / actualWidth
       }
-      const actualHeight = loadedTexture.image?.height
+      const actualHeight = loadedTexture.image.height
       if (actualHeight && textureHeight !== actualHeight) {
         loadedTexture.repeat.y = textureHeight / actualHeight
       }
