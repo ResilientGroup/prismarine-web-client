@@ -348,7 +348,8 @@ export class Entities extends EventEmitter {
     }
 
     if (typeof skinUrl !== 'string') throw new Error('Invalid skin url')
-    void this.loadAndApplySkin(entityId, skinUrl).then(() => {
+    const renderEars = this.viewer.world.config.renderEars || username === 'deadmau5'
+    void this.loadAndApplySkin(entityId, skinUrl, renderEars).then(() => {
       if (capeUrl) {
         if (capeUrl === true && username) {
           capeUrl = getLookupUrl(username, 'cape')
@@ -371,7 +372,7 @@ export class Entities extends EventEmitter {
     }
   }
 
-  private async loadAndApplySkin (entityId: string | number, skinUrl: string) {
+  private async loadAndApplySkin (entityId: string | number, skinUrl: string, renderEars: boolean) {
     let playerObject = this.getPlayerObject(entityId)
     if (!playerObject) return
 
@@ -396,14 +397,13 @@ export class Entities extends EventEmitter {
       playerObject.skin.map = skinTexture as any
       playerObject.skin.modelType = inferModelType(skinTexture.image)
 
-      const earsCanvas = document.createElement('canvas')
-      if (playerCustomSkinImage) {
+      let earsCanvas
+      if (renderEars && playerCustomSkinImage) {
+        earsCanvas = document.createElement('canvas')
         loadEarsToCanvasFromSkin(earsCanvas, playerCustomSkinImage)
+        renderEars = !this.isCanvasBlank(earsCanvas)
       }
-      if (this.isCanvasBlank(earsCanvas)) {
-        playerObject.ears.map = null
-        playerObject.ears.visible = false
-      } else {
+      if (renderEars) {
         const earsTexture = new THREE.CanvasTexture(earsCanvas)
         earsTexture.magFilter = THREE.NearestFilter
         earsTexture.minFilter = THREE.NearestFilter
@@ -411,6 +411,9 @@ export class Entities extends EventEmitter {
         //@ts-expect-error
         playerObject.ears.map = earsTexture
         playerObject.ears.visible = true
+      } else {
+        playerObject.ears.map = null
+        playerObject.ears.visible = false
       }
       this.onSkinUpdate?.()
     } catch (error) {

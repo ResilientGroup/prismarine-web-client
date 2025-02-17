@@ -34,6 +34,7 @@ export const defaultWorldRendererConfig = {
   showChunkBorders: false,
   numWorkers: 4,
   isPlayground: false,
+  renderEars: true,
   // game renderer setting actually
   showHand: false,
   viewBobbing: false
