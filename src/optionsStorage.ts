@@ -56,6 +56,7 @@ const defaultOptions = {
   viewBobbing: true,
   packetsLoggerPreset: 'all' as 'all' | 'no-buffers',
   serversAutoVersionSelect: 'auto' as 'auto' | 'latest' | '1.20.4' | string,
+  customChannels: false,
 
   // antiAliasing: false,
 

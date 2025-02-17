@@ -506,7 +506,7 @@ const updateTextures = async () => {
     }
   }
   if (viewer.world.active) {
-    await viewer.world.updateTexturesData()
+    await viewer.world.updateAssetsData()
     if (viewer.world instanceof WorldRendererThree) {
       viewer.world.rerenderAllChunks?.()
     }
