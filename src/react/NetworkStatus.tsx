@@ -37,16 +37,16 @@ export default () => {
     return () => clearInterval(interval)
   }, [])
 
-  // if (!lastConnectOptions.value?.proxy) return null
+  if (!lastConnectOptions.value?.proxy) return null
 
   const { username } = bot.player
-  const { proxy: proxyUrl, server: serverIp } = lastConnectOptions.value!
+  const { proxy: proxyUrl, server: serverIp } = lastConnectOptions.value
   const pingTotal = serverPing
 
   const ICON_SIZE = 18
   return (
     <div className={styles.container}>
-      <PixelartIcon className={styles.iconRow} iconName={pixelartIcons.monitor} width={ICON_SIZE} />
+      <PixelartIcon className={styles.iconRow} iconName={pixelartIcons.user} width={ICON_SIZE} />
       <PixelartIcon className={`${styles.iconRow} ${styles.arrowRow}`} iconName={pixelartIcons['arrow-right']} width={16} />
       <PixelartIcon className={styles.iconRow} iconName={pixelartIcons.server} width={ICON_SIZE} />
       <PixelartIcon className={`${styles.iconRow} ${styles.arrowRow}`} iconName={pixelartIcons['arrow-right']} width={16} />
