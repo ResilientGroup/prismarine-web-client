@@ -1,4 +1,5 @@
 import { RefObject, useEffect, useLayoutEffect, useRef } from 'react'
+import { pixelartIcons } from '../PixelartIcon'
 
 export const useScrollBehavior = (
   elementRef: RefObject<HTMLElement>,
@@ -11,7 +12,6 @@ export const useScrollBehavior = (
   }
 ) => {
   const openedWasAtBottom = useRef(true) // before new messages
-  window.openedWasAtBottom = openedWasAtBottom
 
   const isAtBottom = () => {
     if (!elementRef.current) return true

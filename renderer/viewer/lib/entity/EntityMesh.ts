@@ -327,7 +327,7 @@ export function getMesh (
     loadedTexture.needsUpdate = true
     material.map = loadedTexture
   } else {
-    loadTexture(texture, loadedTexture => {
+    void loadTexture(texture, loadedTexture => {
       if (material.map) {
         // texture is already loaded
         return
@@ -338,14 +338,17 @@ export function getMesh (
       loadedTexture.wrapS = THREE.RepeatWrapping
       loadedTexture.wrapT = THREE.RepeatWrapping
       material.map = loadedTexture
-      const actualWidth = loadedTexture.image.width
+    }, () => {
+      // This callback runs after the texture is fully loaded
+      const actualWidth = material.map!.image.width
       if (actualWidth && textureWidth !== actualWidth) {
-        loadedTexture.repeat.x = textureWidth / actualWidth
+        material.map!.repeat.x = textureWidth / actualWidth
       }
-      const actualHeight = loadedTexture.image.height
+      const actualHeight = material.map!.image.height
       if (actualHeight && textureHeight !== actualHeight) {
-        loadedTexture.repeat.y = textureHeight / actualHeight
+        material.map!.repeat.y = textureHeight / actualHeight
       }
+      material.needsUpdate = true
     })
   }
 

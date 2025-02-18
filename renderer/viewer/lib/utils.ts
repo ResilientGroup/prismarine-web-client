@@ -1,34 +1,25 @@
 import * as THREE from 'three'
 
-const textureCache: Record<string, THREE.Texture> = {}
-const loadingTextures = new Map<string, Promise<THREE.Texture>>()
+let textureCache: Record<string, THREE.Texture> = {}
+let imagesPromises: Record<string, Promise<THREE.Texture>> = {}
 
-export function loadTexture (texture: string, cb: (texture: THREE.Texture) => void): void {
+export async function loadTexture (texture: string, cb: (texture: THREE.Texture) => void, onLoad?: () => void): Promise<void> {
   const cached = textureCache[texture]
-  if (cached) {
-    cb(cached)
-    return
+  if (!cached) {
+    const { promise, resolve } = Promise.withResolvers<THREE.Texture>()
+    textureCache[texture] = new THREE.TextureLoader().load(texture, resolve)
+    imagesPromises[texture] = promise
   }
 
-  // Check if this texture is already being loaded
-  const loadingPromise = loadingTextures.get(texture)
-  if (loadingPromise) {
-    void loadingPromise.then(loadedTexture => cb(loadedTexture))
-    return
-  }
-
-  // Create new loading promise for this texture
-  const promise = new Promise<THREE.Texture>(resolve => {
-    new THREE.TextureLoader().load(texture, (loadedTexture) => {
-      loadedTexture.needsUpdate = true
-      textureCache[texture] = loadedTexture
-      loadingTextures.delete(texture)
-      resolve(loadedTexture)
-      cb(loadedTexture)
-    })
+  cb(textureCache[texture])
+  void imagesPromises[texture].then(() => {
+    onLoad?.()
   })
+}
 
-  loadingTextures.set(texture, promise)
+export const clearTextureCache = () => {
+  textureCache = {}
+  imagesPromises = {}
 }
 
 export const loadScript = async function (scriptSrc: string): Promise<HTMLScriptElement> {
