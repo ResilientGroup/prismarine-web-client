@@ -1,3 +1,5 @@
+import { versionToNumber } from 'renderer/viewer/prepare/utils'
+
 export default () => {
   let i = 0
   bot.pingProxy = async () => {
@@ -15,19 +17,19 @@ export default () => {
     })
   }
 
-  let pingPending = false
+  let pingId = 0
   bot.pingServer = async () => {
-    if (pingPending) return
-    pingPending = true
+    if (versionToNumber(bot.version) < versionToNumber('1.20.2')) return bot.player.ping
     return new Promise<number>((resolve) => {
-      bot._client.write('ping' as any, { time: [0, 0] })
+      const curId = pingId++
+      bot._client.write('ping_request', { id: BigInt(curId) })
       const date = Date.now()
-      const onPong = () => {
-        bot._client.off('ping' as any, onPong)
+      const onPong = (data: { id: bigint }) => {
+        if (BigInt(data.id) !== BigInt(curId)) return
+        bot._client.off('ping_response' as any, onPong)
         resolve(Date.now() - date)
-        pingPending = false
       }
-      bot._client.on('ping' as any, onPong)
+      bot._client.on('ping_response' as any, onPong)
     })
   }
 }

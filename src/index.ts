@@ -110,6 +110,7 @@ import { playerState, PlayerStateManager } from './mineflayer/playerState'
 import { states } from 'minecraft-protocol'
 import { initMotionTracking } from './react/uiMotion'
 import { UserError } from './mineflayer/userError'
+import ping from './mineflayer/plugins/ping'
 
 window.debug = debug
 window.THREE = THREE
@@ -643,22 +644,7 @@ export async function connect (connectOptions: ConnectOptions) {
             })
           })
         })
-        let i = 0
-        //@ts-expect-error
-        bot.pingProxy = async () => {
-          const curI = ++i
-          return new Promise(resolve => {
-            //@ts-expect-error
-            bot._client.socket._ws.send(`ping:${curI}`)
-            const date = Date.now()
-            const onPong = (received) => {
-              if (received !== curI.toString()) return
-              bot._client.socket.off('pong' as any, onPong)
-              resolve(Date.now() - date)
-            }
-            bot._client.socket.on('pong' as any, onPong)
-          })
-        }
+        bot.loadPlugin(ping)
       }
       // socket setup actually can be delayed because of dns lookup
       if (bot._client.socket) {

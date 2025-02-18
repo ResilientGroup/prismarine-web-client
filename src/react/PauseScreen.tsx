@@ -30,6 +30,7 @@ import styles from './PauseScreen.module.css'
 import { DiscordButton } from './DiscordButton'
 import { showNotification } from './NotificationProvider'
 import { appStatusState, reconnectReload } from './AppStatusProvider'
+import NetworkStatus from './NetworkStatus'
 
 const waitForPotentialRender = async () => {
   return new Promise<void>(resolve => {
@@ -226,6 +227,9 @@ export default () => {
       style={{ position: 'fixed', top: '5px', left: 'calc(env(safe-area-inset-left) + 5px)' }}
       onClick={async () => openWorldActions()}
     />
+    <div style={{ position: 'fixed', top: '5px', left: 'calc(env(safe-area-inset-left) + 35px)' }}>
+      <NetworkStatus />
+    </div>
     <div className={styles.pause_container}>
       <Button className="button" style={{ width: '204px' }} onClick={onReturnPress}>Back to Game</Button>
       <div className={styles.row}>
