@@ -897,7 +897,7 @@ export class Entities extends EventEmitter {
 
     mapMesh.rotation.set(0, Math.PI, 0)
     entityMesh.add(mapMesh)
-    let isInvisible = false
+    let isInvisible = true
     entityMesh.traverseVisible(c => {
       if (c.name === 'geometry_frame') {
         isInvisible = false
