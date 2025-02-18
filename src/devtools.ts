@@ -147,4 +147,6 @@ Object.defineProperty(window, 'debugToggle', {
   }
 })
 
-window.holdingBlock = (viewer.world as WorldRendererThree).holdingBlock
+customEvents.on('gameLoaded', () => {
+  window.holdingBlock = (viewer.world as WorldRendererThree).holdingBlock
+})

@@ -14,13 +14,14 @@ For building the project yourself / contributing, see [Development, Debugging & 
 
 - Open any zip world file or even folder in read-write mode!
 - Connect to Java servers running in both offline (cracked) and online mode* (it's possible because of proxy servers, see below)
-- Integrated JS server capable of opening Java world saves in any way (folders, zip, web streaming, etc)
+- Integrated JS server clone capable of opening Java world saves in any way (folders, zip, web chunks streaming, etc)
 - Singleplayer mode with simple world generations!
 - Works offline
 - First-class touch (mobile) & controller support
 - First-class keybindings configuration
 - Advanced Resource pack support: Custom GUI, all textures. Server resource packs are supported with proper CORS configuration.
-- Builtin JEI with recipes & descriptions for every item (JEI is creative inventory replacement)
+- Builtin JEI with recipes & descriptions for almost every item (JEI is creative inventory replacement)
+- Custom protocol channel extensions (eg for custom block models in the world)
 - Play with friends over internet! (P2P is powered by Peer.js discovery servers)
 - ~~Google Drive support for reading / saving worlds back to the cloud~~
 - even even more!

@@ -1,39 +1,40 @@
 import * as THREE from 'three'
 
-const textureCache = {}
+const textureCache: Record<string, THREE.Texture> = {}
+const loadingTextures = new Map<string, Promise<THREE.Texture>>()
 
-export function loadTexture (texture: string, cb: (texture: THREE.Texture) => void) {
+export function loadTexture (texture: string, cb: (texture: THREE.Texture) => void): void {
   const cached = textureCache[texture]
   if (cached) {
     cb(cached)
     return
   }
 
-  const threeTexture = new THREE.TextureLoader().load(texture, (loadedTexture) => {
-    loadedTexture.needsUpdate = true
-    textureCache[texture] = loadedTexture
-    cb(loadedTexture)
-  })
-}
-
-export function loadJSON (url, callback) {
-  const xhr = new XMLHttpRequest()
-  xhr.open('GET', url, true)
-  xhr.responseType = 'json'
-  xhr.onload = function () {
-    const { status } = xhr
-    if (status === 200) {
-      callback(xhr.response)
-    } else {
-      throw new Error(url + ' not found')
-    }
-  }
-  xhr.send()
-}
-
-export const loadScript = async function (scriptSrc) {
-  if (document.querySelector(`script[src="${scriptSrc}"]`)) {
+  // Check if this texture is already being loaded
+  const loadingPromise = loadingTextures.get(texture)
+  if (loadingPromise) {
+    void loadingPromise.then(loadedTexture => cb(loadedTexture))
     return
+  }
+
+  // Create new loading promise for this texture
+  const promise = new Promise<THREE.Texture>(resolve => {
+    new THREE.TextureLoader().load(texture, (loadedTexture) => {
+      loadedTexture.needsUpdate = true
+      textureCache[texture] = loadedTexture
+      loadingTextures.delete(texture)
+      resolve(loadedTexture)
+      cb(loadedTexture)
+    })
+  })
+
+  loadingTextures.set(texture, promise)
+}
+
+export const loadScript = async function (scriptSrc: string): Promise<HTMLScriptElement> {
+  const existingScript = document.querySelector<HTMLScriptElement>(`script[src="${scriptSrc}"]`)
+  if (existingScript) {
+    return existingScript
   }
 
   return new Promise((resolve, reject) => {
