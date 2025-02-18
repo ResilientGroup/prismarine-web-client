@@ -644,7 +644,6 @@ export async function connect (connectOptions: ConnectOptions) {
             })
           })
         })
-        bot.loadPlugin(ping)
       }
       // socket setup actually can be delayed because of dns lookup
       if (bot._client.socket) {
@@ -661,6 +660,10 @@ export async function connect (connectOptions: ConnectOptions) {
     }
   } catch (err) {
     handleError(err)
+  }
+
+  if (connectOptions.server) {
+    bot.loadPlugin(ping)
   }
   if (!bot) return
 

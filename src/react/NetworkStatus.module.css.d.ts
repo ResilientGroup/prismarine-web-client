@@ -7,6 +7,7 @@ interface CssExports {
   iconRow: string;
   ping: string;
   totalRow: string;
+  websocket: string;
 }
 declare const cssExports: CssExports;
 export default cssExports;

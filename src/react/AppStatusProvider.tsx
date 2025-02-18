@@ -36,6 +36,7 @@ export const resetAppStatusState = () => {
 export const lastConnectOptions = {
   value: null as ConnectOptions | null
 }
+globalThis.lastConnectOptions = lastConnectOptions
 
 const saveReconnectOptions = (options: ConnectOptions) => {
   sessionStorage.setItem('reconnectOptions', JSON.stringify({

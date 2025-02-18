@@ -383,19 +383,26 @@ export class Entities extends EventEmitter {
       if (!playerObject) return
 
       let skinTexture: THREE.Texture
+      let skinCanvas: HTMLCanvasElement
       if (skinUrl === stevePngUrl) {
         skinTexture = await steveTexture
+        const canvas = document.createElement('canvas')
+        const ctx = canvas.getContext('2d')
+        if (!ctx) throw new Error('Failed to get context')
+        ctx.drawImage(skinTexture.image, 0, 0)
+        skinCanvas = canvas
       } else {
-        const { canvas: skinCanvas, image } = await loadSkinImage(skinUrl)
+        const { canvas, image } = await loadSkinImage(skinUrl)
         playerCustomSkinImage = image
-        skinTexture = new THREE.CanvasTexture(skinCanvas)
+        skinTexture = new THREE.CanvasTexture(canvas)
+        skinCanvas = canvas
       }
 
       skinTexture.magFilter = THREE.NearestFilter
       skinTexture.minFilter = THREE.NearestFilter
       skinTexture.needsUpdate = true
       playerObject.skin.map = skinTexture as any
-      playerObject.skin.modelType = inferModelType(skinTexture.image)
+      playerObject.skin.modelType = inferModelType(skinCanvas)
 
       let earsCanvas
       if (renderEars && playerCustomSkinImage) {
