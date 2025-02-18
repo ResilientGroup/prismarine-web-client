@@ -97,6 +97,7 @@ export const watchOptionsAfterWorldViewInit = () => {
     if (!worldView) return
     worldView.keepChunksDistance = o.keepChunksDistance
     viewer.world.config.renderEars = o.renderEars
+    viewer.world.config.showHand = o.showHand
     viewer.world.config.viewBobbing = o.viewBobbing
   })
 }

@@ -711,6 +711,13 @@ export async function connect (connectOptions: ConnectOptions) {
     worldInteractions.initBot()
 
     setLoadingScreenStatus('Loading world')
+
+    const mcData = MinecraftData(bot.version)
+    window.PrismarineBlock = PrismarineBlock(mcData.version.minecraftVersion!)
+    window.PrismarineItem = PrismarineItem(mcData.version.minecraftVersion!)
+    window.loadedData = mcData
+    window.Vec3 = Vec3
+    window.pathfinder = pathfinder
   })
 
   const spawnEarlier = !singleplayer && !p2pMultiplayer
@@ -731,12 +738,6 @@ export async function connect (connectOptions: ConnectOptions) {
     }
     window.focus?.()
     errorAbortController.abort()
-    const mcData = MinecraftData(bot.version)
-    window.PrismarineBlock = PrismarineBlock(mcData.version.minecraftVersion!)
-    window.PrismarineItem = PrismarineItem(mcData.version.minecraftVersion!)
-    window.loadedData = mcData
-    window.Vec3 = Vec3
-    window.pathfinder = pathfinder
 
     miscUiState.gameLoaded = true
     miscUiState.loadedServerIndex = connectOptions.serverIndex ?? ''
