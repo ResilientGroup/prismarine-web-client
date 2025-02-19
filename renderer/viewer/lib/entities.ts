@@ -404,14 +404,16 @@ export class Entities extends EventEmitter {
       playerObject.skin.map = skinTexture as any
       playerObject.skin.modelType = inferModelType(skinCanvas)
 
-      let earsCanvas
-      if (renderEars && playerCustomSkinImage) {
+      let earsCanvas: HTMLCanvasElement | undefined
+      if (!playerCustomSkinImage) {
+        renderEars = false
+      } else if (renderEars) {
         earsCanvas = document.createElement('canvas')
         loadEarsToCanvasFromSkin(earsCanvas, playerCustomSkinImage)
         renderEars = !this.isCanvasBlank(earsCanvas)
       }
       if (renderEars) {
-        const earsTexture = new THREE.CanvasTexture(earsCanvas)
+        const earsTexture = new THREE.CanvasTexture(earsCanvas!)
         earsTexture.magFilter = THREE.NearestFilter
         earsTexture.minFilter = THREE.NearestFilter
         earsTexture.needsUpdate = true
