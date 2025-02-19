@@ -476,7 +476,7 @@ export async function connect (connectOptions: ConnectOptions) {
         const autoVersionSelect = await getServerInfo(server.host, server.port ? Number(server.port) : undefined, versionAutoSelect)
         finalVersion = autoVersionSelect.version
       }
-      initialLoadingText = `Connecting to server ${server.host} with version ${finalVersion}`
+      initialLoadingText = `Connecting to server ${server.host}:${server.port ?? 25_565} with version ${finalVersion}`
     } else if (connectOptions.viewerWsConnect) {
       initialLoadingText = `Connecting to Mineflayer WebSocket server ${connectOptions.viewerWsConnect}`
     } else {
@@ -828,7 +828,7 @@ export async function connect (connectOptions: ConnectOptions) {
     fsState.saveLoaded = true
   }
 
-  if (!connectOptions.ignoreQs) {
+  if (!connectOptions.ignoreQs || process.env.NODE_ENV === 'development') {
     // todo cleanup
     customEvents.on('gameLoaded', () => {
       const commands = appQueryParamsArray.command ?? []
