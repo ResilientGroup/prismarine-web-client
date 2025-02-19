@@ -192,13 +192,15 @@ export default ({
     updateFilteredCompleteItems(newItems)
   }
 
-  const updateFilteredCompleteItems = (sourceItems: string[]) => {
-    const newCompleteItems = sourceItems.filter(item => {
+  const updateFilteredCompleteItems = (sourceItems: string[] | Array<{ match: string, toolip: string }>) => {
+    const newCompleteItems = sourceItems
+      .map(item => (typeof item === 'string' ? item : item.match))
+      .filter(item => {
       // this regex is imporatnt is it controls the word matching
-      const compareableParts = item.split(/[[\]{},_:]/)
-      const lastWord = chatInput.current.value.slice(0, chatInput.current.selectionEnd ?? chatInput.current.value.length).split(' ').at(-1)!
-      return [item, ...compareableParts].some(compareablePart => compareablePart.startsWith(lastWord))
-    })
+        const compareableParts = item.split(/[[\]{},_:]/)
+        const lastWord = chatInput.current.value.slice(0, chatInput.current.selectionEnd ?? chatInput.current.value.length).split(' ').at(-1)!
+        return [item, ...compareableParts].some(compareablePart => compareablePart.startsWith(lastWord))
+      })
     setCompletionItems(newCompleteItems)
   }
 
@@ -237,7 +239,15 @@ export default ({
               <div className="chat-completions-pad-text">{completePadText}</div>
               <div className="chat-completions-items">
                 {completionItems.map((item) => (
-                  <div key={item} onClick={() => acceptComplete(item)}>{item}</div>
+                  <div
+                    key={item}
+                    onMouseDown={(e) => {
+                      e.preventDefault() // Prevent blur before click
+                      acceptComplete(item)
+                    }}
+                  >
+                    {item}
+                  </div>
                 ))}
               </div>
             </div>
