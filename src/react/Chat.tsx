@@ -70,6 +70,7 @@ export default ({
   placeholder
 }: Props) => {
   const sendHistoryRef = useRef(JSON.parse(window.sessionStorage.chatHistory || '[]'))
+  const [isInputFocused, setIsInputFocused] = useState(false)
 
   const [completePadText, setCompletePadText] = useState('')
   const completeRequestValue = useRef('')
@@ -127,13 +128,31 @@ export default ({
       if (!usingTouch) {
         chatInput.current.focus()
       }
-      const unsubscribe = subscribe(chatInputValueGlobal, () => {
+
+      // Add keyboard event listener for letter keys and paste
+      const handleKeyDown = (e: KeyboardEvent) => {
+        // Check if it's a single character key (works with any layout) without modifiers except shift
+        const isSingleChar = e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey
+        // Check if it's paste command
+        const isPaste = e.code === 'KeyV' && (e.ctrlKey || e.metaKey)
+
+        if ((isSingleChar || isPaste) && document.activeElement !== chatInput.current) {
+          chatInput.current.focus()
+        }
+      }
+
+      window.addEventListener('keydown', handleKeyDown)
+      const unsubscribeValtio = subscribe(chatInputValueGlobal, () => {
         if (!chatInputValueGlobal.value) return
         updateInputValue(chatInputValueGlobal.value)
         chatInputValueGlobal.value = ''
         chatInput.current.focus()
       })
-      return unsubscribe
+
+      return () => {
+        window.removeEventListener('keydown', handleKeyDown)
+        unsubscribeValtio()
+      }
     }
   }, [opened])
 
@@ -213,7 +232,7 @@ export default ({
         {/* close button */}
         {usingTouch && <Button icon={pixelartIcons.close} onClick={() => onClose?.()} />}
         <div className="chat-input">
-          {completionItems?.length ? (
+          {isInputFocused && completionItems?.length ? (
             <div className="chat-completions">
               <div className="chat-completions-pad-text">{completePadText}</div>
               <div className="chat-completions-items">
@@ -259,6 +278,8 @@ export default ({
               onChange={onMainInputChange}
               disabled={!!inputDisabled}
               placeholder={inputDisabled || placeholder}
+              onFocus={() => setIsInputFocused(true)}
+              onBlur={() => setIsInputFocused(false)}
               onKeyDown={(e) => {
                 if (e.code === 'ArrowUp') {
                   if (chatHistoryPos.current === 0) return
