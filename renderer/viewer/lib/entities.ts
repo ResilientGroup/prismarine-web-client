@@ -714,7 +714,13 @@ export class Entities extends EventEmitter {
       }
     }
     // ---
-    // not player
+    // set baby size
+    if (meta.baby) {
+      e.scale.set(0.5, 0.5, 0.5)
+    } else {
+      e.scale.set(1, 1, 1)
+    }
+    // entity specific meta
     const textDisplayMeta = getSpecificEntityMetadata('text_display', entity)
     const displayTextRaw = textDisplayMeta?.text || meta.custom_name_visible && meta.custom_name
     const displayText = this.parseEntityLabel(displayTextRaw)
