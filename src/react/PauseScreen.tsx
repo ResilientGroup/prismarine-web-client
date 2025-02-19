@@ -260,16 +260,16 @@ export default () => {
           />
         </div>
       ) : null}
-      {noConnection && (
-        <Button className="button" style={{ width: '204px' }} onClick={reconnectReload}>
-          Reconnect
-        </Button>
-      )}
       {!lockConnect && <>
         <Button className="button" style={{ width: '204px' }} onClick={disconnect}>
           {localServer && !fsState.syncFs && !fsState.isReadonly ? 'Save & Quit' : 'Disconnect & Reset'}
         </Button>
       </>}
+      {noConnection && (
+        <Button className="button" style={{ width: '204px' }} onClick={reconnectReload}>
+          Reconnect
+        </Button>
+      )}
     </div>
   </Screen>
 }
