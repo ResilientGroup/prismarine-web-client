@@ -133,7 +133,12 @@ export const completeTexturePackInstall = async (displayName: string | undefined
 
   await updateTextures()
   setLoadingScreenStatus(undefined)
-  showNotification('Texturepack installed & enabled')
+  if (currentErrors.length > 0) {
+    showNotification(`Texturepack installed & enabled with ${currentErrors.length} errors`)
+    console.error('Texturepack installed & enabled with errors:', currentErrors)
+  } else {
+    showNotification('Texturepack installed & enabled')
+  }
   await updateTexturePackInstalledState()
   if (isServer) {
     gameAdditionalState.usingServerResourcePack = true
@@ -204,6 +209,8 @@ const getFilesMapFromDir = async (dir: string) => {
   return files
 }
 
+let currentErrors = [] as string[]
+
 export const getResourcepackTiles = async (type: 'blocks' | 'items' | 'armor', existingTextures: string[]) => {
   const basePath = await getActiveResourcepackBasePath()
   if (!basePath) return
@@ -264,7 +271,7 @@ export const getResourcepackTiles = async (type: 'blocks' | 'items' | 'armor', e
       const file = basename(path)
       allInterestedPathsPerDir.get(dir)!.push(file)
     }
-    // filter out by readdir each dir
+
     const allInterestedImages = [] as string[]
     for (const [dir, paths] of allInterestedPathsPerDir) {
       if (!await existsAsync(dir)) {
@@ -280,22 +287,34 @@ export const getResourcepackTiles = async (type: 'blocks' | 'items' | 'armor', e
 
     const firstImageFile = allInterestedImages[0]!
     try {
-      // todo check all sizes from atlas
       firstTextureSize ??= await getSizeFromImage(`${firstImageFile}.png`)
     } catch (err) { }
+    // eslint-disable-next-line @typescript-eslint/no-loop-func
     const newTextures = Object.fromEntries(await Promise.all(allInterestedImages.map(async (image) => {
-      const imagePath = `${image}.png`
-      const contents = await fs.promises.readFile(imagePath, 'base64')
-      const img = await getLoadedImage(`data:image/png;base64,${contents}`)
-      const imageRelative = image.replace(`${texturesBasePath}/`, '').replace(`${texturesCommonBasePath}/`, '')
-      const textureName = isMinecraftNamespace ? imageRelative : `${namespace}:${imageRelative}`
-      return [textureName, img]
+      try {
+        const imagePath = `${image}.png`
+        const contents = await fs.promises.readFile(imagePath, 'base64')
+        const img = await getLoadedImage(`data:image/png;base64,${contents}`)
+        const imageRelative = image.replace(`${texturesBasePath}/`, '').replace(`${texturesCommonBasePath}/`, '')
+        const textureName = isMinecraftNamespace ? imageRelative : `${namespace}:${imageRelative}`
+
+        if (firstTextureSize && (img.width !== firstTextureSize || img.height !== firstTextureSize) && (type === 'blocks' || type === 'items')) {
+          currentErrors.push(`[${imageRelative}] Size mismatch: expected ${firstTextureSize}x${firstTextureSize}, got ${img.width}x${img.height}`)
+          return [textureName, undefined]
+        }
+        return [textureName, img]
+      } catch (err) {
+        const imageRelative = image.replace(`${texturesBasePath}/`, '').replace(`${texturesCommonBasePath}/`, '')
+        const textureName = isMinecraftNamespace ? imageRelative : `${namespace}:${imageRelative}`
+        currentErrors.push(`[${imageRelative}] ${err.message}`)
+        return [textureName, undefined]
+      }
     })))
-    Object.assign(textures, newTextures) as any
+    Object.assign(textures, Object.fromEntries(Object.entries(newTextures).filter(([, img]) => img !== undefined)))
   }
   return {
     firstTextureSize,
-    textures
+    textures,
   }
 }
 
@@ -478,6 +497,7 @@ const updateAllReplacableTextures = async () => {
 const repeatArr = (arr, i) => Array.from({ length: i }, () => arr)
 
 const updateTextures = async () => {
+  currentErrors = []
   const origBlocksFiles = Object.keys(viewer.world.sourceData.blocksAtlases.latest.textures)
   const origItemsFiles = Object.keys(viewer.world.sourceData.itemsAtlases.latest.textures)
   const origArmorFiles = Object.keys(armorTextures)
@@ -505,6 +525,7 @@ const updateTextures = async () => {
       textures: armorData.textures
     }
   }
+
   if (viewer.world.active) {
     await viewer.world.updateAssetsData()
     if (viewer.world instanceof WorldRendererThree) {
