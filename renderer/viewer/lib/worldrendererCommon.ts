@@ -19,7 +19,7 @@ import worldBlockProvider, { WorldBlockProvider } from 'mc-assets/dist/worldBloc
 import { dynamicMcDataFiles } from '../../buildMesherConfig.mjs'
 import { toMajorVersion } from '../../../src/utils'
 import { buildCleanupDecorator } from './cleanupDecorator'
-import { defaultMesherConfig, HighestBlockInfo, MesherGeometryOutput, CustomBlockModels } from './mesher/shared'
+import { defaultMesherConfig, HighestBlockInfo, MesherGeometryOutput, CustomBlockModels, BlockStateModelInfo } from './mesher/shared'
 import { chunkPos } from './simpleUtils'
 import { HandItemBlock } from './holdingBlock'
 import { updateStatText } from './ui/newStats'
@@ -152,7 +152,10 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   @worldCleanup()
   itemsRenderer: ItemsRenderer | undefined
 
-  customBlockModels = new Map<string, CustomBlockModels>()
+  protocolCustomBlocks = new Map<string, CustomBlockModels>()
+
+  @worldCleanup()
+  blockStateModelInfo = new Map<string, BlockStateModelInfo>()
 
   abstract outputFormat: 'threeJs' | 'webgpu'
   worldBlockProvider: WorldBlockProvider
@@ -230,6 +233,12 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
             this.workersProcessAverageTimeCount++
             this.workersProcessAverageTime = ((this.workersProcessAverageTime * (this.workersProcessAverageTimeCount - 1)) + data.processTime) / this.workersProcessAverageTimeCount
             this.maxWorkersProcessTime = Math.max(this.maxWorkersProcessTime, data.processTime)
+          }
+        }
+
+        if (data.type === 'blockStateModelInfo') {
+          for (const [cacheKey, info] of Object.entries(data.info)) {
+            this.blockStateModelInfo.set(cacheKey, info)
           }
         }
       }
@@ -417,7 +426,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     this.updateChunksStatsText()
 
     const chunkKey = `${x},${z}`
-    const customBlockModels = this.customBlockModels.get(chunkKey)
+    const customBlockModels = this.protocolCustomBlocks.get(chunkKey)
 
     for (const worker of this.workers) {
       worker.postMessage({
@@ -478,7 +487,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     const needAoRecalculation = true
     const chunkKey = `${Math.floor(pos.x / 16) * 16},${Math.floor(pos.z / 16) * 16}`
     const blockPosKey = `${pos.x},${pos.y},${pos.z}`
-    const customBlockModels = this.customBlockModels.get(chunkKey) || {}
+    const customBlockModels = this.protocolCustomBlocks.get(chunkKey) || {}
 
     for (const worker of this.workers) {
       worker.postMessage({

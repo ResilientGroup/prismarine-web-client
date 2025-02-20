@@ -48,7 +48,7 @@ customEvents.on('mineflayerBotCreated', async () => {
     const chunkKey = `${chunkX},${chunkZ}`
     const blockPosKey = `${x},${y},${z}`
 
-    const chunkModels = viewer.world.customBlockModels.get(chunkKey) || {}
+    const chunkModels = viewer.world.protocolCustomBlocks.get(chunkKey) || {}
 
     if (model) {
       chunkModels[blockPosKey] = model
@@ -57,9 +57,9 @@ customEvents.on('mineflayerBotCreated', async () => {
     }
 
     if (Object.keys(chunkModels).length > 0) {
-      viewer.world.customBlockModels.set(chunkKey, chunkModels)
+      viewer.world.protocolCustomBlocks.set(chunkKey, chunkModels)
     } else {
-      viewer.world.customBlockModels.delete(chunkKey)
+      viewer.world.protocolCustomBlocks.delete(chunkKey)
     }
 
     // Trigger update
