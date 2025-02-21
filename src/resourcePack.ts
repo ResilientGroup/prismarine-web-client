@@ -381,6 +381,7 @@ const downloadAndUseResourcePack = async (url: string): Promise<void> => {
   try {
     resourcePackState.isServerInstalling = true
     resourcePackState.isServerDownloading = true
+    if (!miscUiState.gameLoaded) setLoadingScreenStatus('Downloading resource pack')
     console.log('Downloading server resource pack', url)
     console.time('downloadServerResourcePack')
     const response = await fetch(url).catch((err) => {
@@ -390,8 +391,31 @@ const downloadAndUseResourcePack = async (url: string): Promise<void> => {
     })
     console.timeEnd('downloadServerResourcePack')
     if (!response) return
+    if (!miscUiState.gameLoaded) setLoadingScreenStatus('Installing resource pack')
+
+    const contentLength = response.headers.get('Content-Length')
+    const total = contentLength ? parseInt(contentLength, 10) : 0
+    let loaded = 0
+
+    const reader = response.body!.getReader()
+    const chunks: Uint8Array[] = []
+
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+
+      chunks.push(value)
+      loaded += value.length
+
+      if (total) {
+        const progress = Math.round((loaded / total) * 100)
+        if (!miscUiState.gameLoaded) setLoadingScreenStatus(`Downloading resource pack: ${progress}%`)
+      }
+    }
+
     resourcePackState.isServerDownloading = false
-    const resourcePackData = await response.arrayBuffer()
+    const resourcePackData = await new Blob(chunks).arrayBuffer()
     showNotification('Installing resource pack...')
     await installResourcepackPack(resourcePackData, undefined, undefined, true).catch((err) => {
       console.error(err)

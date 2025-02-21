@@ -732,12 +732,8 @@ export async function connect (connectOptions: ConnectOptions) {
   // don't use spawn event, player can be dead
   bot.once(spawnEarlier ? 'forcedMove' : 'health', async () => {
     if (resourcePackState.isServerInstalling) {
-      setLoadingScreenStatus('Downloading resource pack')
       await new Promise<void>(resolve => {
         subscribe(resourcePackState, () => {
-          if (!resourcePackState.isServerDownloading) {
-            setLoadingScreenStatus('Installing resource pack')
-          }
           if (!resourcePackState.isServerInstalling) {
             resolve()
           }
