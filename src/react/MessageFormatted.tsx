@@ -42,10 +42,10 @@ const clickEventToProps = (clickEvent: MessageFormatPart['clickEvent']) => {
       }
     }
   }
-  if (clickEvent.action === 'open_url') {
+  if (clickEvent.action === 'open_url' || clickEvent.action === 'open_file') {
     return {
       onClick () {
-        const confirm = window.confirm(`Open ${clickEvent.value}?`)
+        const confirm = window.confirm(`Open "${clickEvent.value}"?`)
         if (confirm) {
           openURL(clickEvent.value)
         }
@@ -71,6 +71,7 @@ export const MessagePart = ({ part, ...props }: { part: MessageFormatPart } & Co
   const hoverItemText = hoverMessageRaw && typeof hoverMessageRaw !== 'string' ? render(hoverMessageRaw).children.map(child => child.component.text).join('') : hoverMessageRaw
 
   const applyStyles = [
+    clickProps && messageFormatStylesMap.clickEvent,
     color ? colorF(color.toLowerCase()) + `; text-shadow: 1px 1px 0px ${getColorShadow(colorF(color.toLowerCase()).replace('color:', ''))}` : messageFormatStylesMap.white,
     italic && messageFormatStylesMap.italic,
     bold && messageFormatStylesMap.bold,
@@ -80,7 +81,7 @@ export const MessagePart = ({ part, ...props }: { part: MessageFormatPart } & Co
     obfuscated && messageFormatStylesMap.obfuscated
   ].filter(a => a !== false && a !== undefined).filter(Boolean)
 
-  return <span title={hoverItemText} style={parseInlineStyle(applyStyles.join(' '))} {...clickProps} {...props}>{text}</span>
+  return <span title={hoverItemText} style={parseInlineStyle(applyStyles.join(';'))} {...clickProps} {...props}>{text}</span>
 }
 
 export default ({ parts, className }: { parts: readonly MessageFormatPart[], className?: string }) => {
@@ -138,4 +139,5 @@ export const messageFormatStylesMap = {
   underlined: 'text-decoration:underline',
   italic: 'font-style:italic',
   obfuscated: 'filter:blur(2px)',
+  clickEvent: 'cursor:pointer',
 }
