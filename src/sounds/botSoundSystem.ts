@@ -14,7 +14,8 @@ let soundMap: SoundMap | undefined
 
 const updateResourcePack = async () => {
   if (!soundMap) return
-  soundMap.activeResourcePackBasePath = await getActiveResourcepackBasePath() ?? undefined
+  // todo, rework to await
+  void soundMap.updateActiveResourcePackBasePath(await getActiveResourcepackBasePath() ?? undefined)
 }
 
 let musicInterval: ReturnType<typeof setInterval> | null = null
@@ -28,6 +29,7 @@ subscribeKey(miscUiState, 'gameLoaded', async () => {
 
   console.log(`Loading sounds for version ${bot.version}. Resourcepack state: ${JSON.stringify(resourcePackState)}`)
   soundMap = createSoundMap(bot.version) ?? undefined
+  globalThis.soundMap = soundMap
   if (!soundMap) return
   void updateResourcePack()
   startMusicSystem()

@@ -31,10 +31,26 @@ interface SoundEntry {
   volume: number
 }
 
+interface ResourcePackSoundEntry {
+  name: string
+  stream?: boolean
+  volume?: number
+}
+
+interface ResourcePackSound {
+  category: string
+  sounds: ResourcePackSoundEntry[]
+}
+
+interface ResourcePackSoundsJson {
+  [soundId: string]: ResourcePackSound
+}
+
 export class SoundMap {
   private readonly soundsPerName: Record<string, SoundEntry[]>
   private readonly existingResourcePackPaths: Set<string>
-  public activeResourcePackBasePath: string | undefined
+  private activeResourcePackBasePath: string | undefined
+  private activeResourcePackSoundsJson: ResourcePackSoundsJson | undefined
 
   constructor (
     private readonly soundData: SoundMapData,
@@ -62,6 +78,28 @@ export class SoundMap {
     )
   }
 
+  async updateActiveResourcePackBasePath (basePath: string | undefined) {
+    this.activeResourcePackBasePath = basePath
+    if (!basePath) {
+      this.activeResourcePackSoundsJson = undefined
+      return
+    }
+
+    let soundsJsonContent: string | undefined
+    try {
+      const soundsJsonPath = path.join(basePath, 'assets/minecraft/sounds.json')
+      soundsJsonContent = await fs.promises.readFile(soundsJsonPath, 'utf8')
+    } catch (err) {}
+    try {
+      if (soundsJsonContent) {
+        this.activeResourcePackSoundsJson = JSON.parse(soundsJsonContent)
+      }
+    } catch (err) {
+      console.warn('Failed to parse sounds.json from resourcepack', err)
+      this.activeResourcePackSoundsJson = undefined
+    }
+  }
+
   async updateExistingResourcePackPaths () {
     if (!this.activeResourcePackBasePath) return
     // todo support sounds.js from resource pack
@@ -84,6 +122,38 @@ export class SoundMap {
   }
 
   async getSoundUrl (soundKey: string, volume = 1): Promise<{ url: string; volume: number } | undefined> {
+    // First check resource pack sounds.json
+    if (this.activeResourcePackSoundsJson && soundKey in this.activeResourcePackSoundsJson) {
+      const rpSound = this.activeResourcePackSoundsJson[soundKey]
+      // Pick a random sound from the resource pack
+      const sound = rpSound.sounds[Math.floor(Math.random() * rpSound.sounds.length)]
+      const soundVolume = sound.volume ?? 1
+
+      if (this.activeResourcePackBasePath) {
+        const tryFormat = async (format: string) => {
+          try {
+            const resourcePackPath = path.join(this.activeResourcePackBasePath!, `/assets/minecraft/sounds/${sound.name}.${format}`)
+            const fileData = await fs.promises.readFile(resourcePackPath)
+            return {
+              url: `data:audio/${format};base64,${fileData.toString('base64')}`,
+              volume: soundVolume * Math.max(Math.min(volume, 1), 0)
+            }
+          } catch (err) {
+            return null
+          }
+        }
+
+        const result = await tryFormat(this.soundData.soundsMeta.format)
+        if (result) return result
+
+        if (this.soundData.soundsMeta.format !== 'ogg') {
+          const oggResult = await tryFormat('ogg')
+          if (oggResult) return oggResult
+        }
+      }
+    }
+
+    // Fall back to vanilla sounds if no resource pack sound found
     const sounds = this.soundsPerName[soundKey]
     if (!sounds?.length) return undefined
 
@@ -97,29 +167,12 @@ export class SoundMap {
 
     const versionedSound = this.getVersionedSound(sound.file)
 
-    let url = this.soundData.soundsMeta.baseUrl.replace(/\/$/, '') +
+    const url = this.soundData.soundsMeta.baseUrl.replace(/\/$/, '') +
       (versionedSound ? `/${versionedSound}` : '') +
       '/minecraft/sounds/' +
       sound.file +
       '.' +
       this.soundData.soundsMeta.format
-
-    // Try loading from resource pack file first
-    if (this.activeResourcePackBasePath) {
-      const tryFormat = async (format: string) => {
-        try {
-          const resourcePackPath = path.join(this.activeResourcePackBasePath!, `/assets/minecraft/sounds/${sound.file}.${format}`)
-          const fileData = await fs.promises.readFile(resourcePackPath)
-          url = `data:audio/${format};base64,${fileData.toString('base64')}`
-          return true
-        } catch (err) {
-        }
-      }
-      const success = await tryFormat(this.soundData.soundsMeta.format)
-      if (!success && this.soundData.soundsMeta.format !== 'ogg') {
-        await tryFormat('ogg')
-      }
-    }
 
     return {
       url,
