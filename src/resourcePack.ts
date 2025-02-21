@@ -298,10 +298,6 @@ export const getResourcepackTiles = async (type: 'blocks' | 'items' | 'armor', e
         const imageRelative = image.replace(`${texturesBasePath}/`, '').replace(`${texturesCommonBasePath}/`, '')
         const textureName = isMinecraftNamespace ? imageRelative : `${namespace}:${imageRelative}`
 
-        if (firstTextureSize && (img.width !== firstTextureSize || img.height !== firstTextureSize) && (type === 'blocks' || type === 'items')) {
-          currentErrors.push(`[${imageRelative}] Size mismatch: expected ${firstTextureSize}x${firstTextureSize}, got ${img.width}x${img.height}`)
-          return [textureName, undefined]
-        }
         return [textureName, img]
       } catch (err) {
         const imageRelative = image.replace(`${texturesBasePath}/`, '').replace(`${texturesCommonBasePath}/`, '')

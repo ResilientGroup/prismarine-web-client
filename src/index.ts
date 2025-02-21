@@ -167,6 +167,11 @@ if (appQueryParams.testCrashApp === '2') throw new Error('test')
 // Create viewer
 const viewer: import('renderer/viewer/lib/viewer').Viewer = new Viewer(renderer, undefined, playerState)
 window.viewer = viewer
+Object.defineProperty(window, 'world', {
+  get () {
+    return viewer.world
+  },
+})
 // todo unify
 viewer.entities.getItemUv = (item, specificProps) => {
   const idOrName = item.itemId ?? item.blockId

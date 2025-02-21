@@ -357,15 +357,19 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     }
 
     const customBlockTextures = Object.keys(this.customTextures.blocks?.textures ?? {})
+    console.time('createBlocksAtlas')
     const { atlas: blocksAtlas, canvas: blocksCanvas } = await blocksAssetsParser.makeNewAtlas(this.texturesVersion ?? this.version ?? 'latest', (textureName) => {
       const texture = this.customTextures?.blocks?.textures[textureName]
       return blockTexturesChanges[textureName] ?? texture
     }, /* this.customTextures?.blocks?.tileSize */undefined, prioritizeBlockTextures, customBlockTextures)
+    console.timeEnd('createBlocksAtlas')
+    console.time('createItemsAtlas')
     const { atlas: itemsAtlas, canvas: itemsCanvas } = await itemsAssetsParser.makeNewAtlas(this.texturesVersion ?? this.version ?? 'latest', (textureName) => {
       const texture = this.customTextures?.items?.textures[textureName]
       if (!texture) return
       return texture
     }, this.customTextures?.items?.tileSize)
+    console.timeEnd('createItemsAtlas')
     this.blocksAtlasParser = new AtlasParser({ latest: blocksAtlas }, blocksCanvas.toDataURL())
     this.itemsAtlasParser = new AtlasParser({ latest: itemsAtlas }, itemsCanvas.toDataURL())
 
@@ -407,6 +411,15 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     }
     this.renderUpdateEmitter.emit('textureDownloaded')
     console.log('texture loaded')
+  }
+
+  async downloadDebugAtlas (isItems = false) {
+    const atlasParser = (isItems ? this.itemsAtlasParser : this.blocksAtlasParser)!
+    const dataUrl = await atlasParser.createDebugImage(true)
+    const a = document.createElement('a')
+    a.href = dataUrl
+    a.download = `atlas-debug-${isItems ? 'items' : 'blocks'}.png`
+    a.click()
   }
 
   get worldMinYRender () {
