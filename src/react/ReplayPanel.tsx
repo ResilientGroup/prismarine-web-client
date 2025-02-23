@@ -63,6 +63,7 @@ export default function ReplayPanel ({
       color: DARK_COLORS.text
     }}>
       <div style={{ fontSize: '12px', fontWeight: 'bold' }}>{replayName || 'Unnamed Replay'}</div>
+      <div style={{ fontSize: '8px', color: '#888888', marginTop: '-8px' }}>Integrated server emulation. Testing client...</div>
 
       <FilterInput
         value={filter}

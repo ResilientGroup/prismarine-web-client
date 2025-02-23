@@ -87,7 +87,8 @@ export const startLocalReplayServer = (contents: string) => {
 }
 
 // time based packets
-const FLATTEN_CLIENT_PACKETS = new Set(['position', 'position_look'])
+// const FLATTEN_CLIENT_PACKETS = new Set(['position', 'position_look'])
+const FLATTEN_CLIENT_PACKETS = new Set([] as string[])
 
 const positions = {
   client: 0,
@@ -97,7 +98,7 @@ const addPacketToReplayer = (name: string, data, isFromClient: boolean, wasUpcom
   const side = isFromClient ? 'client' : 'server'
 
   if (wasUpcoming) {
-    const lastUpcoming = packetsReplayState.packetsPlayback.findLast(p => p.isUpcoming && p.name === name)
+    const lastUpcoming = packetsReplayState.packetsPlayback.find(p => p.isUpcoming && p.name === name)
     if (lastUpcoming) {
       lastUpcoming.isUpcoming = false
     }

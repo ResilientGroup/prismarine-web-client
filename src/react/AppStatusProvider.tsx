@@ -5,6 +5,7 @@ import { guessProblem } from '../errorLoadingScreenHelpers'
 import type { ConnectOptions } from '../connect'
 import { downloadPacketsReplay, packetsReplaceSessionState, replayLogger } from '../packetsReplay/packetsReplayLegacy'
 import { getProxyDetails } from '../microsoftAuthflow'
+import { downloadAutoCapturedPackets, getLastAutoCapturedPackets } from '../mineflayer/plugins/localRelay'
 import AppStatus from './AppStatus'
 import DiveTransition from './DiveTransition'
 import { useDidUpdateEffect } from './utils'
@@ -114,10 +115,11 @@ export default () => {
     reconnect()
   }
 
+  const lastAutoCapturedPackets = getLastAutoCapturedPackets()
   return <DiveTransition open={isOpen}>
     <AppStatus
       status={status}
-      isError={isError || status === ''} // display back button if status is empty as probably our app is errored
+      isError={isError || status === ''} // display back button if status is empty as probably our app is errored // display back button if status is empty as probably our app is errored
       hideDots={hideDots}
       lastStatus={lastStatus}
       showReconnect={showReconnect}
@@ -146,6 +148,7 @@ export default () => {
           {displayAuthButton && <Button label='Authenticate' onClick={authReconnectAction} />}
           {displayVpnButton && <PossiblyVpnBypassProxyButton reconnect={reconnect} />}
           {replayActive && <Button label={`Download Packets Replay ${replayLogger.contents.split('\n').length}L`} onClick={downloadPacketsReplay} />}
+          {lastAutoCapturedPackets && <Button label={`Inspect Last ${lastAutoCapturedPackets} Packets`} onClick={() => downloadAutoCapturedPackets()} />}
         </>
       }
     >

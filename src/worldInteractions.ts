@@ -158,6 +158,7 @@ class WorldInteraction {
         if (this.swingTimeout) {
           clearTimeout(this.swingTimeout)
         }
+        bot.swingArm('right')
         viewer.world.changeHandSwingingState(true, false)
         this.swingTimeout = setTimeout(() => {
           viewer.world.changeHandSwingingState(false, false)
