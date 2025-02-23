@@ -25,7 +25,7 @@ export const packetsReplayState = proxy({
     },
     skipMissingOnTimeout: {
       state: appQueryParams.replaySkipMissingOnTimeout === 'true',
-      label: 'M',
+      label: 'T',
       tooltip: 'Skip missing packets on timeout'
     },
     packetsSenderDelay: {

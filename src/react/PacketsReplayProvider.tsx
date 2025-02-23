@@ -20,37 +20,36 @@ export default function PacketsReplayProvider () {
   if (!state.isOpen) return null
 
   return (
-    <div style={{
-      transform: 'scale(0.5)',
-      transformOrigin: 'top right'
-    }}>
-      <ReplayPanel
-        replayName={state.replayName}
-        packets={state.packetsPlayback}
-        isPlaying={state.isPlaying}
-        progress={state.progress}
-        speed={state.speed}
-        defaultFilter={appQueryParams.replayFilter ?? ''}
-        clientPacketsAutocomplete={autocomplete?.client ?? []}
-        serverPacketsAutocomplete={autocomplete?.server ?? []}
-        customButtons={state.customButtons}
-        onPlayPause={(isPlaying) => {
-          packetsReplayState.isPlaying = isPlaying
-        }}
-        onRestart={() => {
-          window.location.reload()
-        }}
-        onSpeedChange={(speed) => {
-          packetsReplayState.speed = speed
-          updateQsParam('replaySpeed', speed === 1 ? undefined : speed.toString())
-        }}
-        onFilterChange={(filter) => {
-          updateQsParam('replayFilter', filter)
-        }}
-        onCustomButtonToggle={(button) => {
-          onChangeButtonState(button as keyof typeof packetsReplayState.customButtons, !state.customButtons[button].state)
-        }}
-      />
-    </div>
+    <ReplayPanel
+      style={{
+        transform: 'scale(0.5)',
+        transformOrigin: 'top right'
+      }}
+      replayName={state.replayName}
+      packets={state.packetsPlayback}
+      isPlaying={state.isPlaying}
+      progress={state.progress}
+      speed={state.speed}
+      defaultFilter={appQueryParams.replayFilter ?? ''}
+      clientPacketsAutocomplete={autocomplete?.client ?? []}
+      serverPacketsAutocomplete={autocomplete?.server ?? []}
+      customButtons={state.customButtons}
+      onPlayPause={(isPlaying) => {
+        packetsReplayState.isPlaying = isPlaying
+      }}
+      onRestart={() => {
+        window.location.reload()
+      }}
+      onSpeedChange={(speed) => {
+        packetsReplayState.speed = speed
+        updateQsParam('replaySpeed', speed === 1 ? undefined : speed.toString())
+      }}
+      onFilterChange={(filter) => {
+        updateQsParam('replayFilter', filter)
+      }}
+      onCustomButtonToggle={(button) => {
+        onChangeButtonState(button as keyof typeof packetsReplayState.customButtons, !state.customButtons[button].state)
+      }}
+    />
   )
 }

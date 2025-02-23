@@ -1,6 +1,6 @@
 /* eslint-disable no-await-in-loop */
 import { createServer, ServerClient } from 'minecraft-protocol'
-import { parseReplayContents } from 'mcraft-fun-mineflayer/build/packetsLogger'
+import { ParsedReplayPacket, parseReplayContents } from 'mcraft-fun-mineflayer/build/packetsLogger'
 import { WorldStateHeader, PACKETS_REPLAY_FILE_EXTENSION, WORLD_STATE_FILE_EXTENSION } from 'mcraft-fun-mineflayer/build/worldState'
 import MinecraftData from 'minecraft-data'
 import { LocalServer } from '../customServer'
@@ -35,55 +35,44 @@ export function openFile ({ contents, filename = 'unnamed', filesize }: OpenFile
 }
 
 export const startLocalReplayServer = (contents: string) => {
-  const lines = contents.split('\n')
-  if (!lines[0]) {
-    throw new UserError('No header line found. Cannot parse replay definition.')
-  }
-  let def: WorldStateHeader | ReplayDefinition
-  try {
-    def = JSON.parse(lines[0])
-  } catch (err) {
-    throw new UserError(`Invalid JSON in file header: ${String(err)}`)
-  }
-  const packetsRaw = lines.slice(1).join('\n')
-  const replayData = parseReplayContents(packetsRaw)
+  const { packets, header } = parseReplayContents(contents)
 
   packetsReplayState.packetsPlayback = []
   packetsReplayState.isOpen = true
   packetsReplayState.isPlaying = true
   packetsReplayState.progress = {
     current: 0,
-    total: replayData.packets.filter(packet => packet.isFromServer).length
+    total: packets.filter(packet => packet.isFromServer).length
   }
   packetsReplayState.speed = 1
   packetsReplayState.replayName ||= `local ${getFixedFilesize(contents.length)}`
-  packetsReplayState.replayName = `${def.minecraftVersion} ${packetsReplayState.replayName}`
+  packetsReplayState.replayName = `${header.minecraftVersion} ${packetsReplayState.replayName}`
 
-  if ('formatVersion' in def && def.formatVersion !== SUPPORTED_FORMAT_VERSION) {
-    throw new UserError(`Unsupported format version: ${def.formatVersion}`)
+  if ('formatVersion' in header && header.formatVersion !== SUPPORTED_FORMAT_VERSION) {
+    throw new UserError(`Unsupported format version: ${header.formatVersion}`)
   }
-  if ('replayAgainst' in def && def.replayAgainst === 'server') {
+  if ('replayAgainst' in header && header.replayAgainst === 'server') {
     throw new Error('not supported')
   }
 
   const server = createServer({
     Server: LocalServer as any,
-    version: def.minecraftVersion,
+    version: header.minecraftVersion,
     'online-mode': false
   })
 
-  const data = MinecraftData(def.minecraftVersion)
+  const data = MinecraftData(header.minecraftVersion)
   server.on(data.supportFeature('hasConfigurationState') ? 'playerJoin' : 'login' as any, async client => {
     await mainPacketsReplayer(
       client,
-      replayData,
-      packetsReplayState.customButtons.validateClientPackets.state ? true : undefined
+      packets,
+      packetsReplayState.customButtons.validateClientPackets.state ? undefined : true
     )
   })
 
   return {
     server,
-    version: def.minecraftVersion
+    version: header.minecraftVersion
   }
 }
 
@@ -125,13 +114,13 @@ const IGNORE_SERVER_PACKETS = new Set([
 
 const ADDITIONAL_DELAY = 500
 
-const mainPacketsReplayer = async (client: ServerClient, replayData: ReturnType<typeof parseReplayContents>, ignoreClientPacketsWait: string[] | true = []) => {
+const mainPacketsReplayer = async (client: ServerClient, packets: ParsedReplayPacket[], ignoreClientPacketsWait: string[] | true = []) => {
   const writePacket = (name: string, data: any) => {
     data = restoreData(data)
     client.write(name, data)
   }
 
-  const playPackets = replayData.packets.filter(p => p.state === 'play')
+  const playPackets = packets.filter(p => p.state === 'play')
 
   let clientPackets = [] as Array<{ name: string, params: any }>
   const clientsPacketsWaiter = createPacketsWaiter({
