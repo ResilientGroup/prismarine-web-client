@@ -1,19 +1,9 @@
 import { useSnapshot } from 'valtio'
 import { useMemo } from 'react'
-import { appQueryParams } from '../appParams'
+import { appQueryParams, updateQsParam } from '../appParams'
 import { miscUiState } from '../globalState'
-import { packetsReplayState } from './state/packetsReplayState'
+import { onChangeButtonState, packetsReplayState } from './state/packetsReplayState'
 import ReplayPanel from './ReplayPanel'
-
-function updateQsParam (name: string, value: string | undefined) {
-  const url = new URL(window.location.href)
-  if (value) {
-    url.searchParams.set(name, value)
-  } else {
-    url.searchParams.delete(name)
-  }
-  window.history.replaceState({}, '', url.toString())
-}
 
 export default function PacketsReplayProvider () {
   const state = useSnapshot(packetsReplayState)
@@ -58,7 +48,7 @@ export default function PacketsReplayProvider () {
           updateQsParam('replayFilter', filter)
         }}
         onCustomButtonToggle={(button) => {
-          packetsReplayState.customButtons[button] = !state.customButtons[button]
+          onChangeButtonState(button as keyof typeof packetsReplayState.customButtons, !state.customButtons[button].state)
         }}
       />
     </div>

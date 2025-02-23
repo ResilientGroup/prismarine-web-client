@@ -776,7 +776,9 @@ export async function connect (connectOptions: ConnectOptions) {
     playerState.onlineMode = !!connectOptions.authenticatedAccount
 
     setLoadingScreenStatus('Placing blocks (starting viewer)')
-    localStorage.lastConnectOptions = JSON.stringify(connectOptions)
+    if (connectOptions.worldStateFileContents && connectOptions.worldStateFileContents.length < 3 * 1024 * 1024) {
+      localStorage.lastConnectOptions = JSON.stringify(connectOptions)
+    }
     connectOptions.onSuccessfulPlay?.()
     if (process.env.NODE_ENV === 'development' && !localStorage.lockUrl && !Object.keys(window.debugQueryParams).length) {
       lockUrl()

@@ -12,12 +12,12 @@ interface Props {
   progress: { current: number; total: number }
   speed: number
   defaultFilter?: string
-  customButtons: { button1: boolean; button2: boolean }
+  customButtons: Readonly<Record<string, { state: boolean; label: string; tooltip?: string }>>
   onPlayPause?: (isPlaying: boolean) => void
   onRestart?: () => void
   onSpeedChange?: (speed: number) => void
   onFilterChange: (filter: string) => void
-  onCustomButtonToggle: (button: 'button1' | 'button2') => void
+  onCustomButtonToggle: (buttonId: string) => void
   clientPacketsAutocomplete: string[]
   serverPacketsAutocomplete: string[]
 }
@@ -139,22 +139,24 @@ export default function ReplayPanel ({
           }}
         />
 
-        {[1, 2].map(num => (
+        {Object.entries(customButtons).map(([buttonId, { state, label, tooltip }]) => (
           <button
-            key={num}
-            onClick={() => onCustomButtonToggle(`button${num}` as 'button1' | 'button2')}
+            key={buttonId}
+            onClick={() => onCustomButtonToggle(buttonId)}
+            title={tooltip}
             style={{
               padding: '4px 8px',
               borderRadius: '4px',
               border: `1px solid ${DARK_COLORS.border}`,
-              background: customButtons[`button${num}`]
-                ? (num === 1 ? DARK_COLORS.client : DARK_COLORS.server)
+              background: state
+                ? (buttonId.startsWith('client') ? DARK_COLORS.client : DARK_COLORS.server)
                 : DARK_COLORS.input,
               color: DARK_COLORS.text,
-              cursor: 'pointer'
+              cursor: 'pointer',
+              minWidth: '32px'
             }}
           >
-            {num}
+            {label}
           </button>
         ))}
       </div>
