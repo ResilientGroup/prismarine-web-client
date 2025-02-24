@@ -320,31 +320,37 @@ export default class HoldingBlock {
     this.objectOuterGroup.scale.set(scale, scale, scale)
   }
 
+  lastItemModelName: string | undefined
   private async createItemModel (handItem: HandItemBlock): Promise<{ model: THREE.Object3D; type: 'hand' | 'block' | 'item' } | undefined> {
     this.lastUpdate = performance.now()
     if (!handItem || (handItem.type === 'hand' && !this.playerHand)) return undefined
 
-    let blockInner: THREE.Object3D
+    let blockInner: THREE.Object3D | undefined
     if (handItem.type === 'item' || handItem.type === 'block') {
-      const { mesh: itemMesh, isBlock } = viewer.entities.getItemMesh({
+      const result = viewer.entities.getItemMesh({
         ...handItem.fullItem,
         itemId: handItem.id,
       }, {
         'minecraft:display_context': 'firstperson',
         'minecraft:use_duration': this.playerState.getItemUsageTicks?.(),
         'minecraft:using_item': !!this.playerState.getItemUsageTicks?.(),
-      })!
-      if (isBlock) {
-        blockInner = itemMesh
-        handItem.type = 'block'
-      } else {
-        itemMesh.position.set(0.5, 0.5, 0.5)
-        blockInner = itemMesh
-        handItem.type = 'item'
+      }, this.lastItemModelName)
+      if (result) {
+        const { mesh: itemMesh, isBlock, modelName } = result
+        if (isBlock) {
+          blockInner = itemMesh
+          handItem.type = 'block'
+        } else {
+          itemMesh.position.set(0.5, 0.5, 0.5)
+          blockInner = itemMesh
+          handItem.type = 'item'
+        }
+        this.lastItemModelName = modelName
       }
     } else {
       blockInner = this.playerHand!
     }
+    if (!blockInner) return
     blockInner.name = 'holdingBlock'
 
     const rotationDeg = this.getHandHeld3d().rotation
@@ -379,9 +385,19 @@ export default class HoldingBlock {
 
   }
 
+  testUnknownBlockSwitch () {
+    void this.setNewItem({
+      type: 'item',
+      name: 'minecraft:some-unknown-block',
+      id: 0,
+      fullItem: {}
+    })
+  }
+
   switchRequest = 0
   async setNewItem (handItem?: HandItemBlock) {
     if (!this.isDifferentItem(handItem)) return
+    this.lastItemModelName = undefined
     const switchRequest = ++this.switchRequest
     this.lastHeldItem = handItem
     let playAppearAnimation = false

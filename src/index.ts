@@ -214,7 +214,8 @@ viewer.entities.getItemUv = (item, specificProps) => {
       const [u, v, su, sv] = [x / img.width, y / img.height, (w / img.width), (h / img.height)]
       return {
         u, v, su, sv,
-        texture: textureThree
+        texture: textureThree,
+        modelName: renderInfo.modelName
       }
     }
 
