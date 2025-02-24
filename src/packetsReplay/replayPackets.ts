@@ -170,8 +170,7 @@ const mainPacketsReplayer = async (client: ServerClient, packets: ParsedReplayPa
       console.error('Mineflayer error:', err)
     })
 
-    client.on('writePacket' as any, (name, params) => {
-      console.log('writePacket', name, params)
+    bot._client.on('writePacket' as any, (name, params) => {
       clientsPacketsWaiter.addPacket(name, params)
     })
 
