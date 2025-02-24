@@ -144,7 +144,7 @@ export class World {
     if (!this.blockCache[cacheKey]) {
       const b = column.getBlock(locInChunk) as unknown as WorldBlock
       if (modelOverride) {
-        b.name = modelOverride
+        // b.name = modelOverride
       }
       b.isCube = isCube(b.shapes)
       this.blockCache[cacheKey] = b
@@ -227,6 +227,11 @@ export class World {
             console.debug('[mesher] block to render not found', block.name, props)
           }
           block.models = null
+        }
+
+        if (block.models && modelOverride) {
+          const model = block.models[0]
+          block.transparent = model['transparent'] ?? block.transparent
         }
       } catch (err) {
         this.erroredBlockModel ??= blockProvider.getAllResolvedModels0_1({ name: 'errored', properties: {} })
