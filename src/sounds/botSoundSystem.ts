@@ -7,6 +7,7 @@ import { miscUiState } from '../globalState'
 import { options } from '../optionsStorage'
 import { loadOrPlaySound } from '../basicSounds'
 import { getActiveResourcepackBasePath, resourcePackState } from '../resourcePack'
+import { showNotification } from '../react/NotificationProvider'
 import { createSoundMap, SoundMap } from './soundsMap'
 import { musicSystem } from './musicSystem'
 
@@ -31,6 +32,9 @@ subscribeKey(miscUiState, 'gameLoaded', async () => {
   soundMap = createSoundMap(bot.version) ?? undefined
   globalThis.soundMap = soundMap
   if (!soundMap) return
+  if (soundMap.noVersionIdMapping) {
+    showNotification('No sound ID mapping for this version', undefined, true)
+  }
   void updateResourcePack()
   startMusicSystem()
 
