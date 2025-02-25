@@ -18,7 +18,7 @@ import {
 } from '../globalState'
 import { fsState } from '../loadSave'
 import { disconnect } from '../flyingSquidUtils'
-import { pointerLock } from '../utils'
+import { openGithub, pointerLock } from '../utils'
 import { setLoadingScreenStatus } from '../appStatus'
 import { closeWan, openToWanAndCopyJoinLink, getJoinLink } from '../localServerMultiplayer'
 import { collectFilesToCopy, fileExistsAsyncOptimized, mkdirRecursive, uniqueFileNameFromWorldName } from '../browserfs'
@@ -222,6 +222,26 @@ export default () => {
   }
 
   if (!isModalActive) return null
+
+  const pauseLinks: any[] = []
+  const pauseLinksConfig = miscUiState.appConfig?.pauseLinks
+  if (pauseLinksConfig) {
+    for (const row of pauseLinksConfig) {
+      const rowButtons: any[] = []
+      for (const button of row) {
+        const style = { width: (204 / row.length - (row.length > 1 ? 4 : 0)) + 'px' }
+        if (button.type === 'discord') {
+          rowButtons.push(<DiscordButton style={style} text={button.text}/>)
+        } else if (button.type === 'github') {
+          rowButtons.push(<Button className="button" style={style} onClick={() => openGithub()}>{button.text ?? 'GitHub'}</Button>)
+        } else if (button.type === 'url' && button.text) {
+          rowButtons.push(<Button className="button" style={style} onClick={() => openURL(button.url)}>{button.text}</Button>)
+        }
+      }
+      pauseLinks.push(<div className={styles.row}>{rowButtons}</div>)
+    }
+  }
+
   return <Screen title='Game Menu'>
     <Button
       icon="pixelarticons:folder"
@@ -235,10 +255,7 @@ export default () => {
     </ErrorBoundary>
     <div className={styles.pause_container}>
       <Button className="button" style={{ width: '204px' }} onClick={onReturnPress}>Back to Game</Button>
-      <div className={styles.row}>
-        <Button className="button" style={{ width: '98px' }} onClick={() => openURL(process.env.GITHUB_URL!)}>GitHub</Button>
-        <DiscordButton />
-      </div>
+      {pauseLinks}
       <Button className="button" style={{ width: '204px' }} onClick={() => openOptionsMenu('main')}>Options</Button>
       {singleplayer ? (
         <div className={styles.row}>

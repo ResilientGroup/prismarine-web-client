@@ -122,6 +122,7 @@ export type AppConfig = {
 
   defaultSettings?: Record<string, any>
   allowAutoConnect?: boolean
+  pauseLinks?: Array<Array<Record<string, any>>>
 }
 
 export const miscUiState = proxy({
