@@ -144,7 +144,7 @@ export class World {
     if (!this.blockCache[cacheKey]) {
       const b = column.getBlock(locInChunk) as unknown as WorldBlock
       if (modelOverride) {
-        // b.name = modelOverride
+        b.name = modelOverride
       }
       b.isCube = isCube(b.shapes)
       this.blockCache[cacheKey] = b
