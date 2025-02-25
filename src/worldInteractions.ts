@@ -279,7 +279,9 @@ class WorldInteraction {
     const { cursorBlock } = this
 
     let cursorBlockDiggable = cursorBlock
-    if (cursorBlock && (!bot.canDigBlock(cursorBlock) || inAdventure) && bot.game.gameMode !== 'creative') cursorBlockDiggable = null
+    if (!cursorBlock) cursorBlockDiggable = null
+    else if (inAdventure) cursorBlockDiggable = null
+    else if (!bot.canDigBlock(cursorBlock) && bot.game.gameMode != 'creative') cursorBlockDiggable = null
 
     const cursorChanged = cursorBlock && viewer.world.cursorBlock ? !viewer.world.cursorBlock.equals(cursorBlock.position) : viewer.world.cursorBlock !== cursorBlock
 
@@ -318,7 +320,7 @@ class WorldInteraction {
         }
       }
       // todo placing with offhand
-      if (cursorBlock && !activate && !stop) {
+      if (!inAdventure && cursorBlock && !activate && !stop) {
         const vecArray = [new Vec3(0, -1, 0), new Vec3(0, 1, 0), new Vec3(0, 0, -1), new Vec3(0, 0, 1), new Vec3(-1, 0, 0), new Vec3(1, 0, 0)]
         //@ts-expect-error
         const delta = cursorBlock.intersect.minus(cursorBlock.position)
