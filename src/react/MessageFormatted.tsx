@@ -58,7 +58,6 @@ const clickEventToProps = (clickEvent: MessageFormatPart['clickEvent']) => {
       }
     }
   }
-  //@ts-expect-error todo
   if (clickEvent.action === 'copy_to_clipboard') {
     return {
       onClick () {
