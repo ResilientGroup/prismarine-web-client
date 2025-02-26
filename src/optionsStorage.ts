@@ -5,8 +5,10 @@ import { proxy, subscribe } from 'valtio/vanilla'
 import { subscribeKey } from 'valtio/utils'
 import { omitObj } from '@zardoy/utils'
 import { appQueryParamsArray } from './appParams'
+import type { AppConfig } from './globalState'
 
 const isDev = process.env.NODE_ENV === 'development'
+const initialAppConfig = process.env.INLINED_APP_CONFIG as AppConfig ?? {}
 const defaultOptions = {
   renderDistance: 3,
   keepChunksDistance: 1,
@@ -58,6 +60,8 @@ const defaultOptions = {
   serversAutoVersionSelect: 'auto' as 'auto' | 'latest' | '1.20.4' | string,
   customChannels: false,
   packetsReplayAutoStart: false,
+  // todo ui setting, maybe enable by default?
+  waitForChunksRender: 'sp-only' as 'sp-only' | boolean,
 
   // antiAliasing: false,
 
@@ -133,6 +137,11 @@ export const qsOptions = Object.fromEntries(qsOptionsRaw.map(o => {
   return [key, JSON.parse(value)]
 }))
 
+// Track which settings are disabled (controlled by QS or forced by config)
+export const disabledSettings = proxy({
+  value: new Set<string>(Object.keys(qsOptions))
+})
+
 const migrateOptions = (options: Partial<AppOptions & Record<string, any>>) => {
   if (options.highPerformanceGpu) {
     options.gpuPreference = 'high-performance'
@@ -155,6 +164,7 @@ export type AppOptions = typeof defaultOptions
 
 export const options: AppOptions = proxy({
   ...defaultOptions,
+  ...initialAppConfig.defaultSettings,
   ...migrateOptions(JSON.parse(localStorage.options || '{}')),
   ...qsOptions
 })
@@ -172,7 +182,8 @@ Object.defineProperty(window, 'debugChangedOptions', {
 })
 
 subscribe(options, () => {
-  const saveOptions = omitObj(options, ...Object.keys(qsOptions) as [any])
+  // Don't save disabled settings to localStorage
+  const saveOptions = omitObj(options, [...disabledSettings.value] as any)
   localStorage.options = JSON.stringify(saveOptions)
 })
 

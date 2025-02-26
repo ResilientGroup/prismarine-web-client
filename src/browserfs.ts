@@ -13,6 +13,7 @@ import { setLoadingScreenStatus } from './appStatus'
 import { VALID_REPLAY_EXTENSIONS, openFile } from './packetsReplay/replayPackets'
 import { getFixedFilesize } from './downloadAndOpenFile'
 import { packetsReplayState } from './react/state/packetsReplayState'
+import { createFullScreenProgressReporter } from './core/progressReporter'
 const { GoogleDriveFileSystem } = require('google-drive-browserfs/src/backends/GoogleDrive')
 
 browserfs.install(window)
@@ -635,7 +636,7 @@ export const openFilePicker = (specificCase?: 'resourcepack') => {
           const doContinue = confirm(`Are you sure ${file.name.slice(-20)} is .zip file? ONLY .zip files are supported. Continue?`)
           if (!doContinue) return
         }
-        void installResourcepackPack(file).catch((err) => {
+        void installResourcepackPack(file, createFullScreenProgressReporter()).catch((err) => {
           setLoadingScreenStatus(err.message, true)
         })
       } else {

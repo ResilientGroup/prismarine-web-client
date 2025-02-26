@@ -10,7 +10,7 @@ import Slider from './react/Slider'
 import { getScreenRefreshRate } from './utils'
 import { setLoadingScreenStatus } from './appStatus'
 import { openFilePicker, resetLocalStorageWithoutWorld } from './browserfs'
-import { completeTexturePackInstall, getResourcePackNames, resourcePackState, uninstallResourcePack } from './resourcePack'
+import { completeResourcepackPackInstall, getResourcePackNames, resourcePackState, uninstallResourcePack } from './resourcePack'
 import { downloadPacketsReplay, packetsReplaceSessionState } from './packetsReplay/packetsReplayLegacy'
 import { showOptionsModal } from './react/SelectOption'
 import supportedVersions from './supportedVersions.mjs'
@@ -181,7 +181,7 @@ export const guiOptionsScheme: {
               }
               if (choice === 'Enable') {
                 options.enabledResourcepack = name
-                await completeTexturePackInstall(name, name, false)
+                await completeResourcepackPackInstall(name, name, false)
                 return
               }
               if (choice === 'Uninstall') {
