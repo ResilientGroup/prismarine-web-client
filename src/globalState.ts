@@ -127,6 +127,7 @@ export type AppConfig = {
   forceSettings?: Record<string, boolean>
   // hideSettings?: Record<string, boolean>
   allowAutoConnect?: boolean
+  pauseLinks?: Array<Array<Record<string, any>>>
 }
 
 export const miscUiState = proxy({
