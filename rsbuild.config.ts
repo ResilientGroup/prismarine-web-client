@@ -34,6 +34,9 @@ if (fs.existsSync('./assets/release.json')) {
 }
 
 const configJson = JSON.parse(fs.readFileSync('./config.json', 'utf8'))
+try {
+    Object.assign(configJson, JSON.parse(fs.readFileSync('./config.local.json', 'utf8')))
+} catch (err) {}
 if (dev) {
     configJson.defaultProxy = ':8080'
 }
@@ -105,12 +108,8 @@ const appConfig = defineConfig({
                     if (fs.existsSync('./assets/release.json')) {
                         fs.copyFileSync('./assets/release.json', './dist/release.json')
                     }
-                    let configLocalJson = {}
-                    try {
-                        configLocalJson = JSON.parse(fs.readFileSync('./config.local.json', 'utf8'))
-                    } catch (err) {}
 
-                    fs.writeFileSync('./dist/config.json', JSON.stringify({ ...configJson, ...configLocalJson }), 'utf8')
+                    fs.writeFileSync('./dist/config.json', JSON.stringify(configJson), 'utf8')
                     if (fs.existsSync('./generated/sounds.js')) {
                         fs.copyFileSync('./generated/sounds.js', './dist/sounds.js')
                     }
