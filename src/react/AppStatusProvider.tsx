@@ -147,7 +147,7 @@ export default () => {
         <>
           {displayAuthButton && <Button label='Authenticate' onClick={authReconnectAction} />}
           {displayVpnButton && <PossiblyVpnBypassProxyButton reconnect={reconnect} />}
-          {replayActive && <Button label={`Download Packets Replay ${replayLogger.contents.split('\n').length}L`} onClick={downloadPacketsReplay} />}
+          {replayActive && <Button label={`Download Packets Replay ${replayLogger?.contents.split('\n').length}L`} onClick={downloadPacketsReplay} />}
           {lastAutoCapturedPackets && <Button label={`Inspect Last ${lastAutoCapturedPackets} Packets`} onClick={() => downloadAutoCapturedPackets()} />}
         </>
       }

@@ -23,6 +23,7 @@ import { setLoadingScreenStatus } from '../appStatus'
 import { closeWan, openToWanAndCopyJoinLink, getJoinLink } from '../localServerMultiplayer'
 import { collectFilesToCopy, fileExistsAsyncOptimized, mkdirRecursive, uniqueFileNameFromWorldName } from '../browserfs'
 import { appQueryParams } from '../appParams'
+import { downloadPacketsReplay, packetsReplaceSessionState } from '../packetsReplay/packetsReplayLegacy'
 import { useIsModalActive } from './utilsApp'
 import { showOptionsModal } from './SelectOption'
 import Button from './Button'
@@ -157,6 +158,7 @@ export default () => {
   const activeModalStackSnap = useSnapshot(activeModalStack)
   const { singleplayer, wanOpened, wanOpening } = useSnapshot(miscUiState)
   const { noConnection } = useSnapshot(gameAdditionalState)
+  const { active: packetsReplaceActive, hasRecordedPackets: packetsReplaceHasRecordedPackets } = useSnapshot(packetsReplaceSessionState)
 
   const handlePointerLockChange = () => {
     if (!pointerLock.hasPointerLock && activeModalStack.length === 0) {
@@ -243,11 +245,24 @@ export default () => {
   }
 
   return <Screen title='Game Menu'>
-    <Button
-      icon="pixelarticons:folder"
-      style={{ position: 'fixed', top: '5px', left: 'calc(env(safe-area-inset-left) + 5px)' }}
-      onClick={async () => openWorldActions()}
-    />
+    <div style={{ position: 'fixed', top: '5px', left: 'calc(env(safe-area-inset-left) + 5px)', display: 'flex', gap: '5px' }}>
+      <Button
+        icon="pixelarticons:folder"
+        onClick={async () => openWorldActions()}
+      />
+      <Button
+        icon={packetsReplaceActive ? 'pixelarticons:debug-stop' : 'pixelarticons:circle'}
+        onClick={() => {
+          packetsReplaceSessionState.active = !packetsReplaceSessionState.active
+        }}
+      />
+      {packetsReplaceHasRecordedPackets && (
+        <Button
+          icon="pixelarticons:download"
+          onClick={async () => downloadPacketsReplay()}
+        />
+      )}
+    </div>
     <ErrorBoundary renderError={() => <div>error</div>}>
       <div style={{ position: 'fixed', top: '5px', left: 'calc(env(safe-area-inset-left) + 35px)' }}>
         <NetworkStatus />

@@ -7,7 +7,8 @@ export const packetsReplaceSessionState = proxy({
   hasRecordedPackets: false
 })
 
-export const replayLogger = new PacketsLogger()
+// eslint-disable-next-line import/no-mutable-exports
+export let replayLogger: PacketsLogger | undefined
 
 const isBufferData = (data: any): boolean => {
   if (Buffer.isBuffer(data) || data instanceof Uint8Array) return true
@@ -35,13 +36,14 @@ const processPacketData = (data: any): any => {
 
 export default () => {
   customEvents.on('mineflayerBotCreated', () => {
+    replayLogger = new PacketsLogger({ minecraftVersion: bot.version })
     replayLogger.contents = ''
     packetsReplaceSessionState.hasRecordedPackets = false
     const handleServerPacket = (data, { name, state = bot._client.state }) => {
       if (!packetsReplaceSessionState.active) {
         return
       }
-      replayLogger.log(true, { name, state }, processPacketData(data))
+      replayLogger!.log(true, { name, state }, processPacketData(data))
       packetsReplaceSessionState.hasRecordedPackets = true
     }
     bot._client.on('packet', handleServerPacket)
@@ -53,7 +55,7 @@ export default () => {
       if (!packetsReplaceSessionState.active) {
         return
       }
-      replayLogger.log(false, { name, state: bot._client.state }, processPacketData(data))
+      replayLogger!.log(false, { name, state: bot._client.state }, processPacketData(data))
       packetsReplaceSessionState.hasRecordedPackets = true
     })
   })
@@ -61,7 +63,7 @@ export default () => {
 
 export const downloadPacketsReplay = async () => {
   const a = document.createElement('a')
-  a.href = `data:text/plain;charset=utf-8,${encodeURIComponent(replayLogger.contents)}`
+  a.href = `data:text/plain;charset=utf-8,${encodeURIComponent(replayLogger!.contents)}`
   a.download = `packets-replay-${new Date().toISOString()}.txt`
   a.click()
 }
