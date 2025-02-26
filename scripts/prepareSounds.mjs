@@ -246,6 +246,7 @@ const writeSoundsMap = async () => {
 const makeSoundsBundle = async () => {
   const allSoundsMap = JSON.parse(fs.readFileSync('./generated/sounds.json', 'utf8'))
   const allSoundsVersionedMap = JSON.parse(fs.readFileSync('./generated/soundsPathVersionsRemap.json', 'utf8'))
+  if (!process.env.REPO_SLUG) throw new Error('REPO_SLUG is not set')
 
   const allSoundsMeta = {
     format: 'mp3',
