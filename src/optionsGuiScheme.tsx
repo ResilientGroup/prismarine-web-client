@@ -15,6 +15,7 @@ import { downloadPacketsReplay, packetsReplaceSessionState } from './packetsRepl
 import { showOptionsModal } from './react/SelectOption'
 import supportedVersions from './supportedVersions.mjs'
 import { getVersionAutoSelect } from './connect'
+import { createNotificationProgressReporter } from './core/progressReporter'
 
 export const guiOptionsScheme: {
   [t in OptionsGroupType]: Array<{ [K in keyof AppOptions]?: Partial<OptionMeta<AppOptions[K]>> } & { custom? }>
@@ -181,7 +182,7 @@ export const guiOptionsScheme: {
               }
               if (choice === 'Enable') {
                 options.enabledResourcepack = name
-                await completeResourcepackPackInstall(name, name, false)
+                await completeResourcepackPackInstall(name, name, false, createNotificationProgressReporter())
                 return
               }
               if (choice === 'Uninstall') {
