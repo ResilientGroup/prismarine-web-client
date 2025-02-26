@@ -14,22 +14,41 @@ import { VALID_REPLAY_EXTENSIONS, openFile } from './packetsReplay/replayPackets
 import { getFixedFilesize } from './downloadAndOpenFile'
 import { packetsReplayState } from './react/state/packetsReplayState'
 import { createFullScreenProgressReporter } from './core/progressReporter'
+import { showNotification } from './react/NotificationProvider'
 const { GoogleDriveFileSystem } = require('google-drive-browserfs/src/backends/GoogleDrive')
 
 browserfs.install(window)
 const defaultMountablePoints = {
-  '/world': { fs: 'LocalStorage' }, // will be removed in future
   '/data': { fs: 'IndexedDB' },
   '/resourcepack': { fs: 'InMemory' }, // temporary storage for currently loaded resource pack
+  '/temp': { fs: 'InMemory' }
+}
+const fallbackMountablePoints = {
+  '/resourcepack': { fs: 'InMemory' }, // temporary storage for downloaded server resource pack
+  '/temp': { fs: 'InMemory' }
 }
 browserfs.configure({
   fs: 'MountableFileSystem',
   options: defaultMountablePoints,
 }, async (e) => {
-  // todo disable singleplayer button
-  if (e) throw e
+  if (e) {
+    browserfs.configure({
+      fs: 'MountableFileSystem',
+      options: fallbackMountablePoints,
+    }, async (e2) => {
+      if (e2) {
+        showNotification('Unknown FS error, cannot continue', e2.message, true)
+        throw e2
+      }
+      showNotification('Failed to access device storage', `Check you have free space. ${e.message}`, true)
+      miscUiState.appLoaded = true
+      miscUiState.singleplayerAvailable = false
+    })
+    return
+  }
   await updateTexturePackInstalledState()
   miscUiState.appLoaded = true
+  miscUiState.singleplayerAvailable = true
 })
 
 export const forceCachedDataPaths = {}

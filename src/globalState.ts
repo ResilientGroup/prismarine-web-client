@@ -145,6 +145,7 @@ export const miscUiState = proxy({
   /** currently trying to load or loaded mc version, after all data is loaded */
   loadedDataVersion: null as string | null,
   appLoaded: false,
+  singleplayerAvailable: false,
   usingGamepadInput: false,
   appConfig: null as AppConfig | null,
   displaySearchInput: false,
