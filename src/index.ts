@@ -11,6 +11,7 @@ import './mineflayer/maps'
 import './mineflayer/cameraShake'
 import './shims/patchShims'
 import './mineflayer/java-tester/index'
+import './external'
 import { getServerInfo } from './mineflayer/mc-protocol'
 import { onGameLoad, renderSlot } from './inventoryWindows'
 import { RenderItem } from './mineflayer/items'
@@ -488,7 +489,7 @@ export async function connect (connectOptions: ConnectOptions) {
 
       localServer.on('newPlayer', (player) => {
         player.on('loadingStatus', (newStatus) => {
-          progress.beginStage('flying-squid', newStatus)
+          progress.setMessage(newStatus)
         })
       })
       flyingSquidEvents()
