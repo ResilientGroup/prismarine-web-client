@@ -115,7 +115,7 @@ import { UserError } from './mineflayer/userError'
 import ping from './mineflayer/plugins/ping'
 import { LocalServer } from './customServer'
 import { startLocalReplayServer } from './packetsReplay/replayPackets'
-import { localRelayServerPlugin } from './mineflayer/plugins/localRelay'
+import { localRelayServerPlugin } from './mineflayer/plugins/packetsRecording'
 import { createFullScreenProgressReporter } from './core/progressReporter'
 
 window.debug = debug
