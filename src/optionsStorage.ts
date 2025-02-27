@@ -60,6 +60,7 @@ const defaultOptions = {
   serversAutoVersionSelect: 'auto' as 'auto' | 'latest' | '1.20.4' | string,
   customChannels: false,
   packetsReplayAutoStart: false,
+  preciseMouseInput: false,
   // todo ui setting, maybe enable by default?
   waitForChunksRender: 'sp-only' as 'sp-only' | boolean,
 
