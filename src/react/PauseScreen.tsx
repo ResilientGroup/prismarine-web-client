@@ -227,19 +227,19 @@ export default () => {
 
   if (!isModalActive) return null
 
-  const pauseLinks: any[] = []
+  const pauseLinks: React.ReactNode[] = []
   const pauseLinksConfig = miscUiState.appConfig?.pauseLinks
   if (pauseLinksConfig) {
-    for (const row of pauseLinksConfig) {
-      const rowButtons: any[] = []
+    for (const [i, row] of pauseLinksConfig.entries()) {
+      const rowButtons: React.ReactNode[] = []
       for (const button of row) {
         const style = { width: (204 / row.length - (row.length > 1 ? 4 : 0)) + 'px' }
         if (button.type === 'discord') {
-          rowButtons.push(<DiscordButton style={style} text={button.text}/>)
+          rowButtons.push(<DiscordButton key={i} style={style} text={button.text}/>)
         } else if (button.type === 'github') {
-          rowButtons.push(<Button className="button" style={style} onClick={() => openGithub()}>{button.text ?? 'GitHub'}</Button>)
+          rowButtons.push(<Button key={i} className="button" style={style} onClick={() => openGithub()}>{button.text ?? 'GitHub'}</Button>)
         } else if (button.type === 'url' && button.text) {
-          rowButtons.push(<Button className="button" style={style} onClick={() => openURL(button.url)}>{button.text}</Button>)
+          rowButtons.push(<Button key={i} className="button" style={style} onClick={() => openURL(button.url)}>{button.text}</Button>)
         }
       }
       pauseLinks.push(<div className={styles.row}>{rowButtons}</div>)
