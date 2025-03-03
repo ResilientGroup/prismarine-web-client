@@ -322,6 +322,7 @@ export async function connect (connectOptions: ConnectOptions) {
     if (ended) return
     ended = true
     viewer.resetAll()
+    progress.end()
     localServer = window.localServer = window.server = undefined
     gameAdditionalState.viewerConnection = false
 
@@ -692,6 +693,7 @@ export async function connect (connectOptions: ConnectOptions) {
   } catch (err) {
     handleError(err)
   }
+  if (!bot) return
 
   if (connectOptions.server) {
     bot.loadPlugin(ping)
@@ -700,7 +702,6 @@ export async function connect (connectOptions: ConnectOptions) {
   if (!localReplaySession) {
     bot.loadPlugin(localRelayServerPlugin)
   }
-  if (!bot) return
 
   const p2pConnectTimeout = p2pMultiplayer ? setTimeout(() => { throw new UserError('Spawn timeout. There might be error on the other side, check console.') }, 20_000) : undefined
 

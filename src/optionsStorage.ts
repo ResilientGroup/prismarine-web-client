@@ -8,7 +8,7 @@ import { appQueryParamsArray } from './appParams'
 import type { AppConfig } from './globalState'
 
 const isDev = process.env.NODE_ENV === 'development'
-const initialAppConfig = process.env.INLINED_APP_CONFIG as AppConfig ?? {}
+const initialAppConfig = process.env?.INLINED_APP_CONFIG as AppConfig ?? {}
 const defaultOptions = {
   renderDistance: 3,
   keepChunksDistance: 1,

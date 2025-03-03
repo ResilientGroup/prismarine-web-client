@@ -138,6 +138,7 @@ export const createFullScreenProgressReporter = (): ProgressReporter => {
       setLoadingScreenStatus(message)
     },
     end () {
+      if (appStatusState.isError) return
       fullScreenReporters.splice(fullScreenReporters.indexOf(reporter), 1)
       if (fullScreenReporters.length === 0) {
         setLoadingScreenStatus(undefined)
