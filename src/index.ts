@@ -14,7 +14,7 @@ import './mineflayer/java-tester/index'
 import './external'
 import { getServerInfo } from './mineflayer/mc-protocol'
 import { onGameLoad, renderSlot } from './inventoryWindows'
-import { RenderItem } from './mineflayer/items'
+import { GeneralInputItem, RenderItem } from './mineflayer/items'
 import initCollisionShapes from './getCollisionInteractionShapes'
 import protocolMicrosoftAuth from 'minecraft-protocol/src/client/microsoftAuth'
 import microsoftAuthflow from './microsoftAuthflow'
@@ -114,6 +114,7 @@ import { LocalServer } from './customServer'
 import { startLocalReplayServer } from './packetsReplay/replayPackets'
 import { localRelayServerPlugin } from './mineflayer/plugins/packetsRecording'
 import { createFullScreenProgressReporter } from './core/progressReporter'
+import { getItemModelName } from './resourcesManager'
 
 window.debug = debug
 window.THREE = THREE
@@ -181,19 +182,13 @@ viewer.entities.getItemUv = (item, specificProps) => {
     const name = typeof idOrName === 'number' ? loadedData.items[idOrName]?.name : idOrName
     if (!name) throw new Error(`Item not found: ${idOrName}`)
 
-    const itemSelector = playerState.getItemSelector({
-      ...specificProps
-    })
-    const model = getItemDefinition(viewer.world.itemsDefinitionsStore, {
+    const model = getItemModelName({
+      ...item,
       name,
-      version: viewer.world.texturesVersion!,
-      properties: itemSelector
-    })?.model ?? name
+    } as GeneralInputItem, specificProps)
 
     const renderInfo = renderSlot({
-      ...item,
-      nbt: null,
-      name: model,
+      modelName: model,
     }, false, true)
 
     if (!renderInfo) throw new Error(`Failed to get render info for item ${name}`)
