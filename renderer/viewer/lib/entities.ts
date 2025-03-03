@@ -621,7 +621,7 @@ export class Entities extends EventEmitter {
           if (object) {
             mesh = object.mesh
             mesh.scale.set(0.5, 0.5, 0.5)
-            mesh.position.set(0, 0.3, 0)
+            mesh.position.set(0, 0.2, 0)
             // set faces
             // mesh.position.set(targetPos.x + 0.5 + 2, targetPos.y + 0.5, targetPos.z + 0.5)
             // viewer.scene.add(mesh)
@@ -714,8 +714,8 @@ export class Entities extends EventEmitter {
 
     // check if entity has armor
     if (entity.equipment) {
-      this.addItemModel(e, 'right', entity.equipment[0])
-      this.addItemModel(e, 'left', entity.equipment[1])
+      this.addItemModel(e, 'left', entity.equipment[0])
+      this.addItemModel(e, 'right', entity.equipment[1])
       addArmorModel(e, 'feet', entity.equipment[2])
       addArmorModel(e, 'legs', entity.equipment[3], 2)
       addArmorModel(e, 'chest', entity.equipment[4])
@@ -789,7 +789,7 @@ export class Entities extends EventEmitter {
               c.setRotationFromEuler(poseToEuler(armorStandMeta.body_pose))
             }
             break
-          case 'bone_leftarm':
+          case 'bone_rightarm':
             if (c.parent?.name !== 'bone_armor') {
               this.setVisible(c, hasArms)
             }
@@ -799,7 +799,7 @@ export class Entities extends EventEmitter {
               c.setRotationFromEuler(poseToEuler({ 'yaw': -10, 'pitch': -10, 'roll': 0 }))
             }
             break
-          case 'bone_rightarm':
+          case 'bone_leftarm':
             if (c.parent?.name !== 'bone_armor') {
               this.setVisible(c, hasArms)
             }
@@ -809,14 +809,14 @@ export class Entities extends EventEmitter {
               c.setRotationFromEuler(poseToEuler({ 'yaw': 10, 'pitch': -10, 'roll': 0 }))
             }
             break
-          case 'bone_leftleg':
+          case 'bone_rightleg':
             if (armorStandMeta.left_leg_pose) {
               c.setRotationFromEuler(poseToEuler(armorStandMeta.left_leg_pose))
             } else {
               c.setRotationFromEuler(poseToEuler({ 'yaw': -1, 'pitch': -1, 'roll': 0 }))
             }
             break
-          case 'bone_rightleg':
+          case 'bone_leftleg':
             if (armorStandMeta.right_leg_pose) {
               c.setRotationFromEuler(poseToEuler(armorStandMeta.right_leg_pose))
             } else {
@@ -995,7 +995,8 @@ export class Entities extends EventEmitter {
           const itemMesh = itemObject.mesh
           // Fix the offset
           const offsetVector = c.position.clone().multiplyScalar(-2)
-          group.position.set(offsetVector.x - 5, offsetVector.y + 5, offsetVector.z - 3.5)
+          group.position.set(offsetVector.x + (offsetVector.x < 0 ? 7 : -7), offsetVector.y + 6, offsetVector.z - 3.5)
+          //group.position.set(offsetVector.x, offsetVector.y, offsetVector.z)
           //itemMesh.rotation.z = Math.PI / 2
           if (itemObject.isBlock) {
             group.rotation.y = Math.PI / 4

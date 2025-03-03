@@ -41,7 +41,7 @@
             ]
           },
           {
-            "name": "rightarm",
+            "name": "leftarm",
             "parent": "waist",
             "mirror": true,
             "pivot": [5, 10, 0],
@@ -49,9 +49,9 @@
               {"origin": [5, 12, -1], "size": [2, 12, 2], "uv": [32, 16]}
             ]
           },
-          {"name": "rightitem", "parent": "rightarm", "pivot": [-6, 15, 1]},
+          {"name": "leftitem", "parent": "leftarm", "pivot": [6, 15, 1]},
           {
-            "name": "rightleg",
+            "name": "leftleg",
             "parent": "waist",
             "mirror": true,
             "pivot": [1.9, 1, 0],
@@ -60,16 +60,16 @@
             ]
           },
           {
-            "name": "leftarm",
+            "name": "rightarm",
             "parent": "waist",
             "pivot": [-5, 10, 0],
             "cubes": [
               {"origin": [-7, 12, -1], "size": [2, 12, 2], "uv": [24, 0]}
             ]
           },
-          {"name": "leftitem", "parent": "leftarm", "pivot": [6, 15, 1]},
+          {"name": "rightitem", "parent": "rightarm", "pivot": [-6, 15, 1]},
           {
-            "name": "leftleg",
+            "name": "rightleg",
             "parent": "waist",
             "pivot": [-1.9, 1, 0],
             "cubes": [
@@ -1706,7 +1706,7 @@
           },
           {
             "name": "rightItem",
-            "pivot": [-6, 15, 1],
+            "pivot": [-6, 3, 1],
             "neverRender": true,
             "parent": "rightArm"
           },
@@ -1718,6 +1718,12 @@
             ],
             "mirror": true,
             "parent": "body"
+          },
+          {
+            "name": "leftItem",
+            "pivot": [6, 3, 1],
+            "neverRender": true,
+            "parent": "leftArm"
           },
           {
             "name": "rightLeg",
@@ -5622,7 +5628,7 @@
           },
           {
             "name": "rightItem",
-            "pivot": [-6, 15, 1],
+            "pivot": [-6, 3, 1],
             "neverRender": true,
             "parent": "rightArm"
           },
@@ -5634,6 +5640,12 @@
             ],
             "mirror": true,
             "parent": "body"
+          },
+          {
+            "name": "leftItem",
+            "pivot": [6, 3, 1],
+            "neverRender": true,
+            "parent": "leftArm"
           },
           {
             "name": "rightLeg",
