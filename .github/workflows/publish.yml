@@ -55,7 +55,7 @@ jobs:
         run: pnpm build
       - name: Bundle server.js
         run: |
-          pnpm esbuild server.js --bundle --platform=node --outfile=bundled-server.js --define:process.env.NODE_ENV="production"
+          pnpm esbuild server.js --bundle --platform=node --outfile=bundled-server.js --define:process.env.NODE_ENV="'production'"
 
       - name: Create zip package
         run: |
