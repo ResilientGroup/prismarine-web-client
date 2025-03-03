@@ -35,6 +35,9 @@
     "web",
     "client"
   ],
+  "release": {
+    "attachReleaseFiles": "self-host.zip"
+  },
   "publish": {
     "preset": {
       "publishOnlyIfChanged": true,

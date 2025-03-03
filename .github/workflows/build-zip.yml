@@ -1,4 +1,4 @@
-name: Build and Bundle
+name: Make Self Host Zip
 
 on:
   workflow_dispatch:
@@ -26,7 +26,7 @@ jobs:
 
       - name: Bundle server.js
         run: |
-          pnpm esbuild server.js --bundle --platform=node --outfile=bundled-server.js
+          pnpm esbuild server.js --bundle --platform=node --outfile=bundled-server.js --define=process.env.NODE_ENV="production"
 
       - name: Create distribution package
         run: |
@@ -34,10 +34,10 @@ jobs:
           cp -r dist package/
           cp bundled-server.js package/server.js
           cd package
-          zip -r ../dist-package.zip .
+          zip -r ../self-host.zip .
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: dist-package
-          path: dist-package.zip
+          name: self-host
+          path: self-host.zip
