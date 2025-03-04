@@ -993,14 +993,10 @@ export class Entities extends EventEmitter {
             itemObject.itemsTextureFlipped?.dispose()
           }
           const itemMesh = itemObject.mesh
-          // Fix the offset
-          const offsetVector = c.position.clone().multiplyScalar(-2)
-          group.position.set(offsetVector.x + (offsetVector.x < 0 ? 7 : -7), offsetVector.y + 6, offsetVector.z - 3.5)
-          //group.position.set(offsetVector.x, offsetVector.y, offsetVector.z)
-          //itemMesh.rotation.z = Math.PI / 2
+          group.rotation.z = -Math.PI / 16
           if (itemObject.isBlock) {
             group.rotation.y = Math.PI / 4
-          } else if (!itemObject.isBlock) {
+          } else {
             itemMesh.rotation.z = -Math.PI / 4
             group.rotation.y = Math.PI / 2
             group.scale.multiplyScalar(2)
