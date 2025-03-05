@@ -205,7 +205,7 @@ export const renderSlot = (model: ResolvedItemModelRender, debugIsQuickbar = fal
   if (!fullBlockModelSupport) {
     const atlas = activeGuiAtlas.atlas?.json
     // todo atlas holds all rendered blocks, not all possibly rendered item/block models, need to request this on demand instead (this is how vanilla works)
-    const item = atlas?.textures[itemModelName.replace('minecraft:', '').replace('block/', '').replace('blocks/', '').replace('item/', '').replace('items/', '')]
+    const item = atlas?.textures[itemModelName.replace('minecraft:', '').replace('block/', '').replace('blocks/', '').replace('item/', '').replace('items/', '').replace('_inventory', '').replace('_bottom', '')]
     if (item) {
       const x = item.u * atlas.width
       const y = item.v * atlas.height
