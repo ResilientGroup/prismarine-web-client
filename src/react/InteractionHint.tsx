@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useSnapshot } from 'valtio'
 import { options } from '../optionsStorage'
+import { activeModalStack } from '../globalState'
 import PixelartIcon, { pixelartIcons } from './PixelartIcon'
 import styles from './InteractionHint.module.css'
 import { useUsingTouch } from './utilsApp'
 
 export default () => {
   const usingTouch = useUsingTouch()
+  const modalStack = useSnapshot(activeModalStack)
   const { touchInteractionType } = useSnapshot(options)
   const [hintText, setHintText] = useState<string | null>(null)
 
@@ -32,7 +34,7 @@ export default () => {
     }
   }, [])
 
-  if (!usingTouch || touchInteractionType !== 'classic') return null
+  if (!usingTouch || touchInteractionType !== 'classic' || modalStack.length > 0) return null
   if (!hintText) return null
 
   return (
