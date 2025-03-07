@@ -176,7 +176,7 @@ Object.defineProperty(window, 'world', {
 })
 // todo unify
 viewer.entities.getItemUv = (item, specificProps) => {
-  const idOrName = item.itemId ?? item.blockId
+  const idOrName = item.itemId ?? item.blockId ?? item.name
   try {
     const name = typeof idOrName === 'number' ? loadedData.items[idOrName]?.name : idOrName
     if (!name) throw new Error(`Item not found: ${idOrName}`)
