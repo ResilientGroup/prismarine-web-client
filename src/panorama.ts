@@ -83,8 +83,13 @@ export async function addPanoramaCubeMap () {
   const panorMaterials = [] as THREE.MeshBasicMaterial[]
   await updateResourcePackSupportPanorama()
   for (const file of panoramaFiles) {
+    const texture = loader.load(await possiblyLoadPanoramaFromResourcePack(file))
+    texture.repeat.x = -1
+    texture.offset.x = 1
+    texture.wrapS = THREE.RepeatWrapping
+    texture.wrapT = THREE.RepeatWrapping
     panorMaterials.push(new THREE.MeshBasicMaterial({
-      map: loader.load(await possiblyLoadPanoramaFromResourcePack(file)),
+      map: texture,
       transparent: true,
       side: THREE.DoubleSide
     }))
