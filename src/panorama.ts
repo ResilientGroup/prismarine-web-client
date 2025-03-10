@@ -84,14 +84,23 @@ export async function addPanoramaCubeMap () {
   await updateResourcePackSupportPanorama()
   for (const file of panoramaFiles) {
     const texture = loader.load(await possiblyLoadPanoramaFromResourcePack(file))
-    texture.repeat.x = -1
-    texture.offset.x = 1
-    texture.wrapS = THREE.RepeatWrapping
-    texture.wrapT = THREE.RepeatWrapping
+
+    // Instead of using repeat/offset to flip, we'll use the texture matrix
+    texture.matrixAutoUpdate = false
+    texture.matrix.set(
+      -1, 0, 1, 0, 1, 0, 0, 0, 1
+    )
+
+    texture.wrapS = THREE.ClampToEdgeWrapping // Changed from RepeatWrapping
+    texture.wrapT = THREE.ClampToEdgeWrapping // Changed from RepeatWrapping
+    texture.minFilter = THREE.LinearFilter
+    texture.magFilter = THREE.LinearFilter
+
     panorMaterials.push(new THREE.MeshBasicMaterial({
       map: texture,
       transparent: true,
-      side: THREE.DoubleSide
+      side: THREE.DoubleSide,
+      depthWrite: false
     }))
   }
 
