@@ -14,12 +14,12 @@ let shouldDisplayPanorama = false
 let panoramaUsesResourcePack = null as boolean | null
 
 const panoramaFiles = [
-  'panorama_1.png', // WS
-  'panorama_3.png', // ES
-  'panorama_4.png', // Up
-  'panorama_5.png', // Down
-  'panorama_0.png', // NS
-  'panorama_2.png' // SS
+  'panorama_3.png', // right (+x)
+  'panorama_1.png', // left (-x)
+  'panorama_4.png', // top (+y)
+  'panorama_5.png', // bottom (-y)
+  'panorama_0.png', // front (+z)
+  'panorama_2.png', // back (-z)
 ]
 
 const panoramaResourcePackPath = 'assets/minecraft/textures/gui/title/background'
