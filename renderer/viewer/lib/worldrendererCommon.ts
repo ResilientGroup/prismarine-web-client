@@ -339,6 +339,14 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     this.version = version
     this.texturesVersion = texturesVersion
     this.resetWorld()
+
+    // for workers in single file build
+    if (document.readyState === 'loading') {
+      await new Promise(resolve => {
+        document.addEventListener('DOMContentLoaded', resolve)
+      })
+    }
+
     this.initWorkers()
     this.active = true
     this.mesherConfig.outputFormat = this.outputFormat

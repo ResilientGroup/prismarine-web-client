@@ -1,22 +1,19 @@
 //@ts-check
 
 import { join } from 'path'
-import fs from 'fs'
 import * as THREE from 'three'
-import { subscribeKey } from 'valtio/utils'
 import { EntityMesh } from 'renderer/viewer/lib/entity/EntityMesh'
 import { WorldDataEmitter } from 'renderer/viewer'
 import { Vec3 } from 'vec3'
 import { getSyncWorld } from 'renderer/playground/shared'
 import * as tweenJs from '@tweenjs/tween.js'
-import { fromTexturePackPath, resourcePackState } from './resourcePack'
-import { options, watchValue } from './optionsStorage'
+import { subscribeKey } from 'valtio/utils'
+import { options } from './optionsStorage'
 import { miscUiState } from './globalState'
 import { loadMinecraftData } from './connect'
 
 let panoramaCubeMap
 let shouldDisplayPanorama = false
-let panoramaUsesResourcePack = null as boolean | null
 
 const panoramaFiles = [
   'panorama_3.png', // right (+x)
@@ -27,45 +24,17 @@ const panoramaFiles = [
   'panorama_2.png', // back (-z)
 ]
 
-const panoramaResourcePackPath = 'assets/minecraft/textures/gui/title/background'
-const possiblyLoadPanoramaFromResourcePack = async (file) => {
-  let base64Texture
-  if (panoramaUsesResourcePack) {
-    try {
-      // TODO!
-      // base64Texture = await fs.promises.readFile(fromTexturePackPath(join(panoramaResourcePackPath, file)), 'base64')
-    } catch (err) {
-      panoramaUsesResourcePack = false
-    }
-  }
-  if (base64Texture) return `data:image/png;base64,${base64Texture}`
-  else return join('background', file)
-}
-
-const updateResourcePackSupportPanorama = async () => {
-  try {
-    // TODO!
-    // await fs.promises.readFile(fromTexturePackPath(join(panoramaResourcePackPath, panoramaFiles[0])), 'base64')
-    // panoramaUsesResourcePack = true
-  } catch (err) {
-    panoramaUsesResourcePack = false
-  }
-}
-
-setTimeout(() => {
-  // after viewer is initialized
-  void addPanoramaCubeMap()
-}, 0)
-
 let unloadPanoramaCallbacks = [] as Array<() => void>
 
 // Menu panorama background
 // TODO-low use abort controller
 export async function addPanoramaCubeMap () {
   if (panoramaCubeMap || miscUiState.loadedDataVersion || options.disableAssets) return
+  await new Promise(resolve => {
+    setTimeout(resolve, 0) // wait for viewer to be initialized
+  })
   viewer.camera.fov = 85
-  await updateResourcePackSupportPanorama()
-  if (process.env.SINGLE_FILE_BUILD_MODE && !panoramaUsesResourcePack) {
+  if (process.env.SINGLE_FILE_BUILD_MODE) {
     void initDemoWorld()
     return
   }
@@ -82,7 +51,7 @@ export async function addPanoramaCubeMap () {
   const loader = new THREE.TextureLoader()
   const panorMaterials = [] as THREE.MeshBasicMaterial[]
   for (const file of panoramaFiles) {
-    const texture = loader.load(await possiblyLoadPanoramaFromResourcePack(file))
+    const texture = loader.load(join('background', file))
 
     // Instead of using repeat/offset to flip, we'll use the texture matrix
     texture.matrixAutoUpdate = false
@@ -132,6 +101,13 @@ export async function addPanoramaCubeMap () {
   viewer.scene.add(group)
   panoramaCubeMap = group
 }
+
+subscribeKey(miscUiState, 'fsReady', () => {
+  if (miscUiState.fsReady) {
+    // don't do it earlier to load fs and display menu faster
+    void addPanoramaCubeMap()
+  }
+})
 
 export function removePanorama () {
   for (const unloadPanoramaCallback of unloadPanoramaCallbacks) {
