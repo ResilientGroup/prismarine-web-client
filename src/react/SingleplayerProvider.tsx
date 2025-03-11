@@ -283,10 +283,10 @@ const Inner = () => {
   return <Singleplayer
     error={error}
     isReadonly={selectedProvider === 'google' && (googleDriveReadonly || !isGoogleProviderReady || !selectedGoogleId)}
-    providers={{
-      local: 'Local',
-      google: 'Google Drive',
-    }}
+    // providers={{
+    //   local: 'Local',
+    //   google: 'Google Drive',
+    // }}
     disabledProviders={[...isGoogleDriveAvailable() ? [] : ['google']]}
     worldData={worlds}
     providerActions={providerActions}
