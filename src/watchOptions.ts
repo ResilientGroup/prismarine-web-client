@@ -99,5 +99,6 @@ export const watchOptionsAfterWorldViewInit = () => {
     viewer.world.config.renderEars = o.renderEars
     viewer.world.config.showHand = o.showHand
     viewer.world.config.viewBobbing = o.viewBobbing
+    viewer.world.config.unknownEntityDisplay = options.unknownEntityDisplay
   })
 }

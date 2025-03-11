@@ -87,6 +87,9 @@ export const guiOptionsScheme: {
       },
       starfieldRendering: {},
       renderEntities: {},
+      unknownEntityDisplay: {
+        tooltip: 'Show or hide the placeholder box and entity name text for unknown entities',
+      },
       keepChunksDistance: {
         max: 5,
         unit: '',

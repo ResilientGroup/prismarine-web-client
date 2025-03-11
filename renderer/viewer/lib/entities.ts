@@ -183,6 +183,8 @@ function getEntityMesh (entity, world, options, overrides) {
     }
   }
 
+  if (!world.config.unknownEntityDisplay) return
+
   const geometry = new THREE.BoxGeometry(entity.width, entity.height, entity.width)
   geometry.translate(0, entity.height / 2, 0)
   const material = new THREE.MeshBasicMaterial({ color: 0xff_00_ff })
@@ -983,7 +985,7 @@ export class Entities extends EventEmitter {
     const itemObject = this.getItemMesh(item, {
       'minecraft:display_context': 'thirdperson',
     })
-    if (itemObject) {
+    if (itemObject?.mesh) {
       entityMesh.traverse(c => {
         if (c.name.toLowerCase() === parentName) {
           const group = new THREE.Object3D()
