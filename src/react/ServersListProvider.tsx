@@ -406,7 +406,8 @@ const Inner = ({ hidden, customServersList }: { hidden?: boolean, customServersL
         worldNameRight: additional?.textNameRight ?? '',
         worldNameRightGrayed: additional?.textNameRightGrayed ?? '',
         iconSrc: additional?.icon,
-        offline: additional?.offline
+        offline: additional?.offline,
+        group: 'Custom Servers'
       }
     })}
     initialProxies={{
