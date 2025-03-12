@@ -102,12 +102,16 @@ export async function addPanoramaCubeMap () {
   panoramaCubeMap = group
 }
 
-subscribeKey(miscUiState, 'fsReady', () => {
-  if (miscUiState.fsReady) {
-    // don't do it earlier to load fs and display menu faster
-    void addPanoramaCubeMap()
-  }
-})
+if (process.env.SINGLE_FILE_BUILD_MODE) {
+  subscribeKey(miscUiState, 'fsReady', () => {
+    if (miscUiState.fsReady) {
+      // don't do it earlier to load fs and display menu faster
+      void addPanoramaCubeMap()
+    }
+  })
+} else {
+  void addPanoramaCubeMap()
+}
 
 export function removePanorama () {
   for (const unloadPanoramaCallback of unloadPanoramaCallbacks) {
@@ -124,6 +128,7 @@ export function removePanorama () {
 }
 
 const initDemoWorld = async () => {
+  if (!shouldDisplayPanorama) return
   const abortController = new AbortController()
   unloadPanoramaCallbacks.push(() => {
     abortController.abort()
