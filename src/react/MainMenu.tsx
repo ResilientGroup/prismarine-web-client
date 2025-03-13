@@ -62,8 +62,9 @@ export default ({
 
   const versionLongPress = useLongPress(
     () => {
-      const buildDate = process.env.BUILD_VERSION ? new Date(process.env.BUILD_VERSION) : null
-      alert(`BUILD INFO:\n${buildDate?.toLocaleString() || 'Development build'}`)
+      const buildDate = process.env.BUILD_VERSION ? new Date(process.env.BUILD_VERSION + ':00:00.000Z') : null
+      const hoursAgo = buildDate ? Math.round((Date.now() - buildDate.getTime()) / (1000 * 60 * 60)) : null
+      alert(`BUILD DATE:\n${buildDate?.toLocaleString() || 'Development build'}${hoursAgo ? `\nBuilt ${hoursAgo} hours ago` : ''}`)
     },
     () => onVersionTextClick?.(),
   )
