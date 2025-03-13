@@ -362,6 +362,7 @@ export async function connect (connectOptions: ConnectOptions) {
     miscUiState.hasErrors = true
     if (miscUiState.gameLoaded) return
 
+    appStatusState.showReconnect = true
     setLoadingScreenStatus(`Error encountered. ${err}`, true)
     onPossibleErrorDisconnect()
     destroyAll()
@@ -711,6 +712,7 @@ export async function connect (connectOptions: ConnectOptions) {
   bot.on('kicked', (kickReason) => {
     console.log('You were kicked!', kickReason)
     const { formatted: kickReasonFormatted, plain: kickReasonString } = parseFormattedMessagePacket(kickReason)
+    appStatusState.showReconnect = true
     setLoadingScreenStatus(`The Minecraft server kicked you. Kick reason: ${kickReasonString}`, true, undefined, undefined, kickReasonFormatted)
     destroyAll()
   })
@@ -894,8 +896,8 @@ export async function connect (connectOptions: ConnectOptions) {
 const reconnectOptions = sessionStorage.getItem('reconnectOptions') ? JSON.parse(sessionStorage.getItem('reconnectOptions')!) : undefined
 
 listenGlobalEvents()
-const unsubscribe = watchValue(miscUiState, async s => {
-  if (s.fsReady && s.appConfig) {
+const unsubscribe = subscribe(miscUiState, async () => {
+  if (miscUiState.fsReady && miscUiState.appConfig) {
     unsubscribe()
     if (reconnectOptions) {
       sessionStorage.removeItem('reconnectOptions')

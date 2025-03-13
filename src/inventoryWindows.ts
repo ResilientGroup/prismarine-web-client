@@ -37,6 +37,10 @@ export const allImagesLoadedState = proxy({
   value: false
 })
 
+export const jeiCustomCategories = proxy({
+  value: [] as Array<{ id: string, categoryTitle: string, items: any[] }>
+})
+
 export const onGameLoad = (onLoad) => {
   allImagesLoadedState.value = false
   version = bot.version
@@ -324,9 +328,13 @@ const implementedContainersGuiMap = {
 const upJei = (search: string) => {
   search = search.toLowerCase()
   // todo fix pre flat
-  const matchedSlots = loadedData.itemsArray.map(x => {
+  const itemsArray = [
+    ...jeiCustomCategories.value.flatMap(x => x.items).filter(x => x !== null),
+    ...loadedData.itemsArray.filter(x => x.displayName.toLowerCase().includes(search)).map(item => new PrismarineItem(item.id, 1)).filter(x => x !== null)
+  ]
+  const matchedSlots = itemsArray.map(x => {
     if (!x.displayName.toLowerCase().includes(search)) return null
-    return new PrismarineItem(x.id, 1)
+    return x
   }).filter(a => a !== null)
   lastWindow.pwindow.win.jeiSlotsPage = 0
   lastWindow.pwindow.win.jeiSlots = mapSlots(matchedSlots, true)
