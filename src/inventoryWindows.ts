@@ -456,7 +456,15 @@ const openWindow = (type: string | undefined) => {
       inGameError(`Item for block ${slotItem.name} not found`)
       return
     }
-    const item = new PrismarineItem(itemId, isRightclick ? 64 : 1, slotItem.metadata)
+    const item = PrismarineItem.fromNotch({
+      ...slotItem,
+      itemId,
+      itemCount: isRightclick ? 64 : 1,
+      components: slotItem.components ?? [],
+      removeComponents: slotItem.removedComponents ?? [],
+      itemDamage: slotItem.metadata ?? 0,
+      nbt: slotItem.nbt,
+    })
     if (bot.game.gameMode === 'creative') {
       const freeSlot = bot.inventory.firstEmptyInventorySlot()
       if (freeSlot === null) return
