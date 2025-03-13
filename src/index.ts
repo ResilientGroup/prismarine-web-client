@@ -829,6 +829,7 @@ export async function connect (connectOptions: ConnectOptions) {
     if (appStatusState.isError) return
 
     const waitForChunks = async () => {
+      if (appQueryParams.sp === '1') return //todo
       const waitForChunks = options.waitForChunksRender === 'sp-only' ? !!singleplayer : options.waitForChunksRender
       if (viewer.world.allChunksFinished || !waitForChunks) {
         return

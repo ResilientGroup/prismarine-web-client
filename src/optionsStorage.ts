@@ -165,7 +165,7 @@ const migrateOptions = (options: Partial<AppOptions & Record<string, any>>) => {
 export type AppOptions = typeof defaultOptions
 
 // when opening html file locally in browser, localStorage is shared between all ever opened html files, so we try to avoid conflicts
-const localStorageKey = process.env.SINGLE_FILE_BUILD ? 'minecraftWebClientOptions' : 'options'
+const localStorageKey = process.env?.SINGLE_FILE_BUILD ? 'minecraftWebClientOptions' : 'options'
 export const options: AppOptions = proxy({
   ...defaultOptions,
   ...initialAppConfig.defaultSettings,
