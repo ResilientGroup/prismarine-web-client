@@ -458,16 +458,25 @@ const openWindow = (type: string | undefined) => {
     }
   }
 
-  // if (bot.game.gameMode !== 'spectator') {
-  lastWindow.pwindow.win.jeiSlotsPage = 0
-  // todo workaround so inventory opens immediately (though it still lags)
-  setTimeout(() => {
-    upJei('')
-  })
-  miscUiState.displaySearchInput = true
-  // } else {
-  //   lastWindow.pwindow.win.jeiSlots = []
-  // }
+  const isJeiEnabled = () => {
+    if (typeof options.jeiEnabled === 'boolean') return options.jeiEnabled
+    if (Array.isArray(options.jeiEnabled)) {
+      return options.jeiEnabled.includes(bot.game?.gameMode as any)
+    }
+    return false
+  }
+
+  if (isJeiEnabled()) {
+    lastWindow.pwindow.win.jeiSlotsPage = 0
+    // todo workaround so inventory opens immediately (though it still lags)
+    setTimeout(() => {
+      upJei('')
+    })
+    miscUiState.displaySearchInput = true
+  } else {
+    lastWindow.pwindow.win.jeiSlots = []
+    miscUiState.displaySearchInput = false
+  }
 
   if (type === undefined) {
     // player inventory

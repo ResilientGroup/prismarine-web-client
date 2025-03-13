@@ -63,6 +63,7 @@ const defaultOptions = {
   preciseMouseInput: false,
   // todo ui setting, maybe enable by default?
   waitForChunksRender: 'sp-only' as 'sp-only' | boolean,
+  jeiEnabled: true as boolean | Array<'creative' | 'survival' | 'adventure' | 'spectator'>,
 
   // antiAliasing: false,
 
