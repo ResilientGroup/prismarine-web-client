@@ -135,8 +135,8 @@ importers:
         specifier: ^4.17.21
         version: 4.17.21
       mcraft-fun-mineflayer:
-        specifier: ^0.1.8
-        version: 0.1.8(encoding@0.1.13)(mineflayer@https://codeload.github.com/zardoy/mineflayer/tar.gz/748163e536abe94f3dc8ada7a542bcd689bbbf49(encoding@0.1.13))
+        specifier: ^0.1.10
+        version: 0.1.10(encoding@0.1.13)(mineflayer@https://codeload.github.com/zardoy/mineflayer/tar.gz/748163e536abe94f3dc8ada7a542bcd689bbbf49(encoding@0.1.13))
       minecraft-data:
         specifier: 3.83.1
         version: 3.83.1
@@ -6690,9 +6690,9 @@ packages:
     resolution: {integrity: sha512-j2D1RNYtB5Z9gFu9MVjyDBbiALI0mWZ3xW/A3PPefVAHm3HJ2T1vH+1XBov1spBGPl7u+Zo7mRXza3X0egbeOg==}
     engines: {node: '>=18.0.0'}
 
-  mcraft-fun-mineflayer@0.1.8:
-    resolution: {integrity: sha512-jyJTihNHfeToBPwVs3QMKBlVcaCABJ25YN2eoIBQEVTRVFzaXh13XRpElphLzTMj1Q5XFYqufHtMoR4tsb08qQ==}
-    version: 0.1.8
+  mcraft-fun-mineflayer@0.1.10:
+    resolution: {integrity: sha512-KHzPts82I39nTDZlGwqJo1JXLwaIUHphBbmGWv7oYztUrq3iPiJDEIFgst0ROO/apjtHjzbCM9eb19qWw1JM3Q==}
+    version: 0.1.10
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
     peerDependencies:
       '@roamhq/wrtc': '*'
@@ -17579,7 +17579,7 @@ snapshots:
       maxrects-packer: 2.7.3
       zod: 3.24.1
 
-  mcraft-fun-mineflayer@0.1.8(encoding@0.1.13)(mineflayer@https://codeload.github.com/zardoy/mineflayer/tar.gz/748163e536abe94f3dc8ada7a542bcd689bbbf49(encoding@0.1.13)):
+  mcraft-fun-mineflayer@0.1.10(encoding@0.1.13)(mineflayer@https://codeload.github.com/zardoy/mineflayer/tar.gz/748163e536abe94f3dc8ada7a542bcd689bbbf49(encoding@0.1.13)):
     dependencies:
       '@zardoy/flying-squid': 0.0.49(encoding@0.1.13)
       exit-hook: 2.2.1

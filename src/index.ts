@@ -362,8 +362,8 @@ export async function connect (connectOptions: ConnectOptions) {
     miscUiState.hasErrors = true
     if (miscUiState.gameLoaded) return
 
-    appStatusState.showReconnect = true
     setLoadingScreenStatus(`Error encountered. ${err}`, true)
+    appStatusState.showReconnect = true
     onPossibleErrorDisconnect()
     destroyAll()
   }
@@ -712,8 +712,8 @@ export async function connect (connectOptions: ConnectOptions) {
   bot.on('kicked', (kickReason) => {
     console.log('You were kicked!', kickReason)
     const { formatted: kickReasonFormatted, plain: kickReasonString } = parseFormattedMessagePacket(kickReason)
-    appStatusState.showReconnect = true
     setLoadingScreenStatus(`The Minecraft server kicked you. Kick reason: ${kickReasonString}`, true, undefined, undefined, kickReasonFormatted)
+    appStatusState.showReconnect = true
     destroyAll()
   })
 
