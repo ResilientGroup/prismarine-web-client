@@ -333,6 +333,7 @@ const upJei = (search: string) => {
     ...loadedData.itemsArray.filter(x => x.displayName.toLowerCase().includes(search)).map(item => new PrismarineItem(item.id, 1)).filter(x => x !== null)
   ]
   const matchedSlots = itemsArray.map(x => {
+    x.displayName = getItemName(x) ?? x.displayName
     if (!x.displayName.toLowerCase().includes(search)) return null
     return x
   }).filter(a => a !== null)
