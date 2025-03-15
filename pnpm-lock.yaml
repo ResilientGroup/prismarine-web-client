@@ -135,8 +135,8 @@ importers:
         specifier: ^4.17.21
         version: 4.17.21
       mcraft-fun-mineflayer:
-        specifier: ^0.1.10
-        version: 0.1.10(encoding@0.1.13)(mineflayer@https://codeload.github.com/zardoy/mineflayer/tar.gz/06e3050ddf4d9aa655fea6e2bed182937a81705d(encoding@0.1.13))
+        specifier: ^0.1.12
+        version: 0.1.12(encoding@0.1.13)(mineflayer@https://codeload.github.com/zardoy/mineflayer/tar.gz/06e3050ddf4d9aa655fea6e2bed182937a81705d(encoding@0.1.13))
       minecraft-data:
         specifier: 3.83.1
         version: 3.83.1
@@ -362,8 +362,8 @@ importers:
         specifier: github:zardoy/mineflayer
         version: https://codeload.github.com/zardoy/mineflayer/tar.gz/06e3050ddf4d9aa655fea6e2bed182937a81705d(encoding@0.1.13)
       mineflayer-mouse:
-        specifier: ^0.1.0
-        version: 0.1.0(@types/debug@4.1.12)(@types/node@22.8.1)(terser@5.31.3)(tsx@4.7.0)(yaml@2.4.1)
+        specifier: ^0.1.1
+        version: 0.1.1(@types/debug@4.1.12)(@types/node@22.8.1)(terser@5.31.3)(tsx@4.7.0)(yaml@2.4.1)
       mineflayer-pathfinder:
         specifier: ^2.4.4
         version: 2.4.4
@@ -6694,9 +6694,9 @@ packages:
     resolution: {integrity: sha512-j2D1RNYtB5Z9gFu9MVjyDBbiALI0mWZ3xW/A3PPefVAHm3HJ2T1vH+1XBov1spBGPl7u+Zo7mRXza3X0egbeOg==}
     engines: {node: '>=18.0.0'}
 
-  mcraft-fun-mineflayer@0.1.10:
-    resolution: {integrity: sha512-KHzPts82I39nTDZlGwqJo1JXLwaIUHphBbmGWv7oYztUrq3iPiJDEIFgst0ROO/apjtHjzbCM9eb19qWw1JM3Q==}
-    version: 0.1.10
+  mcraft-fun-mineflayer@0.1.12:
+    resolution: {integrity: sha512-BhfkagVJX+QmD/dt3qNQS5f7g3/7NI//OfSW4VnRolCnZtrLU8ekr59bLRcNmUWsvtTjkg+wbMeXwclHshSWOA==}
+    version: 0.1.12
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
     peerDependencies:
       '@roamhq/wrtc': '*'
@@ -6920,8 +6920,8 @@ packages:
     resolution: {tarball: https://codeload.github.com/zardoy/mineflayer-item-map-downloader/tar.gz/a8d210ecdcf78dd082fa149a96e1612cc9747824}
     version: 1.2.0
 
-  mineflayer-mouse@0.1.0:
-    resolution: {integrity: sha512-NFfHASMo3iZOECoYOHVqGBFROVapzDJRlgANMiWnynO/oPUZkOJF6oRrcE33FCVHGlwMCT2S6N7TcqCYqF21Uw==}
+  mineflayer-mouse@0.1.1:
+    resolution: {integrity: sha512-7jKN+6pIGtQVfYxEIm4tA9CYwTS8Mgn/qJ2wyhrAoIEW8smCHUu0kj5Sdo0TwTCdlOQClKt8aEBZ13E7MGqOhg==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
 
   mineflayer-pathfinder@2.4.4:
@@ -17588,7 +17588,7 @@ snapshots:
       maxrects-packer: 2.7.3
       zod: 3.24.1
 
-  mcraft-fun-mineflayer@0.1.10(encoding@0.1.13)(mineflayer@https://codeload.github.com/zardoy/mineflayer/tar.gz/06e3050ddf4d9aa655fea6e2bed182937a81705d(encoding@0.1.13)):
+  mcraft-fun-mineflayer@0.1.12(encoding@0.1.13)(mineflayer@https://codeload.github.com/zardoy/mineflayer/tar.gz/06e3050ddf4d9aa655fea6e2bed182937a81705d(encoding@0.1.13)):
     dependencies:
       '@zardoy/flying-squid': 0.0.49(encoding@0.1.13)
       exit-hook: 2.2.1
@@ -17958,7 +17958,7 @@ snapshots:
       - encoding
       - supports-color
 
-  mineflayer-mouse@0.1.0(@types/debug@4.1.12)(@types/node@22.8.1)(terser@5.31.3)(tsx@4.7.0)(yaml@2.4.1):
+  mineflayer-mouse@0.1.1(@types/debug@4.1.12)(@types/node@22.8.1)(terser@5.31.3)(tsx@4.7.0)(yaml@2.4.1):
     dependencies:
       change-case: 5.4.4
       debug: 4.4.0(supports-color@8.1.1)
