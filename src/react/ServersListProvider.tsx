@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useUtilsEffect } from '@zardoy/react-util'
 import { useSnapshot } from 'valtio'
 import { ConnectOptions } from '../connect'
-import { activeModalStack, hideCurrentModal, miscUiState, showModal } from '../globalState'
+import { activeModalStack, hideCurrentModal, miscUiState, notHideableModalsWithoutForce, showModal } from '../globalState'
 import supportedVersions from '../supportedVersions.mjs'
 import { appQueryParams } from '../appParams'
 import { fetchServerStatus, isServerValid } from '../api/mcStatusApi'
@@ -17,6 +17,10 @@ import { useCopyKeybinding } from './simpleHooks'
 import { AuthenticatedAccount, getInitialServersList, getServerConnectionHistory, setNewServersList } from './serversStorage'
 import { appStorage, StoreServerItem } from './appStorageProvider'
 
+if (appQueryParams.lockConnect) {
+  notHideableModalsWithoutForce.add('editServer')
+}
+
 type AdditionalDisplayData = {
   textNameRightGrayed: string
   formattedText: string
@@ -24,8 +28,6 @@ type AdditionalDisplayData = {
   icon?: string
   offline?: boolean
 }
-
-const serversListQs = appQueryParams.serversList
 
 // todo move to base
 const normalizeIp = (ip: string) => ip.replace(/https?:\/\//, '').replace(/\/(:|$)/, '')
@@ -137,7 +139,7 @@ const Inner = ({ hidden, customServersList }: { hidden?: boolean, customServersL
                   offline: false
                 }
               } else {
-                data = await fetchServerStatus(server.ip/* , signal */) // DONT ADD SIGNAL IT WILL CRUSH JS RUNTIME
+                data = await fetchServerStatus(server.ip, /* signal */undefined, server.versionOverride) // DONT ADD SIGNAL IT WILL CRUSH JS RUNTIME
               }
               if (data) {
                 setAdditionalServerData(old => ({
@@ -370,6 +372,7 @@ const Inner = ({ hidden, customServersList }: { hidden?: boolean, customServersL
 }
 
 export default () => {
+  const serversListQs = appQueryParams.serversList
   const [customServersList, setCustomServersList] = useState<string[] | undefined>(serversListQs ? [] : undefined)
 
   useEffect(() => {
@@ -386,7 +389,7 @@ export default () => {
         setCustomServersList(serversListQs.split(','))
       }
     }
-  }, [])
+  }, [serversListQs])
 
   const modalStack = useSnapshot(activeModalStack)
   const hasServersListModal = modalStack.some(x => x.reactType === 'serversList')
