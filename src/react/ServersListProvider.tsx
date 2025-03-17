@@ -356,7 +356,7 @@ const Inner = ({ hidden, customServersList }: { hidden?: boolean, customServersL
         worldNameRightGrayed: additional?.textNameRightGrayed ?? '',
         iconSrc: additional?.icon,
         offline: additional?.offline,
-        group: 'Your Servers'
+        group: customServersList ? 'Provided Servers' : 'Saved Servers'
       }
     })}
     hidden={hidden}
