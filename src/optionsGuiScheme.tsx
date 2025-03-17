@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { useSnapshot } from 'valtio'
 import { openURL } from 'renderer/viewer/lib/simpleUtils'
 import { noCase } from 'change-case'
+import { versionToNumber } from 'mc-assets/dist/utils'
 import { gameAdditionalState, miscUiState, openOptionsMenu, showModal } from './globalState'
 import { AppOptions, getChangedSettings, options, resetOptions } from './optionsStorage'
 import Button from './react/Button'
@@ -512,7 +513,7 @@ export const guiOptionsScheme: {
     {
       custom () {
         const { serversAutoVersionSelect } = useSnapshot(options)
-        const allVersions = [...supportedVersions, 'latest', 'auto']
+        const allVersions = [...[...supportedVersions].sort((a, b) => versionToNumber(a) - versionToNumber(b)), 'latest', 'auto']
         const currentIndex = allVersions.indexOf(serversAutoVersionSelect)
 
         const getDisplayValue = (version: string) => {
@@ -525,10 +526,11 @@ export const guiOptionsScheme: {
         return <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           <Slider
             style={{ width: 150 }}
-            label='Server Version'
+            label='Prefer Server Version'
             value={currentIndex}
             min={0}
             max={allVersions.length - 1}
+            unit=''
             valueDisplay={getDisplayValue(serversAutoVersionSelect)}
             updateValue={(newVal) => {
               options.serversAutoVersionSelect = allVersions[newVal]
@@ -587,6 +589,9 @@ export const guiOptionsScheme: {
               } : {},
               ...data.exportKeybindings ? {
                 keybindings: customKeymaps,
+              } : {},
+              ...data.exportServers ? {
+                servers: appStorage.serversList,
               } : {},
               ...data.saveUsernameAndProxy ? {
                 username: appStorage.username,
