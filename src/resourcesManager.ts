@@ -31,6 +31,7 @@ export class LoadedResources {
   // User data (specific to current resourcepack/version)
   customBlockStates?: Record<string, any>
   customModels?: Record<string, any>
+  customItemModelData: Record<string, any[]> = {}
   customTextures: {
     items?: { tileSize: number | undefined, textures: Record<string, HTMLImageElement> }
     blocks?: { tileSize: number | undefined, textures: Record<string, HTMLImageElement> }
