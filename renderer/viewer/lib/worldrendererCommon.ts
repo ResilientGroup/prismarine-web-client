@@ -132,6 +132,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     blocks?: CustomTexturesData
     armor?: CustomTexturesData
   } = {}
+  customItemModelData: Record<string, any[]> = {}
   itemsDefinitionsStore = getLoadedItemDefinitionsStore(this.sourceData.itemDefinitionsJson)
   workersProcessAverageTime = 0
   workersProcessAverageTimeCount = 0
