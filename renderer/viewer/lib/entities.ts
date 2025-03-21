@@ -502,6 +502,7 @@ export class Entities extends EventEmitter {
   }
 
   getItemMesh (item, specificProps: ItemSpecificContextProperties, previousModel?: string) {
+    if (!item.nbt && item.nbtData) item.nbt = item.nbtData
     const textureUv = this.getItemUv?.(item, specificProps)
     if (previousModel && previousModel === textureUv?.modelName) return undefined
 

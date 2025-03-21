@@ -24,6 +24,7 @@ export type GeneralInputItem = Pick<import('prismarine-item').Item, 'name' | 'nb
 
 type JsonString = string
 type PossibleItemProps = {
+  CustomModelData?: number
   Damage?: number
   display?: { Name?: JsonString } // {"text":"Knife","color":"white","italic":"true"}
 }
@@ -31,6 +32,13 @@ type PossibleItemProps = {
 export const getItemMetadata = (item: GeneralInputItem) => {
   let customText = undefined as string | any | undefined
   let customModel = undefined as string | undefined
+
+  let itemId = item.name
+  if (!itemId.includes(':')) {
+    itemId = `minecraft:${itemId}`
+  }
+  const customModelDataDefinitions = viewer.world.customItemModelData[itemId]
+
   if (item.components) {
     const componentMap = new Map<string, RenderSlotComponent>()
     for (const component of item.components) {
@@ -45,6 +53,15 @@ export const getItemMetadata = (item: GeneralInputItem) => {
     if (customModelComponent) {
       customModel = customModelComponent.data
     }
+    if (customModelDataDefinitions) {
+      const customModelDataComponent: any = componentMap.get('custom_model_data')
+      if (customModelDataComponent?.data && typeof customModelDataComponent.data === 'number') {
+        const customModelData = customModelDataComponent.data
+        if (customModelDataDefinitions[customModelData]) {
+          customModel = customModelDataDefinitions[customModelData]
+        }
+      }
+    }
     const loreComponent = componentMap.get('lore')
     if (loreComponent) {
       customText ??= item.displayName ?? item.name
@@ -57,6 +74,9 @@ export const getItemMetadata = (item: GeneralInputItem) => {
     const customName = itemNbt.display?.Name
     if (customName) {
       customText = customName
+    }
+    if (customModelDataDefinitions && itemNbt.CustomModelData && customModelDataDefinitions[itemNbt.CustomModelData]) {
+      customModel = customModelDataDefinitions[itemNbt.CustomModelData]
     }
   }
 

@@ -314,6 +314,7 @@ export const getResourcepackTiles = async (type: 'blocks' | 'items' | 'armor', e
 const prepareBlockstatesAndModels = async (progressReporter: ProgressReporter) => {
   viewer.world.customBlockStates = {}
   viewer.world.customModels = {}
+  viewer.world.customItemModelData = {}
   const usedBlockTextures = new Set<string>()
   const usedItemTextures = new Set<string>()
   const basePath = await getActiveResourcepackBasePath()
@@ -355,14 +356,62 @@ const prepareBlockstatesAndModels = async (progressReporter: ProgressReporter) =
     return jsons
   }
 
+  const readCustomModelData = async (path: string, namespaceDir: string) => {
+    if (!(await existsAsync(path))) return
+    const files = await fs.promises.readdir(path)
+    const customModelData = {} as Record<string, string[]>
+    await Promise.all(files.map(async (file) => {
+      const filePath = `${path}/${file}`
+      if (file.endsWith('.json')) {
+        const contents = await fs.promises.readFile(filePath, 'utf8')
+        const name = file.replace('.json', '')
+        const parsed = JSON.parse(contents)
+        const entries: string[] = []
+        if (path.endsWith('/items')) { // 1.21.4+
+          // TODO: Support other properties too
+          if (parsed.model?.type === 'range_dispatch' && parsed.model?.property === 'custom_model_data') {
+            for (const entry of parsed.model?.entries ?? []) {
+              const threshold = entry.threshold ?? 0
+              let modelPath = entry.model?.model
+              if (typeof modelPath !== 'string') continue
+              if (!modelPath.includes(':')) modelPath = `minecraft:${modelPath}`
+              entries[threshold] = modelPath
+            }
+          }
+        } else if (path.endsWith('/models/item')) { // pre 1.21.4
+          for (const entry of parsed.overrides ?? []) {
+            if (entry.predicate?.custom_model_data && entry.model) {
+              let modelPath = entry.model
+              if (typeof modelPath !== 'string') continue
+              if (!modelPath.includes(':')) modelPath = `minecraft:${modelPath}`
+              entries[entry.predicate.custom_model_data] = modelPath
+            }
+          }
+        }
+        if (entries.length > 0) {
+          customModelData[`${namespaceDir}:${name}`] = entries
+        }
+      }
+    }))
+    return customModelData
+  }
+
   const readData = async (namespaceDir: string) => {
     const blockstatesPath = `${basePath}/assets/${namespaceDir}/blockstates`
     const blockModelsPath = `${basePath}/assets/${namespaceDir}/models/block`
+    const itemsPath = `${basePath}/assets/${namespaceDir}/items`
     const itemModelsPath = `${basePath}/assets/${namespaceDir}/models/item`
 
     Object.assign(viewer.world.customBlockStates!, await readModelData(blockstatesPath, 'blockstates', namespaceDir))
     Object.assign(viewer.world.customModels!, await readModelData(blockModelsPath, 'models', namespaceDir))
     Object.assign(viewer.world.customModels!, await readModelData(itemModelsPath, 'models', namespaceDir))
+
+    for (const [key, value] of Object.entries(await readCustomModelData(itemsPath, namespaceDir) ?? {})) {
+      viewer.world.customItemModelData[key] = value
+    }
+    for (const [key, value] of Object.entries(await readCustomModelData(itemModelsPath, namespaceDir) ?? {})) {
+      viewer.world.customItemModelData[key] = value
+    }
   }
 
   try {
@@ -374,6 +423,7 @@ const prepareBlockstatesAndModels = async (progressReporter: ProgressReporter) =
     console.error('Failed to read some of resource pack blockstates and models', err)
     viewer.world.customBlockStates = undefined
     viewer.world.customModels = undefined
+    viewer.world.customItemModelData = {}
   }
   return {
     usedBlockTextures,
