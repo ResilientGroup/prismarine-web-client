@@ -1,21 +1,35 @@
-import { Vec3 } from 'vec3'
 import PItem from 'prismarine-item'
-import * as THREE from 'three'
-import { WorldRendererThree } from '../renderer/viewer/lib/worldrendererThree'
+import { getThreeJsRendererMethods } from 'renderer/viewer/three/threeJsMethods'
 import { options } from './optionsStorage'
 import { jeiCustomCategories } from './inventoryWindows'
 
-customEvents.on('mineflayerBotCreated', async () => {
-  if (!options.customChannels) return
-  await new Promise(resolve => {
-    bot.once('login', () => {
-      resolve(true)
+export default () => {
+  customEvents.on('mineflayerBotCreated', async () => {
+    if (!options.customChannels) return
+    await new Promise(resolve => {
+      bot.once('login', () => {
+        resolve(true)
+      })
     })
+    registerBlockModelsChannel()
+    registerMediaChannels()
+    registeredJeiChannel()
   })
-  registerBlockModelsChannel()
-  registerMediaChannels()
-  registeredJeiChannel()
-})
+}
+
+const registerChannel = (channelName: string, packetStructure: any[], handler: (data: any) => void, waitForWorld = true) => {
+  bot._client.registerChannel(channelName, packetStructure, true)
+  bot._client.on(channelName as any, async (data) => {
+    if (waitForWorld) {
+      await appViewer.worldReady
+      handler(data)
+    } else {
+      handler(data)
+    }
+  })
+
+  console.debug(`registered custom channel ${channelName} channel`)
+}
 
 const registerBlockModelsChannel = () => {
   const CHANNEL_NAME = 'minecraft-web-client:blockmodels'
@@ -46,9 +60,7 @@ const registerBlockModelsChannel = () => {
     ]
   ]
 
-  bot._client.registerChannel(CHANNEL_NAME, packetStructure, true)
-
-  bot._client.on(CHANNEL_NAME as any, (data) => {
+  registerChannel(CHANNEL_NAME, packetStructure, (data) => {
     const { worldName, x, y, z, model } = data
 
     const chunkX = Math.floor(x / 16) * 16
@@ -56,31 +68,8 @@ const registerBlockModelsChannel = () => {
     const chunkKey = `${chunkX},${chunkZ}`
     const blockPosKey = `${x},${y},${z}`
 
-    const chunkModels = viewer.world.protocolCustomBlocks.get(chunkKey) || {}
-
-    if (model) {
-      chunkModels[blockPosKey] = model
-    } else {
-      delete chunkModels[blockPosKey]
-    }
-
-    if (Object.keys(chunkModels).length > 0) {
-      viewer.world.protocolCustomBlocks.set(chunkKey, chunkModels)
-    } else {
-      viewer.world.protocolCustomBlocks.delete(chunkKey)
-    }
-
-    // Trigger update
-    if (worldView) {
-      const block = worldView.world.getBlock(new Vec3(x, y, z))
-      if (block) {
-        worldView.world.setBlockStateId(new Vec3(x, y, z), block.stateId)
-      }
-    }
-
-  })
-
-  console.debug(`registered custom channel ${CHANNEL_NAME} channel`)
+    getThreeJsRendererMethods()?.updateCustomBlock(chunkKey, blockPosKey, model)
+  }, true)
 }
 
 const registeredJeiChannel = () => {
@@ -155,7 +144,7 @@ const registerMediaChannels = () => {
       { name: 'rotation', type: 'i16' }, // 0: 0° - towards positive z, 1: 90° - positive x, 2: 180° - negative z, 3: 270° - negative x (3-6 is same but double side)
       { name: 'source', type: ['pstring', { countType: 'i16' }] },
       { name: 'loop', type: 'bool' },
-      { name: '_volume', type: 'f32' }, // 0
+      { name: 'volume', type: 'f32' }, // 0
       { name: '_aspectRatioMode', type: 'i16' }, // 0
       { name: '_background', type: 'i16' }, // 0
       { name: '_opacity', type: 'i16' }, // 1
@@ -199,16 +188,11 @@ const registerMediaChannels = () => {
   bot._client.registerChannel(DESTROY_CHANNEL, noDataPacketStructure, true)
 
   // Handle media add
-  bot._client.on(ADD_CHANNEL as any, (data) => {
-    const { id, x, y, z, width, height, rotation, source, loop, background, opacity } = data
-
-    const worldRenderer = viewer.world as WorldRendererThree
-
-    // Destroy existing video if it exists
-    worldRenderer.destroyMedia(id)
+  registerChannel(ADD_CHANNEL, addPacketStructure, (data) => {
+    const { id, x, y, z, width, height, rotation, source, loop, volume, background, opacity } = data
 
     // Add new video
-    worldRenderer.addMedia(id, {
+    getThreeJsRendererMethods()?.addMedia(id, {
       position: { x, y, z },
       size: { width, height },
       // side: 'towards',
@@ -217,59 +201,47 @@ const registerMediaChannels = () => {
       doubleSide: false,
       background,
       opacity: opacity / 100,
-      allowOrigins: options.remoteContentNotSameOrigin === false ? [getCurrentTopDomain()] : options.remoteContentNotSameOrigin
+      allowOrigins: options.remoteContentNotSameOrigin === false ? [getCurrentTopDomain()] : options.remoteContentNotSameOrigin,
+      loop,
+      volume
     })
-
-    // Set loop state
-    if (!loop) {
-      const videoData = worldRenderer.customMedia.get(id)
-      if (videoData?.video) {
-        videoData.video.loop = false
-      }
-    }
   })
 
   // Handle media play
-  bot._client.on(PLAY_CHANNEL as any, (data) => {
+  registerChannel(PLAY_CHANNEL, noDataPacketStructure, (data) => {
     const { id } = data
-    const worldRenderer = viewer.world as WorldRendererThree
-    worldRenderer.setVideoPlaying(id, true)
-  })
+    getThreeJsRendererMethods()?.setVideoPlaying(id, true)
+  }, true)
 
   // Handle media pause
-  bot._client.on(PAUSE_CHANNEL as any, (data) => {
+  registerChannel(PAUSE_CHANNEL, noDataPacketStructure, (data) => {
     const { id } = data
-    const worldRenderer = viewer.world as WorldRendererThree
-    worldRenderer.setVideoPlaying(id, false)
-  })
+    getThreeJsRendererMethods()?.setVideoPlaying(id, false)
+  }, true)
 
   // Handle media seek
-  bot._client.on(SEEK_CHANNEL as any, (data) => {
+  registerChannel(SEEK_CHANNEL, setNumberPacketStructure, (data) => {
     const { id, seconds } = data
-    const worldRenderer = viewer.world as WorldRendererThree
-    worldRenderer.setVideoSeeking(id, seconds)
-  })
+    getThreeJsRendererMethods()?.setVideoSeeking(id, seconds)
+  }, true)
 
   // Handle media destroy
-  bot._client.on(DESTROY_CHANNEL as any, (data) => {
+  registerChannel(DESTROY_CHANNEL, noDataPacketStructure, (data) => {
     const { id } = data
-    const worldRenderer = viewer.world as WorldRendererThree
-    worldRenderer.destroyMedia(id)
-  })
+    getThreeJsRendererMethods()?.destroyMedia(id)
+  }, true)
 
   // Handle media volume
-  bot._client.on(VOLUME_CHANNEL as any, (data) => {
+  registerChannel(VOLUME_CHANNEL, setNumberPacketStructure, (data) => {
     const { id, volume } = data
-    const worldRenderer = viewer.world as WorldRendererThree
-    worldRenderer.setVideoVolume(id, volume)
-  })
+    getThreeJsRendererMethods()?.setVideoVolume(id, volume)
+  }, true)
 
   // Handle media speed
-  bot._client.on(SPEED_CHANNEL as any, (data) => {
+  registerChannel(SPEED_CHANNEL, setNumberPacketStructure, (data) => {
     const { id, speed } = data
-    const worldRenderer = viewer.world as WorldRendererThree
-    worldRenderer.setVideoSpeed(id, speed)
-  })
+    getThreeJsRendererMethods()?.setVideoSpeed(id, speed)
+  }, true)
 
   // ---
 
@@ -296,37 +268,9 @@ export const sendVideoInteraction = (id: string, x: number, y: number, isRightCl
 }
 
 export const videoCursorInteraction = () => {
-  const worldRenderer = viewer.world as WorldRendererThree
-  const { camera } = worldRenderer
-  const raycaster = new THREE.Raycaster()
-
-  // Get mouse position at center of screen
-  const mouse = new THREE.Vector2(0, 0)
-
-  // Update the raycaster
-  raycaster.setFromCamera(mouse, camera)
-
-  // Check intersection with all video meshes
-  for (const [id, videoData] of worldRenderer.customMedia.entries()) {
-    // Get the actual mesh (first child of the group)
-    const mesh = videoData.mesh.children[0] as THREE.Mesh
-    if (!mesh) continue
-
-    const intersects = raycaster.intersectObject(mesh, false)
-    if (intersects.length > 0) {
-      const intersection = intersects[0]
-      const { uv } = intersection
-      if (!uv) return null
-
-      return {
-        id,
-        x: uv.x,
-        y: uv.y
-      }
-    }
-  }
-
-  return null
+  const { intersectMedia } = appViewer.rendererState.world
+  if (!intersectMedia) return null
+  return intersectMedia
 }
 window.videoCursorInteraction = videoCursorInteraction
 
@@ -335,10 +279,8 @@ const addTestVideo = (rotation = 0 as 0 | 1 | 2 | 3, scale = 1, isImage = false)
   if (!block) return
   const { position: startPosition } = block
 
-  const worldRenderer = viewer.world as WorldRendererThree
-
   // Add video with proper positioning
-  worldRenderer.addMedia('test-video', {
+  getThreeJsRendererMethods()?.addMedia('test-video', {
     position: {
       x: startPosition.x,
       y: startPosition.y + 1,
