@@ -191,7 +191,7 @@ export default () => {
     </div>
 
     <div className={`debug-right-side ${styles['debug-right-side']}`}>
-      <p>Backend: {appViewer.backend?.NAME}</p>
+      <p>Backend: {appViewer.backend?.displayName}</p>
       <p>Renderer: {rendererDevice}</p>
       <div className={styles.empty} />
       {cursorBlock ? (<>

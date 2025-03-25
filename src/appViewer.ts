@@ -58,7 +58,8 @@ export type GraphicsBackendLoader = (options: GraphicsInitOptions) => GraphicsBa
 
 // no sync methods
 export interface GraphicsBackend {
-  NAME: string
+  id: string
+  displayName?: string
   startPanorama: () => void
   // prepareResources: (version: string, progressReporter: ProgressReporter) => Promise<void>
   startWorld: (options: DisplayWorldOptions) => void

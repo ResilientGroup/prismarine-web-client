@@ -86,11 +86,9 @@ const createGraphicsBackend: GraphicsBackendLoader = (initOptions: GraphicsInitO
 
   // Public interface
   const backend: GraphicsBackend = {
-    //@ts-expect-error mark as three.js renderer
-    __isThreeJsRenderer: true,
-    NAME: `three.js ${THREE.REVISION}`,
+    id: 'threejs',
+    displayName: `three.js ${THREE.REVISION}`,
     startPanorama,
-    prepareResources,
     startWorld,
     disconnect,
     setRendering (rendering) {
