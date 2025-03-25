@@ -3,7 +3,7 @@ import { Vec3 } from 'vec3'
 import { proxy } from 'valtio'
 import { GraphicsBackendLoader, GraphicsBackend, GraphicsInitOptions, DisplayWorldOptions, RendererReactiveState } from '../../../src/appViewer'
 import { ProgressReporter } from '../../../src/core/progressReporter'
-import { WorldRendererThree } from '../lib/worldrendererThree'
+import { WorldRendererThree } from './worldrendererThree'
 import { DocumentRenderer } from './documentRenderer'
 import { PanoramaRenderer } from './panorama'
 
