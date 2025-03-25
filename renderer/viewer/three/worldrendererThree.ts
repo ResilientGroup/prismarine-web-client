@@ -728,10 +728,11 @@ export class WorldRendererThree extends WorldRendererCommon {
     const geometry = new THREE.PlaneGeometry(1, 1)
 
     // Create material with initial properties using background texture
-    const material = new THREE.MeshBasicMaterial({
+    const material = new THREE.MeshLambertMaterial({
       map: backgroundTexture,
       transparent: true,
-      side: props.doubleSide ? THREE.DoubleSide : THREE.FrontSide
+      side: props.doubleSide ? THREE.DoubleSide : THREE.FrontSide,
+      alphaTest: 0.1
     })
 
     const texture = video
@@ -745,6 +746,7 @@ export class WorldRendererThree extends WorldRendererCommon {
     texture.minFilter = THREE.NearestFilter
     texture.magFilter = THREE.NearestFilter
     texture.format = THREE.RGBAFormat
+    texture.colorSpace = THREE.SRGBColorSpace
     texture.generateMipmaps = false
 
     // Create inner mesh for offsets
