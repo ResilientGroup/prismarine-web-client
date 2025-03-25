@@ -6,6 +6,7 @@ import * as tweenJs from '@tweenjs/tween.js'
 import { BloomPass, RenderPass, UnrealBloomPass, EffectComposer, WaterPass, GlitchPass, LineSegmentsGeometry, Wireframe, LineMaterial } from 'three-stdlib'
 import worldBlockProvider from 'mc-assets/dist/worldBlockProvider'
 import { renderSign } from '../sign-renderer'
+import { miscUiState } from '../../../src/globalState'
 import { chunkPos, sectionPos } from './simpleUtils'
 import { WorldRendererCommon, WorldRendererConfig } from './worldrendererCommon'
 import { disposeObject } from './threeJsUtils'
@@ -253,7 +254,11 @@ export class WorldRendererThree extends WorldRendererCommon {
 
     try {
       const textureData = JSON.parse(Buffer.from(textures.Value, 'base64').toString())
-      const skinUrl = textureData.textures?.SKIN?.url
+      let skinUrl = textureData.textures?.SKIN?.url
+      if (miscUiState.appConfig?.skullTextureProxy) {
+        skinUrl = skinUrl.replace('http://textures.minecraft.net/', miscUiState.appConfig?.skullTextureProxy)
+          .replace('https://textures.minecraft.net/', miscUiState.appConfig?.skullTextureProxy)
+      }
 
       const mesh = getMesh(this, skinUrl, armorModel.head)
       const group = new THREE.Group()

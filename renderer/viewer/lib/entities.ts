@@ -15,6 +15,7 @@ import { snakeCase } from 'change-case'
 import { Item } from 'prismarine-item'
 import { BlockModel } from 'mc-assets'
 import { EntityMetadataVersions } from '../../../src/mcDataTypes'
+import { miscUiState } from '../../../src/globalState'
 import * as Entity from './entity/EntityMesh'
 import { getMesh } from './entity/EntityMesh'
 import { WalkingGeneralSwing } from './entity/animations'
@@ -1068,6 +1069,10 @@ function addArmorModel (entityMesh: THREE.Object3D, slotType: string, item: Item
         if (textureData) {
           const decodedData = JSON.parse(Buffer.from(textureData, 'base64').toString())
           texturePath = decodedData.textures?.SKIN?.url
+          if (miscUiState.appConfig?.skullTextureProxy) {
+            texturePath = texturePath.replace('http://textures.minecraft.net/', miscUiState.appConfig?.skullTextureProxy)
+              .replace('https://textures.minecraft.net/', miscUiState.appConfig?.skullTextureProxy)
+          }
         }
       } catch (err) {
         console.error('Error decoding player head texture:', err)

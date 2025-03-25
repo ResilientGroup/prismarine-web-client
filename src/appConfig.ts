@@ -20,6 +20,8 @@ export type AppConfig = {
   // hideSettings?: Record<string, boolean>
   allowAutoConnect?: boolean
   pauseLinks?: Array<Array<Record<string, any>>>
+
+  skullTextureProxy?: string
 }
 
 export const loadAppConfig = (appConfig: AppConfig) => {
