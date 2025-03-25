@@ -30,6 +30,7 @@ const getBackendMethods = (worldRenderer: WorldRendererThree) => {
     setVideoSeeking: worldRenderer.setVideoSeeking.bind(worldRenderer),
     setVideoVolume: worldRenderer.setVideoVolume.bind(worldRenderer),
     setVideoSpeed: worldRenderer.setVideoSpeed.bind(worldRenderer),
+    shakeFromDamage: worldRenderer.cameraShake.shakeFromDamage.bind(worldRenderer.cameraShake),
   }
 }
 
@@ -98,9 +99,6 @@ const createGraphicsBackend: GraphicsBackendLoader = (initOptions: GraphicsInitO
     }),
     updateCamera (pos: Vec3 | null, yaw: number, pitch: number) {
       worldRenderer?.setFirstPersonCamera(pos, yaw, pitch)
-    },
-    setRoll (roll: number) {
-      worldRenderer?.setCameraRoll(roll)
     },
     get soundSystem () {
       return worldRenderer?.soundSystem

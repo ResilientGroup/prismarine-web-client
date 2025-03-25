@@ -152,7 +152,9 @@ export default class HoldingBlock {
     const item = this.playerState.getHeldItem(this.offHand)
     if (item) {
       void this.setNewItem(item)
-    } else if (!this.offHand) {
+    } else if (this.offHand) {
+      void this.setNewItem()
+    } else {
       void this.setNewItem({
         type: 'hand',
       })

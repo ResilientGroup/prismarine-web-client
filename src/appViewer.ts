@@ -65,9 +65,9 @@ export interface GraphicsBackend {
   startWorld: (options: DisplayWorldOptions) => void
   disconnect: () => void
   setRendering: (rendering: boolean) => void
-  getDebugOverlay: () => Record<string, any>
+  getDebugOverlay?: () => Record<string, any>
   updateCamera: (pos: Vec3 | null, yaw: number, pitch: number) => void
-  setRoll: (roll: number) => void
+  setRoll?: (roll: number) => void
   soundSystem: SoundSystem | undefined
 
   backendMethods: Record<string, unknown> | undefined

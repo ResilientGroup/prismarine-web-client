@@ -52,7 +52,6 @@ export type WorldRendererConfig = typeof defaultWorldRendererConfig
 export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any> {
   displayStats = true
   worldSizeParams = { minY: 0, worldHeight: 256 }
-  cameraRoll = 0
 
   active = false
 

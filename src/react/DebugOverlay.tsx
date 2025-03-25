@@ -173,7 +173,7 @@ export default () => {
   return <>
     <div className={`debug-left-side ${styles['debug-left-side']}`}>
       <p>Prismarine Web Client ({bot.version})</p>
-      {appViewer.backend?.getDebugOverlay().entitiesString && <p>E: {appViewer.backend.getDebugOverlay().entitiesString}</p>}
+      {appViewer.backend?.getDebugOverlay?.().entitiesString && <p>E: {appViewer.backend.getDebugOverlay().entitiesString}</p>}
       <p>{dimension}</p>
       <div className={styles.empty} />
       <p>XYZ: {pos.x.toFixed(3)} / {pos.y.toFixed(3)} / {pos.z.toFixed(3)}</p>
@@ -187,7 +187,7 @@ export default () => {
       <p>Biome: minecraft:{loadedData.biomesArray[biomeId]?.name ?? 'unknown biome'}</p>
       <p>Day: {day}</p>
       <div className={styles.empty} />
-      {Object.entries(appViewer.backend?.getDebugOverlay().left ?? {}).map(([name, value]) => <p key={name}>{name}: {value}</p>)}
+      {Object.entries(appViewer.backend?.getDebugOverlay?.().left ?? {}).map(([name, value]) => <p key={name}>{name}: {value}</p>)}
     </div>
 
     <div className={`debug-right-side ${styles['debug-right-side']}`}>
@@ -229,7 +229,7 @@ export default () => {
           </>
         )
       })()}
-      {Object.entries(appViewer.backend?.getDebugOverlay().right ?? {}).map(([name, value]) => <p key={name}>{name}: {value}</p>)}
+      {Object.entries(appViewer.backend?.getDebugOverlay?.().right ?? {}).map(([name, value]) => <p key={name}>{name}: {value}</p>)}
     </div>
   </>
 }

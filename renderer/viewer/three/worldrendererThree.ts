@@ -22,6 +22,7 @@ import { getItemUv } from './appShared'
 import { initVR } from './world/vr'
 import { Entities } from './entities'
 import { ThreeJsSound } from './threeJsSound'
+import { CameraShake } from './cameraShake'
 
 interface MediaProperties {
   position: { x: number, y: number, z: number }
@@ -46,7 +47,6 @@ export class WorldRendererThree extends WorldRendererCommon {
   cameraSectionPos: Vec3 = new Vec3(0, 0, 0)
   holdingBlock: HoldingBlock
   holdingBlockLeft: HoldingBlock
-  cameraRoll = 0
   scene = new THREE.Scene()
   ambientLight = new THREE.AmbientLight(0xcc_cc_cc)
   directionalLight = new THREE.DirectionalLight(0xff_ff_ff, 0.5)
@@ -62,6 +62,7 @@ export class WorldRendererThree extends WorldRendererCommon {
     texture: THREE.Texture
     updateUVMapping: (config: { startU: number, endU: number, startV: number, endV: number }) => void
   }>()
+  cameraShake: CameraShake
 
   get tilesRendered () {
     return Object.values(this.sectionObjects).reduce((acc, obj) => acc + (obj as any).tilesCount, 0)
@@ -80,13 +81,14 @@ export class WorldRendererThree extends WorldRendererCommon {
     this.holdingBlock = new HoldingBlock(this)
     this.holdingBlockLeft = new HoldingBlock(this, true)
 
-    this.soundSystem = new ThreeJsSound(this)
-
     this.addDebugOverlay()
     this.resetScene()
     this.watchReactivePlayerState()
     this.init()
     void initVR(this)
+
+    this.soundSystem = new ThreeJsSound(this)
+    this.cameraShake = new CameraShake(this.camera, this.onRender)
   }
 
   updateEntity (e, isPosUpdate = false) {
@@ -430,7 +432,7 @@ export class WorldRendererThree extends WorldRendererCommon {
       new tweenJs.Tween(this.camera.position).to({ x: pos.x, y: pos.y, z: pos.z }, 50).start()
       // this.freeFlyState.position = pos
     }
-    this.camera.rotation.set(pitch, yaw, this.cameraRoll, 'ZYX')
+    this.cameraShake.setBaseRotation(pitch, yaw)
   }
 
   render (sizeChanged = false) {
@@ -1024,20 +1026,6 @@ export class WorldRendererThree extends WorldRendererCommon {
     this.scene.add(debugGroup)
     console.log('Exact test mesh added with dimensions:', width, height, 'and rotation:', rotation)
 
-  }
-
-  setCameraRoll (roll: number) {
-    this.cameraRoll = roll
-    const rollQuat = new THREE.Quaternion()
-    rollQuat.setFromAxisAngle(new THREE.Vector3(0, 0, 1), THREE.MathUtils.degToRad(roll))
-
-    // Get camera's current rotation
-    const camQuat = new THREE.Quaternion()
-    this.camera.getWorldQuaternion(camQuat)
-
-    // Apply roll after camera rotation
-    const finalQuat = camQuat.multiply(rollQuat)
-    this.camera.setRotationFromQuaternion(finalQuat)
   }
 
   destroy (): void {
