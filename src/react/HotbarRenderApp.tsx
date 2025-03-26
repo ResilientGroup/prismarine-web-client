@@ -42,7 +42,7 @@ const ItemName = ({ itemKey }: { itemKey: string }) => {
   useEffect(() => {
     const item = bot.heldItem
     if (item) {
-      const customDisplay = getItemNameRaw(item)
+      const customDisplay = getItemNameRaw(item, appViewer.resourcesManager)
       if (customDisplay) {
         setItemName(customDisplay)
       } else {
