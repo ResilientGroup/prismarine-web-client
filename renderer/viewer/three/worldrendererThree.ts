@@ -436,6 +436,7 @@ export class WorldRendererThree extends WorldRendererCommon {
   }
 
   render (sizeChanged = false) {
+    this.lastRendered = performance.now()
     this.cursorBlock.render()
 
     const sizeOrFovChanged = sizeChanged || this.displayOptions.inWorldRenderingConfig.fov !== this.camera.fov
