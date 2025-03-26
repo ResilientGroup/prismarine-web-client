@@ -4,6 +4,7 @@ import { fromFormattedString } from '@xmcl/text-component'
 import { ItemSpecificContextProperties } from 'renderer/viewer/lib/basePlayerState'
 import { getItemDefinition } from 'mc-assets/dist/itemDefinitions'
 import { MessageFormatPart } from '../chatUtils'
+import { ResourcesManager } from '../resourcesManager'
 import { playerState } from './playerState'
 
 type RenderSlotComponent = {
@@ -32,7 +33,7 @@ type PossibleItemProps = {
   display?: { Name?: JsonString } // {"text":"Knife","color":"white","italic":"true"}
 }
 
-export const getItemMetadata = (item: GeneralInputItem) => {
+export const getItemMetadata = (item: GeneralInputItem, resourcesManager: ResourcesManager) => {
   let customText = undefined as string | any | undefined
   let customModel = undefined as string | undefined
 
@@ -40,7 +41,7 @@ export const getItemMetadata = (item: GeneralInputItem) => {
   if (!itemId.includes(':')) {
     itemId = `minecraft:${itemId}`
   }
-  const customModelDataDefinitions = appViewer.resourcesManager.currentResources?.customItemModelData[itemId]
+  const customModelDataDefinitions = resourcesManager.currentResources?.customItemModelNames[itemId]
 
   if (item.components) {
     const componentMap = new Map<string, RenderSlotComponent>()
@@ -90,8 +91,8 @@ export const getItemMetadata = (item: GeneralInputItem) => {
 }
 
 
-export const getItemNameRaw = (item: Pick<import('prismarine-item').Item, 'nbt'> | null) => {
-  const { customText } = getItemMetadata(item as any)
+export const getItemNameRaw = (item: Pick<import('prismarine-item').Item, 'nbt'> | null, resourcesManager: ResourcesManager) => {
+  const { customText } = getItemMetadata(item as any, resourcesManager)
   if (!customText) return
   try {
     if (typeof customText === 'object') {
@@ -110,9 +111,9 @@ export const getItemNameRaw = (item: Pick<import('prismarine-item').Item, 'nbt'>
   }
 }
 
-export const getItemModelName = (item: GeneralInputItem, specificProps: ItemSpecificContextProperties) => {
+export const getItemModelName = (item: GeneralInputItem, specificProps: ItemSpecificContextProperties, resourcesManager: ResourcesManager) => {
   let itemModelName = item.name
-  const { customModel } = getItemMetadata(item)
+  const { customModel } = getItemMetadata(item, resourcesManager)
   if (customModel) {
     itemModelName = customModel
   }
