@@ -86,6 +86,7 @@ export const watchOptionsAfterViewerInit = () => {
     appViewer.inWorldRenderingConfig.fetchPlayerSkins = o.loadPlayerSkins
     appViewer.inWorldRenderingConfig.highlightBlockColor = o.highlightBlockColor
     appViewer.inWorldRenderingConfig._experimentalSmoothChunkLoading = o.rendererOptions.three._experimentalSmoothChunkLoading
+    appViewer.inWorldRenderingConfig._renderByChunks = o.rendererOptions.three._renderByChunks
   })
 
   appViewer.inWorldRenderingConfig.smoothLighting = options.smoothLighting

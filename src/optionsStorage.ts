@@ -111,7 +111,8 @@ const defaultOptions = {
   highlightBlockColor: 'auto' as 'auto' | 'blue' | 'classic',
   rendererOptions: {
     three: {
-      _experimentalSmoothChunkLoading: true
+      _experimentalSmoothChunkLoading: true,
+      _renderByChunks: false
     }
   }
 }

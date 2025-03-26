@@ -366,13 +366,15 @@ export class WorldRendererThree extends WorldRendererCommon {
       }
     }
     this.sectionObjects[data.key] = object
-    object.visible = false
-    const chunkKey = `${chunkCoords[0]},${chunkCoords[2]}`
-    this.waitingChunksToDisplay[chunkKey] ??= []
-    this.waitingChunksToDisplay[chunkKey].push(data.key)
-    if (this.finishedChunks[chunkKey]) {
-      // todo it might happen even when it was not an update
-      this.finishChunk(chunkKey)
+    if (this.displayOptions.inWorldRenderingConfig._renderByChunks) {
+      object.visible = false
+      const chunkKey = `${chunkCoords[0]},${chunkCoords[2]}`
+      this.waitingChunksToDisplay[chunkKey] ??= []
+      this.waitingChunksToDisplay[chunkKey].push(data.key)
+      if (this.finishedChunks[chunkKey]) {
+        // todo it might happen even when it was not an update
+        this.finishChunk(chunkKey)
+      }
     }
 
     this.updatePosDataChunk(data.key)

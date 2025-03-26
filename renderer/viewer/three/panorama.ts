@@ -69,14 +69,57 @@ export class PanoramaRenderer {
   }
 
   addClassicPanorama () {
-    const classicPanorama = new ClassicPanoramaRenderer(panoramaFiles.map(file => join('background', file)))
-    classicPanorama.panoramaGroup.onBeforeRender = () => {
-      this.time += 0.01
-      classicPanorama.panoramaGroup.rotation.y = Math.PI + this.time * 0.01
-      classicPanorama.panoramaGroup.rotation.z = Math.sin(-this.time * 0.001) * 0.001
+    const panorGeo = new THREE.BoxGeometry(1000, 1000, 1000)
+    const loader = new THREE.TextureLoader()
+    const panorMaterials = [] as THREE.MeshBasicMaterial[]
+
+    for (const file of panoramaFiles) {
+      const texture = loader.load(join('background', file))
+
+      // Instead of using repeat/offset to flip, we'll use the texture matrix
+      texture.matrixAutoUpdate = false
+      texture.matrix.set(
+        -1, 0, 1, 0, 1, 0, 0, 0, 1
+      )
+
+      texture.wrapS = THREE.ClampToEdgeWrapping // Changed from RepeatWrapping
+      texture.wrapT = THREE.ClampToEdgeWrapping // Changed from RepeatWrapping
+      texture.minFilter = THREE.LinearFilter
+      texture.magFilter = THREE.LinearFilter
+
+      panorMaterials.push(new THREE.MeshBasicMaterial({
+        map: texture,
+        transparent: true,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+      }))
     }
-    this.scene.add(classicPanorama.panoramaGroup)
-    this.panoramaGroup = classicPanorama.panoramaGroup
+
+    const panoramaBox = new THREE.Mesh(panorGeo, panorMaterials)
+    panoramaBox.onBeforeRender = () => {
+      this.time += 0.01
+      panoramaBox.rotation.y = Math.PI + this.time * 0.01
+      panoramaBox.rotation.z = Math.sin(-this.time * 0.001) * 0.001
+    }
+
+    const group = new THREE.Object3D()
+    group.add(panoramaBox)
+
+    // Add squids
+    for (let i = 0; i < 20; i++) {
+      const m = new EntityMesh('1.16.4', 'squid').mesh
+      m.position.set(Math.random() * 30 - 15, Math.random() * 20 - 10, Math.random() * 10 - 17)
+      m.rotation.set(0, Math.PI + Math.random(), -Math.PI / 4, 'ZYX')
+      const v = Math.random() * 0.01
+      m.children[0].onBeforeRender = () => {
+        m.rotation.y += v
+        m.rotation.z = Math.cos(panoramaBox.rotation.y * 3) * Math.PI / 4 - Math.PI / 2
+      }
+      group.add(m)
+    }
+
+    this.scene.add(group)
+    this.panoramaGroup = group
   }
 
   async worldBlocksPanorama () {
@@ -167,54 +210,58 @@ export class PanoramaRenderer {
   }
 }
 
-class ClassicPanoramaRenderer {
-  panoramaGroup: THREE.Object3D
+// export class ClassicPanoramaRenderer {
+//   panoramaGroup: THREE.Object3D
 
-  constructor (private readonly backgroundFiles: string[]) {
-    const panorGeo = new THREE.BoxGeometry(1000, 1000, 1000)
-    const loader = new THREE.TextureLoader()
-    const panorMaterials = [] as THREE.MeshBasicMaterial[]
+//   constructor (private readonly backgroundFiles: string[], onRender: Array<(sizeChanged: boolean) => void>, addSquids = true) {
+//     const panorGeo = new THREE.BoxGeometry(1000, 1000, 1000)
+//     const loader = new THREE.TextureLoader()
+//     const panorMaterials = [] as THREE.MeshBasicMaterial[]
 
-    for (const file of this.backgroundFiles) {
-      const texture = loader.load(file)
+//     for (const file of this.backgroundFiles) {
+//       const texture = loader.load(file)
 
-      // Instead of using repeat/offset to flip, we'll use the texture matrix
-      texture.matrixAutoUpdate = false
-      texture.matrix.set(
-        -1, 0, 1, 0, 1, 0, 0, 0, 1
-      )
+//       // Instead of using repeat/offset to flip, we'll use the texture matrix
+//       texture.matrixAutoUpdate = false
+//       texture.matrix.set(
+//         -1, 0, 1, 0, 1, 0, 0, 0, 1
+//       )
 
-      texture.wrapS = THREE.ClampToEdgeWrapping // Changed from RepeatWrapping
-      texture.wrapT = THREE.ClampToEdgeWrapping // Changed from RepeatWrapping
-      texture.minFilter = THREE.LinearFilter
-      texture.magFilter = THREE.LinearFilter
+//       texture.wrapS = THREE.ClampToEdgeWrapping // Changed from RepeatWrapping
+//       texture.wrapT = THREE.ClampToEdgeWrapping // Changed from RepeatWrapping
+//       texture.minFilter = THREE.LinearFilter
+//       texture.magFilter = THREE.LinearFilter
 
-      panorMaterials.push(new THREE.MeshBasicMaterial({
-        map: texture,
-        transparent: true,
-        side: THREE.DoubleSide,
-        depthWrite: false,
-      }))
-    }
+//       panorMaterials.push(new THREE.MeshBasicMaterial({
+//         map: texture,
+//         transparent: true,
+//         side: THREE.DoubleSide,
+//         depthWrite: false,
+//       }))
+//     }
 
-    const panoramaBox = new THREE.Mesh(panorGeo, panorMaterials)
+//     const panoramaBox = new THREE.Mesh(panorGeo, panorMaterials)
+//     panoramaBox.onBeforeRender = () => {
+//     }
 
-    const group = new THREE.Object3D()
-    group.add(panoramaBox)
+//     const group = new THREE.Object3D()
+//     group.add(panoramaBox)
 
-    // Add squids
-    for (let i = 0; i < 20; i++) {
-      const m = new EntityMesh('1.16.4', 'squid').mesh
-      m.position.set(Math.random() * 30 - 15, Math.random() * 20 - 10, Math.random() * 10 - 17)
-      m.rotation.set(0, Math.PI + Math.random(), -Math.PI / 4, 'ZYX')
-      const v = Math.random() * 0.01
-      m.children[0].onBeforeRender = () => {
-        m.rotation.y += v
-        m.rotation.z = Math.cos(panoramaBox.rotation.y * 3) * Math.PI / 4 - Math.PI / 2
-      }
-      group.add(m)
-    }
+//     if (addSquids) {
+//       // Add squids
+//       for (let i = 0; i < 20; i++) {
+//         const m = new EntityMesh('1.16.4', 'squid').mesh
+//         m.position.set(Math.random() * 30 - 15, Math.random() * 20 - 10, Math.random() * 10 - 17)
+//         m.rotation.set(0, Math.PI + Math.random(), -Math.PI / 4, 'ZYX')
+//         const v = Math.random() * 0.01
+//         onRender.push(() => {
+//           m.rotation.y += v
+//           m.rotation.z = Math.cos(panoramaBox.rotation.y * 3) * Math.PI / 4 - Math.PI / 2
+//         })
+//         group.add(m)
+//       }
+//     }
 
-    this.panoramaGroup = group
-  }
-}
+//     this.panoramaGroup = group
+//   }
+// }
