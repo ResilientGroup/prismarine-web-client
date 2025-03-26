@@ -250,7 +250,7 @@ export const renderSlot = (model: ResolvedItemModelRender, debugIsQuickbar = fal
 }
 
 const getItemName = (slot: Item | RenderItem | null) => {
-  const parsed = getItemNameRaw(slot)
+  const parsed = getItemNameRaw(slot, appViewer.resourcesManager)
   if (!parsed) return
   // todo display full text renderer from sign renderer
   const text = flat(parsed as MessageFormatPart).map(x => x.text)
@@ -277,7 +277,7 @@ const mapSlots = (slots: Array<RenderItem | Item | null>, isJei = false) => {
     try {
       if (slot.durabilityUsed && slot.maxDurability) slot.durabilityUsed = Math.min(slot.durabilityUsed, slot.maxDurability)
       const debugIsQuickbar = !isJei && i === bot.inventory.hotbarStart + bot.quickBarSlot
-      const modelName = getItemModelName(slot, { 'minecraft:display_context': 'gui', })
+      const modelName = getItemModelName(slot, { 'minecraft:display_context': 'gui', }, appViewer.resourcesManager)
       const slotCustomProps = renderSlot({ modelName }, debugIsQuickbar)
       const itemCustomName = getItemName(slot)
       Object.assign(slot, { ...slotCustomProps, displayName: itemCustomName ?? slot.displayName })
