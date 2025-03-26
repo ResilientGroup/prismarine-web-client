@@ -235,7 +235,7 @@ const initialMenuStart = async () => {
   if (appViewer.currentDisplay === 'world') {
     appViewer.resetBackend(true)
   }
-  // appViewer.startPanorama()
+  appViewer.startPanorama()
 
   // await appViewer.resourcesManager.loadMcData('1.21.4')
   // const world = getSyncWorld('1.21.4')
