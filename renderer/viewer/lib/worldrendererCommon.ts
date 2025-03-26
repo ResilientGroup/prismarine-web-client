@@ -298,7 +298,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
         if (loaded) {
           // CHUNK FINISHED
           this.finishedChunks[chunkKey] = true
-          this.renderUpdateEmitter.emit(`chunkFinished`, `${chunkCoords[0] / 16},${chunkCoords[2] / 16}`)
+          this.renderUpdateEmitter.emit(`chunkFinished`, `${chunkCoords[0]},${chunkCoords[2]}`)
           this.checkAllFinished()
           // merge highest blocks by sections into highest blocks by chunks
           // for (let y = this.worldMinYRender; y < this.worldSizeParams.worldHeight; y += 16) {

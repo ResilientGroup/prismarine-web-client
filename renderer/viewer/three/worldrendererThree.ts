@@ -38,6 +38,8 @@ interface MediaProperties {
   volume?: number
 }
 
+type SectionKey = string
+
 export class WorldRendererThree extends WorldRendererCommon {
   outputFormat = 'threeJs' as const
   sectionObjects: Record<string, THREE.Object3D> = {}
@@ -63,6 +65,7 @@ export class WorldRendererThree extends WorldRendererCommon {
     updateUVMapping: (config: { startU: number, endU: number, startV: number, endV: number }) => void
   }>()
   cameraShake: CameraShake
+  waitingChunksToDisplay = {} as { [chunkKey: string]: SectionKey[] }
 
   get tilesRendered () {
     return Object.values(this.sectionObjects).reduce((acc, obj) => acc + (obj as any).tilesCount, 0)
@@ -89,6 +92,10 @@ export class WorldRendererThree extends WorldRendererCommon {
 
     this.soundSystem = new ThreeJsSound(this)
     this.cameraShake = new CameraShake(this.camera, this.onRender)
+
+    this.renderUpdateEmitter.on('chunkFinished', (chunkKey: string) => {
+      this.finishChunk(chunkKey)
+    })
   }
 
   updateEntity (e, isPosUpdate = false) {
@@ -270,6 +277,18 @@ export class WorldRendererThree extends WorldRendererCommon {
     }
   }
 
+  getDir (current: number, origin: number) {
+    if (current === origin) return 0
+    return current < origin ? 1 : -1
+  }
+
+  finishChunk (chunkKey: string) {
+    for (const sectionKey of this.waitingChunksToDisplay[chunkKey] ?? []) {
+      this.sectionObjects[sectionKey].visible = true
+    }
+    delete this.waitingChunksToDisplay[chunkKey]
+  }
+
   // debugRecomputedDeletedObjects = 0
   handleWorkerMessage (data: { geometry: MesherGeometryOutput, key, type }): void {
     if (data.type !== 'geometry') return
@@ -347,6 +366,15 @@ export class WorldRendererThree extends WorldRendererCommon {
       }
     }
     this.sectionObjects[data.key] = object
+    object.visible = false
+    const chunkKey = `${chunkCoords[0]},${chunkCoords[2]}`
+    this.waitingChunksToDisplay[chunkKey] ??= []
+    this.waitingChunksToDisplay[chunkKey].push(data.key)
+    if (this.finishedChunks[chunkKey]) {
+      // todo it might happen even when it was not an update
+      this.finishChunk(chunkKey)
+    }
+
     this.updatePosDataChunk(data.key)
     object.matrixAutoUpdate = false
     mesh.onAfterRender = (renderer, scene, camera, geometry, material, group) => {
