@@ -463,9 +463,11 @@ export async function connect (connectOptions: ConnectOptions) {
       await downloadMcData(finalVersion)
     }
 
+    const brand = clientDataStream ? 'minecraft-web-client' : undefined
     bot = mineflayer.createBot({
       host: server.host,
       port: server.port ? +server.port : undefined,
+      brand,
       version: finalVersion || false,
       ...clientDataStream ? {
         stream: clientDataStream as any,
