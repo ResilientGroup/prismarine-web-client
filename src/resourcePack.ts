@@ -313,7 +313,7 @@ const prepareBlockstatesAndModels = async (progressReporter: ProgressReporter) =
   const resources = appViewer.resourcesManager.currentResources!
   resources.customBlockStates = {}
   resources.customModels = {}
-  resources.customItemModelData = {}
+  resources.customItemModelNames = {}
   const usedBlockTextures = new Set<string>()
   const usedItemTextures = new Set<string>()
   const basePath = await getActiveResourcepackBasePath()
@@ -406,10 +406,10 @@ const prepareBlockstatesAndModels = async (progressReporter: ProgressReporter) =
     Object.assign(resources.customModels!, await readModelData(itemModelsPath, 'models', namespaceDir))
 
     for (const [key, value] of Object.entries(await readCustomModelData(itemsPath, namespaceDir) ?? {})) {
-      resources.customItemModelData[key] = value
+      resources.customItemModelNames[key] = value
     }
     for (const [key, value] of Object.entries(await readCustomModelData(itemModelsPath, namespaceDir) ?? {})) {
-      resources.customItemModelData[key] = value
+      resources.customItemModelNames[key] = value
     }
   }
 
@@ -422,7 +422,7 @@ const prepareBlockstatesAndModels = async (progressReporter: ProgressReporter) =
     console.error('Failed to read some of resource pack blockstates and models', err)
     resources.customBlockStates = undefined
     resources.customModels = undefined
-    resources.customItemModelData = {}
+    resources.customItemModelNames = {}
   }
   return {
     usedBlockTextures,
