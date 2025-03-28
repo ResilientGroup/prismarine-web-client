@@ -5,7 +5,7 @@ import './testCrasher'
 import './globals'
 import './devtools'
 import './entities'
-import './customChannels'
+import customChannels from './customChannels'
 import './globalDomListeners'
 import './mineflayer/maps'
 import './mineflayer/cameraShake'
@@ -111,6 +111,7 @@ initCollisionShapes()
 initializePacketsReplay()
 packetsPatcher()
 onAppLoad()
+customChannels()
 
 if (appQueryParams.testCrashApp === '2') throw new Error('test')
 
@@ -683,8 +684,7 @@ export async function connect (connectOptions: ConnectOptions) {
   })
 
   const spawnEarlier = !singleplayer && !p2pMultiplayer
-  // don't use spawn event, player can be dead
-  bot.once(spawnEarlier ? 'forcedMove' : 'health', async () => {
+  const displayWorld = async () => {
     if (resourcePackState.isServerInstalling) {
       await new Promise<void>(resolve => {
         subscribe(resourcePackState, () => {
@@ -694,88 +694,96 @@ export async function connect (connectOptions: ConnectOptions) {
         })
       })
     }
+    console.log('try to focus window')
     window.focus?.()
     errorAbortController.abort()
-
-    if (p2pConnectTimeout) clearTimeout(p2pConnectTimeout)
-    playerState.onlineMode = !!connectOptions.authenticatedAccount
-
-    progress.setMessage('Placing blocks (starting viewer)')
-    if (!connectOptions.worldStateFileContents || connectOptions.worldStateFileContents.length < 3 * 1024 * 1024) {
-      localStorage.lastConnectOptions = JSON.stringify(connectOptions)
-      if (process.env.NODE_ENV === 'development' && !localStorage.lockUrl && !Object.keys(window.debugQueryParams).length) {
-        lockUrl()
-      }
-    } else {
-      localStorage.removeItem('lastConnectOptions')
-    }
-    connectOptions.onSuccessfulPlay?.()
-    updateDataAfterJoin()
-    if (connectOptions.autoLoginPassword) {
-      bot.chat(`/login ${connectOptions.autoLoginPassword}`)
-    }
-
-
-    console.log('bot spawned - starting viewer')
-    appViewer.startWorld(bot.world, renderDistance)
-    appViewer.worldView!.listenToBot(bot)
-
-    initMotionTracking()
-    dayCycle()
-
-    // Bot position callback
-    function botPosition () {
-      appViewer.lastCamUpdate = Date.now()
-      // this might cause lag, but not sure
-      appViewer.backend?.updateCamera(bot.entity.position, bot.entity.yaw, bot.entity.pitch)
-      void appViewer.worldView?.updatePosition(bot.entity.position)
-    }
-    bot.on('move', botPosition)
-    botPosition()
-
-    progress.setMessage('Setting callbacks')
-
-    onGameLoad(() => {})
-
     if (appStatusState.isError) return
 
-    const waitForChunks = async () => {
-      if (appQueryParams.sp === '1') return //todo
-      const waitForChunks = options.waitForChunksRender === 'sp-only' ? !!singleplayer : options.waitForChunksRender
-      if (!appViewer.backend || appViewer.rendererState.world.allChunksLoaded || !waitForChunks) {
-        return
-      }
+    try {
+      if (p2pConnectTimeout) clearTimeout(p2pConnectTimeout)
+      playerState.onlineMode = !!connectOptions.authenticatedAccount
 
-      await progress.executeWithMessage(
-        'Loading chunks',
-        'chunks',
-        async () => {
-          await waitForChunksToLoad(progress)
+      progress.setMessage('Placing blocks (starting viewer)')
+      if (!connectOptions.worldStateFileContents || connectOptions.worldStateFileContents.length < 3 * 1024 * 1024) {
+        localStorage.lastConnectOptions = JSON.stringify(connectOptions)
+        if (process.env.NODE_ENV === 'development' && !localStorage.lockUrl && !Object.keys(window.debugQueryParams).length) {
+          lockUrl()
         }
-      )
-    }
-
-    await waitForChunks()
-
-    setTimeout(() => {
-      if (appQueryParams.suggest_save) {
-        showNotification('Suggestion', 'Save the world to keep your progress!', false, undefined, async () => {
-          const savePath = await saveToBrowserMemory()
-          if (!savePath) return
-          const saveName = savePath.split('/').pop()
-          bot.end()
-          // todo hot reload
-          location.search = `loadSave=${saveName}`
-        })
+      } else {
+        localStorage.removeItem('lastConnectOptions')
       }
-    }, 600)
+      connectOptions.onSuccessfulPlay?.()
+      updateDataAfterJoin()
+      if (connectOptions.autoLoginPassword) {
+        bot.chat(`/login ${connectOptions.autoLoginPassword}`)
+      }
 
-    miscUiState.gameLoaded = true
-    miscUiState.loadedServerIndex = connectOptions.serverIndex ?? ''
-    customEvents.emit('gameLoaded')
-    progress.end()
-    setLoadingScreenStatus(undefined)
-  })
+
+      console.log('bot spawned - starting viewer')
+      appViewer.startWorld(bot.world, renderDistance)
+      appViewer.worldView!.listenToBot(bot)
+
+      initMotionTracking()
+      dayCycle()
+
+      // Bot position callback
+      const botPosition = () => {
+        appViewer.lastCamUpdate = Date.now()
+        // this might cause lag, but not sure
+        appViewer.backend?.updateCamera(bot.entity.position, bot.entity.yaw, bot.entity.pitch)
+        void appViewer.worldView?.updatePosition(bot.entity.position)
+      }
+      bot.on('move', botPosition)
+      botPosition()
+
+      progress.setMessage('Setting callbacks')
+
+      onGameLoad(() => { })
+
+      if (appStatusState.isError) return
+
+      const waitForChunks = async () => {
+        if (appQueryParams.sp === '1') return //todo
+        const waitForChunks = options.waitForChunksRender === 'sp-only' ? !!singleplayer : options.waitForChunksRender
+        if (!appViewer.backend || appViewer.rendererState.world.allChunksLoaded || !waitForChunks) {
+          return
+        }
+
+        await progress.executeWithMessage(
+          'Loading chunks',
+          'chunks',
+          async () => {
+            await waitForChunksToLoad(progress)
+          }
+        )
+      }
+
+      await waitForChunks()
+
+      setTimeout(() => {
+        if (appQueryParams.suggest_save) {
+          showNotification('Suggestion', 'Save the world to keep your progress!', false, undefined, async () => {
+            const savePath = await saveToBrowserMemory()
+            if (!savePath) return
+            const saveName = savePath.split('/').pop()
+            bot.end()
+            // todo hot reload
+            location.search = `loadSave=${saveName}`
+          })
+        }
+      }, 600)
+
+      miscUiState.gameLoaded = true
+      miscUiState.loadedServerIndex = connectOptions.serverIndex ?? ''
+      customEvents.emit('gameLoaded')
+      progress.end()
+      setLoadingScreenStatus(undefined)
+    } catch (err) {
+      handleError(err)
+    }
+  }
+  // don't use spawn event, player can be dead
+  bot.once(spawnEarlier ? 'forcedMove' : 'health', displayWorld)
 
   if (singleplayer && connectOptions.serverOverrides.worldFolder) {
     fsState.saveLoaded = true
