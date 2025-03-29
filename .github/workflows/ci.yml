@@ -48,7 +48,7 @@ jobs:
         id: compare
         uses: actions/github-script@v6
         env:
-          GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GIST_TOKEN }}
         with:
           script: |
             const gistId = '${{ secrets.BUNDLE_STATS_GIST_ID }}';
@@ -57,7 +57,7 @@ jobs:
               const { data } = await github.rest.gists.get({
                 gist_id: gistId,
                 headers: {
-                  authorization: `token ${process.env.GIST_TOKEN}`
+                  authorization: `token ${process.env.GITHUB_TOKEN}`
                 }
               });
               return JSON.parse(data.files['bundle-stats.json'].content || '{}');
@@ -90,7 +90,7 @@ jobs:
         if: github.event.pull_request.base.ref == 'next'
         uses: actions/github-script@v6
         env:
-          GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GIST_TOKEN }}
         with:
           script: |
             const gistId = '${{ secrets.BUNDLE_STATS_GIST_ID }}';
@@ -99,7 +99,7 @@ jobs:
               const { data } = await github.rest.gists.get({
                 gist_id: gistId,
                 headers: {
-                  authorization: `token ${process.env.GIST_TOKEN}`
+                  authorization: `token ${process.env.GITHUB_TOKEN}`
                 }
               });
               return JSON.parse(data.files['bundle-stats.json'].content || '{}');
@@ -109,7 +109,7 @@ jobs:
               await github.rest.gists.update({
                 gist_id: gistId,
                 headers: {
-                  authorization: `token ${process.env.GIST_TOKEN}`
+                  authorization: `token ${process.env.GITHUB_TOKEN}`
                 },
                 files: {
                   'bundle-stats.json': {
