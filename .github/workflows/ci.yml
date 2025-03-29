@@ -55,24 +55,56 @@ jobs:
       - name: Parse Bundle Stats
         run: |
           GZIP_BYTES=$(du -s self-host.zip 2>/dev/null | cut -f1)
-          SIZE_BYTES=$(du -s dist/single/minecraft.html 2>/dev/null | cut -f1)
           SIZE=$(echo "scale=2; $SIZE_BYTES/1024/1024" | bc)
           GZIP_SIZE=$(echo "scale=2; $GZIP_BYTES/1024/1024" | bc)
           echo "{\"total\": ${SIZE}, \"gzipped\": ${GZIP_SIZE}}" > /tmp/bundle-stats.json
 
       - name: Compare Bundle Stats
         id: compare
-        uses: ./.github/workflows/bundle-stats
+        uses: actions/github-script@v6
         with:
-          mode: compare
-          branch: ${{ github.event.pull_request.base.ref }}
+          script: |
+            const gistId = '${{ secrets.BUNDLE_STATS_GIST_ID }}';
+
+            async function getGistContent() {
+              const { data } = await github.rest.gists.get({ gist_id: gistId });
+              return JSON.parse(data.files['bundle-stats.json'].content || '{}');
+            }
+
+            const content = await getGistContent();
+            const baseStats = content['${{ github.event.pull_request.base.ref }}'];
+            const newStats = require('/tmp/bundle-stats.json');
+
+            const comparison = `minecraft.html (normal build gzip)\n${baseStats.total}MB (${baseStats.gzipped}MB compressed) -> ${newStats.total}MB (${newStats.gzipped}MB compressed)`;
+            core.setOutput('stats', comparison);
 
       - name: Store Bundle Stats
         if: github.event.pull_request.base.ref == 'next'
-        uses: ./.github/workflows/bundle-stats
+        uses: actions/github-script@v6
         with:
-          mode: store
-          branch: ${{ github.event.pull_request.base.ref }}
+          script: |
+            const gistId = '${{ secrets.BUNDLE_STATS_GIST_ID }}';
+
+            async function getGistContent() {
+              const { data } = await github.rest.gists.get({ gist_id: gistId });
+              return JSON.parse(data.files['bundle-stats.json'].content || '{}');
+            }
+
+            async function updateGistContent(content) {
+              await github.rest.gists.update({
+                gist_id: gistId,
+                files: {
+                  'bundle-stats.json': {
+                    content: JSON.stringify(content, null, 2)
+                  }
+                }
+              });
+            }
+
+            const stats = require('/tmp/bundle-stats.json');
+            const content = await getGistContent();
+            content['${{ github.event.pull_request.base.ref }}'] = stats;
+            await updateGistContent(content);
 
       - name: Update PR Description
         uses: actions/github-script@v6
