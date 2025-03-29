@@ -66,7 +66,6 @@ export const getNonFullBlocksModels = () => {
         handledItemsWithDefinitions.add(name)
       }
       if (resolvedModel?.elements) {
-
         let hasStandardDisplay = true
         if (resolvedModel['display']?.gui) {
           hasStandardDisplay =
