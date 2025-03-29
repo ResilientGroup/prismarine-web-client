@@ -28,35 +28,17 @@ const cleanLoadedImagesCache = () => {
 }
 
 let lastWindow: ReturnType<typeof showInventory>
+let lastWindowType: string | null | undefined // null is inventory
 /** bot version */
 let version: string
 let PrismarineItem: typeof Item
-
-export const allImagesLoadedState = proxy({
-  value: false
-})
 
 export const jeiCustomCategories = proxy({
   value: [] as Array<{ id: string, categoryTitle: string, items: any[] }>
 })
 
-export const onGameLoad = (onLoad) => {
-  allImagesLoadedState.value = false
+export const onGameLoad = () => {
   version = bot.version
-
-  const checkIfLoaded = () => {
-    if (!appViewer.resourcesManager.currentResources?.itemsAtlasParser) return
-    if (!allImagesLoadedState.value) {
-      onLoad?.()
-    }
-    allImagesLoadedState.value = false
-    setTimeout(() => {
-      allImagesLoadedState.value = true
-    }, 0)
-  }
-  appViewer.resourcesManager.on('assetsTexturesUpdated', checkIfLoaded)
-  appViewer.resourcesManager.on('assetsInventoryReady', checkIfLoaded)
-  checkIfLoaded()
 
   PrismarineItem = PItem(version)
 
@@ -134,6 +116,16 @@ export const onGameLoad = (onLoad) => {
     if (!lastWindow) return
     upJei(q)
   })
+
+  if (!appViewer.resourcesManager['_inventoryChangeTracked']) {
+    appViewer.resourcesManager['_inventoryChangeTracked'] = true
+    const upWindowItems = () => {
+      if (!lastWindow) return
+      upWindowItemsLocal()
+    }
+    appViewer.resourcesManager.on('assetsInventoryReady', () => upWindowItems())
+    appViewer.resourcesManager.on('assetsTexturesUpdated', () => upWindowItems())
+  }
 }
 
 const getImageSrc = (path): string | HTMLImageElement => {
@@ -384,6 +376,15 @@ export const openItemsCanvas = (type, _bot = bot as typeof bot | null) => {
   return inv
 }
 
+const upWindowItemsLocal = () => {
+  if (!lastWindow && bot.currentWindow) {
+    // edge case: might happen due to high ping, inventory should be closed soon!
+    // openWindow(implementedContainersGuiMap[bot.currentWindow.type])
+    return
+  }
+  void Promise.resolve().then(() => upInventoryItems(lastWindowType === null))
+}
+
 let skipClosePacketSending = false
 const openWindow = (type: string | undefined) => {
   // if (activeModalStack.some(x => x.reactType?.includes?.('player_win:'))) {
@@ -396,6 +397,7 @@ const openWindow = (type: string | undefined) => {
       return
     }
   }
+  lastWindowType = type ?? null
   showModal({
     reactType: `player_win:${type}`,
   })
@@ -404,6 +406,7 @@ const openWindow = (type: string | undefined) => {
     if (type !== undefined && bot.currentWindow && !skipClosePacketSending) bot.currentWindow['close']()
     lastWindow.destroy()
     lastWindow = null as any
+    lastWindowType = null
     window.lastWindow = lastWindow
     miscUiState.displaySearchInput = false
     destroyFn()
@@ -441,15 +444,8 @@ const openWindow = (type: string | undefined) => {
   }
 
   lastWindow = inv
-  const upWindowItems = () => {
-    if (!lastWindow && bot.currentWindow) {
-      // edge case: might happen due to high ping, inventory should be closed soon!
-      // openWindow(implementedContainersGuiMap[bot.currentWindow.type])
-      return
-    }
-    void Promise.resolve().then(() => upInventoryItems(type === undefined))
-  }
-  upWindowItems()
+
+  upWindowItemsLocal()
 
   lastWindow.pwindow.touch = miscUiState.currentTouch ?? false
   const oldOnInventoryEvent = lastWindow.pwindow.onInventoryEvent.bind(lastWindow.pwindow)
@@ -511,14 +507,14 @@ const openWindow = (type: string | undefined) => {
 
   if (type === undefined) {
     // player inventory
-    bot.inventory.on('updateSlot', upWindowItems)
+    bot.inventory.on('updateSlot', upWindowItemsLocal)
     destroyFn = () => {
-      bot.inventory.off('updateSlot', upWindowItems)
+      bot.inventory.off('updateSlot', upWindowItemsLocal)
     }
   } else {
     //@ts-expect-error
     bot.currentWindow.on('updateSlot', () => {
-      upWindowItems()
+      upWindowItemsLocal()
     })
   }
 }

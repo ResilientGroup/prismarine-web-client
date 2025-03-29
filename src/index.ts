@@ -715,7 +715,9 @@ export async function connect (connectOptions: ConnectOptions) {
       connectOptions.onSuccessfulPlay?.()
       updateDataAfterJoin()
       if (connectOptions.autoLoginPassword) {
-        bot.chat(`/login ${connectOptions.autoLoginPassword}`)
+        setTimeout(() => {
+          bot.chat(`/login ${connectOptions.autoLoginPassword}`)
+        }, 500)
       }
 
 
@@ -738,7 +740,7 @@ export async function connect (connectOptions: ConnectOptions) {
 
       progress.setMessage('Setting callbacks')
 
-      onGameLoad(() => { })
+      onGameLoad()
 
       if (appStatusState.isError) return
 
