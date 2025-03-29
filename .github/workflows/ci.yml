@@ -20,6 +20,11 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v4
       - run: pnpm install
+      - run: pnpm build-single-file
+      - name: Store minecraft.html size
+        run: |
+          SIZE_BYTES=$(du -s dist/single/minecraft.html 2>/dev/null | cut -f1)
+          echo "SIZE_BYTES=$SIZE_BYTES" >> $GITHUB_ENV
       - run: pnpm check-build
       - name: Create zip package for size comparison
         run: |
@@ -27,7 +32,6 @@ jobs:
           cp -r dist package/
           cd package
           zip -r ../self-host.zip .
-      - run: pnpm build-single-file
       - run: pnpm build-playground
       - run: pnpm build-storybook
       - run: pnpm test-unit
@@ -50,8 +54,8 @@ jobs:
 
       - name: Parse Bundle Stats
         run: |
-          SIZE_BYTES=$(du -s dist/single/minecraft.html 2>/dev/null | cut -f1)
           GZIP_BYTES=$(du -s self-host.zip 2>/dev/null | cut -f1)
+          SIZE_BYTES=$(du -s dist/single/minecraft.html 2>/dev/null | cut -f1)
           SIZE=$(echo "scale=2; $SIZE_BYTES/1024/1024" | bc)
           GZIP_SIZE=$(echo "scale=2; $GZIP_BYTES/1024/1024" | bc)
           echo "{\"total\": ${SIZE}, \"gzipped\": ${GZIP_SIZE}}" > /tmp/bundle-stats.json
