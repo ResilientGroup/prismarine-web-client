@@ -47,6 +47,8 @@ export const getNonFullBlocksModels = () => {
     if (!model?.elements?.length) return
     const isFullBlock = model.elements.length === 1 && arrEqual(model.elements[0].from, [0, 0, 0]) && arrEqual(model.elements[0].to, [16, 16, 16])
     if (isFullBlock) return
+    const hasBetterPrerender = assetsParser.blockModelsStore.data.latest[`item/${name}`]?.textures?.['layer0']?.startsWith('invsprite_')
+    if (hasBetterPrerender) return
     model['display'] ??= {}
     model['display']['gui'] ??= standardGuiDisplay
     blockModelsResolved[name] = model
@@ -144,6 +146,7 @@ const generateItemsGui = async (models: Record<string, BlockModelMcAssets>, isIt
   const PREVIEW_ID = Identifier.parse('preview:preview')
   const PREVIEW_DEFINITION = new BlockDefinition({ '': { model: PREVIEW_ID.toString() } }, undefined)
 
+  let textureWasRequested = false
   let modelData: any
   let currentModelName: string | undefined
   const resources: ItemRendererResources = {
@@ -154,6 +157,7 @@ const generateItemsGui = async (models: Record<string, BlockModelMcAssets>, isIt
       return null
     },
     getTextureUV (texture) {
+      textureWasRequested = true
       return textureAtlas.getTextureUV(texture.toString().replace('minecraft:', '').replace('block/', '').replace('item/', '').replace('blocks/', '').replace('items/', '') as any)
     },
     getTextureAtlas () {
@@ -202,6 +206,7 @@ const generateItemsGui = async (models: Record<string, BlockModelMcAssets>, isIt
   const renderer = new ItemRenderer(gl, item, resources, { display_context: 'gui' })
   const missingTextures = new Set()
   for (const [modelName, model] of Object.entries(models)) {
+    textureWasRequested = false
     if (includeOnly.length && !includeOnly.includes(modelName)) continue
 
     const patchMissingTextures = () => {
@@ -223,6 +228,7 @@ const generateItemsGui = async (models: Record<string, BlockModelMcAssets>, isIt
     if (!modelData) continue
     renderer.setItem(item, { display_context: 'gui' })
     renderer.drawItem()
+    if (!textureWasRequested) continue
     const url = canvas.toDataURL()
     // eslint-disable-next-line no-await-in-loop
     const img = await getLoadedImage(url)
