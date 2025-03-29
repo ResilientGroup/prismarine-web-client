@@ -252,7 +252,7 @@ const getItemName = (slot: Item | RenderItem | null) => {
 let lastMappedSots = [] as any[]
 const itemToVisualKey = (slot: RenderItem | Item | null) => {
   if (!slot) return null
-  return slot.name + (slot['metadata'] ?? '-') + (slot.nbt ? JSON.stringify(slot.nbt) : '') + (slot['components'] ? JSON.stringify(slot['components']) : '')
+  return slot.name + slot['count'] + (slot['metadata'] ?? '-') + (slot.nbt ? JSON.stringify(slot.nbt) : '') + (slot['components'] ? JSON.stringify(slot['components']) : '')
 }
 const mapSlots = (slots: Array<RenderItem | Item | null>, isJei = false) => {
   const newSlots = slots.map((slot, i) => {
