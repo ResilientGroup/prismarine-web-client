@@ -151,7 +151,7 @@ importers:
         version: 2.0.4
       net-browserify:
         specifier: github:zardoy/prismarinejs-net-browserify
-        version: https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/624cc67c16f5e8b23b772e7eaabae16ba84b8590
+        version: https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/29cb893a3dd40c663b1b9b34fbecdbf967b089d4
       node-gzip:
         specifier: ^1.1.2
         version: 1.1.2
@@ -7107,8 +7107,8 @@ packages:
   neo-async@2.6.2:
     resolution: {integrity: sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==}
 
-  net-browserify@https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/624cc67c16f5e8b23b772e7eaabae16ba84b8590:
-    resolution: {tarball: https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/624cc67c16f5e8b23b772e7eaabae16ba84b8590}
+  net-browserify@https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/29cb893a3dd40c663b1b9b34fbecdbf967b089d4:
+    resolution: {tarball: https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/29cb893a3dd40c663b1b9b34fbecdbf967b089d4}
     version: 0.2.4
 
   nice-try@1.0.5:
@@ -7668,6 +7668,9 @@ packages:
 
   prismarine-nbt@2.5.0:
     resolution: {integrity: sha512-F0/8UAa9SDDnAGrBYqZc4nG8h2zj5cE2eAJU5xlDR/IsQQ3moVxkOjE3h3nMv6SbvZrvAcgX7waA/nd9LLHYdA==}
+
+  prismarine-nbt@2.7.0:
+    resolution: {integrity: sha512-Du9OLQAcCj3y29YtewOJbbV4ARaSUEJiTguw0PPQbPBy83f+eCyDRkyBpnXTi/KPyEpgYCzsjGzElevLpFoYGQ==}
 
   prismarine-physics@https://codeload.github.com/zardoy/prismarine-physics/tar.gz/353e25b800149393f40539ec381218be44cbb03b:
     resolution: {tarball: https://codeload.github.com/zardoy/prismarine-physics/tar.gz/353e25b800149393f40539ec381218be44cbb03b}
@@ -18265,7 +18268,7 @@ snapshots:
 
   neo-async@2.6.2: {}
 
-  net-browserify@https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/624cc67c16f5e8b23b772e7eaabae16ba84b8590:
+  net-browserify@https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/29cb893a3dd40c663b1b9b34fbecdbf967b089d4:
     dependencies:
       body-parser: 1.20.2
       express: 4.18.2
@@ -18903,10 +18906,14 @@ snapshots:
 
   prismarine-item@1.16.0:
     dependencies:
-      prismarine-nbt: 2.5.0
+      prismarine-nbt: 2.7.0
       prismarine-registry: 1.11.0
 
   prismarine-nbt@2.5.0:
+    dependencies:
+      protodef: 1.18.0
+
+  prismarine-nbt@2.7.0:
     dependencies:
       protodef: 1.18.0
 

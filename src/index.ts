@@ -32,7 +32,7 @@ import { watchOptionsAfterViewerInit, watchOptionsAfterWorldViewInit } from './w
 import downloadAndOpenFile from './downloadAndOpenFile'
 
 import fs from 'fs'
-import net from 'net'
+import net, { Socket } from 'net'
 import mineflayer from 'mineflayer'
 
 import debug from 'debug'
@@ -300,6 +300,7 @@ export async function connect (connectOptions: ConnectOptions) {
   let updateDataAfterJoin = () => { }
   let localServer
   let localReplaySession: ReturnType<typeof startLocalReplayServer> | undefined
+  let lastKnownKickReason = undefined as string | undefined
   try {
     const serverOptions = defaultsDeep({}, connectOptions.serverOverrides ?? {}, options.localServerOptions, defaultServerOptions)
     Object.assign(serverOptions, connectOptions.serverOverridesFlat ?? {})
@@ -566,6 +567,16 @@ export async function connect (connectOptions: ConnectOptions) {
       bot._client.emit('connect')
     } else {
       const setupConnectHandlers = () => {
+        Socket.prototype['handleStringMessage'] = function (message: string) {
+          if (message.startsWith('proxy-message') || message.startsWith('proxy-command:')) { // for future
+            return false
+          }
+          if (message.startsWith('proxy-shutdown:')) {
+            lastKnownKickReason = message.slice('proxy-shutdown:'.length)
+            return false
+          }
+          return true
+        }
         bot._client.socket.on('connect', () => {
           console.log('Proxy WebSocket connection established')
           //@ts-expect-error
@@ -643,9 +654,9 @@ export async function connect (connectOptions: ConnectOptions) {
     if (ended) return
     console.log('disconnected for', endReason)
     if (endReason === 'socketClosed') {
-      endReason = 'Connection with server lost'
+      endReason = lastKnownKickReason ?? 'Connection with server lost'
     }
-    setLoadingScreenStatus(`You have been disconnected from the server. End reason: ${endReason}`, true)
+    setLoadingScreenStatus(`You have been disconnected from the server. End reason:\n${endReason}`, true)
     appStatusState.showReconnect = true
     onPossibleErrorDisconnect()
     destroyAll()
