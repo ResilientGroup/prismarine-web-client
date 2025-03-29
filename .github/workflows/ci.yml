@@ -4,9 +4,7 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      gists: write
+    permissions: write-all
     steps:
       - name: Checkout repository
         uses: actions/checkout@master
