@@ -34,9 +34,10 @@ export class ThreeJsMedia {
 
   private createErrorTexture (width: number, height: number, background = 0x00_00_00, error = 'Failed to load'): THREE.CanvasTexture {
     const canvas = document.createElement('canvas')
-    // Scale up the canvas size for better text quality
-    canvas.width = width * 100
-    canvas.height = height * 100
+    const MAX_DIMENSION = 100
+
+    canvas.width = MAX_DIMENSION
+    canvas.height = MAX_DIMENSION
 
     const ctx = canvas.getContext('2d')
     if (!ctx) return new THREE.CanvasTexture(canvas)
@@ -48,7 +49,7 @@ export class ThreeJsMedia {
     ctx.fillStyle = `rgba(${background >> 16 & 255}, ${background >> 8 & 255}, ${background & 255}, 0.5)`
     ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-    // Add red text
+    // Add red text with size relative to canvas dimensions
     ctx.fillStyle = '#ff0000'
     ctx.font = 'bold 10px sans-serif'
     ctx.textAlign = 'center'
