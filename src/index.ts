@@ -654,7 +654,7 @@ export async function connect (connectOptions: ConnectOptions) {
     if (ended) return
     console.log('disconnected for', endReason)
     if (endReason === 'socketClosed') {
-      endReason = lastKnownKickReason ?? 'Connection with server lost'
+      endReason = lastKnownKickReason ?? 'Connection with proxy server lost'
     }
     setLoadingScreenStatus(`You have been disconnected from the server. End reason:\n${endReason}`, true)
     appStatusState.showReconnect = true
