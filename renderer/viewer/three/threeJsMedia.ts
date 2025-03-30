@@ -514,7 +514,7 @@ export class ThreeJsMedia {
   }
 
   tryIntersectMedia () {
-    const { camera } = this.worldRenderer
+    const { camera, scene } = this.worldRenderer
     const raycaster = new THREE.Raycaster()
 
     // Get mouse position at center of screen
@@ -523,29 +523,36 @@ export class ThreeJsMedia {
     // Update the raycaster
     raycaster.setFromCamera(mouse, camera)
 
-    let result = null as { id: string, x: number, y: number } | null
-    // Check intersection with all video meshes
-    for (const [id, videoData] of this.customMedia.entries()) {
-      // Get the actual mesh (first child of the group)
-      const { mesh } = videoData
-      if (!mesh) continue
+    // Check intersection with all objects in scene
+    const intersects = raycaster.intersectObjects(scene.children, true)
+    if (intersects.length > 0) {
+      const intersection = intersects[0]
+      const intersectedObject = intersection.object
 
-      const intersects = raycaster.intersectObject(mesh, false)
-      if (intersects.length > 0) {
-        const intersection = intersects[0]
-        const { uv } = intersection
-        if (uv) {
-          result = {
-            id,
-            x: uv.x,
-            y: uv.y
+      // Find if this object belongs to any media
+      for (const [id, videoData] of this.customMedia.entries()) {
+        // Check if the intersected object is part of our media mesh
+        if (intersectedObject === videoData.mesh ||
+          videoData.mesh.children.includes(intersectedObject)) {
+          const { uv } = intersection
+          if (uv) {
+            const result = {
+              id,
+              x: uv.x,
+              y: uv.y
+            }
+            this.worldRenderer.reactiveState.world.intersectMedia = result
+            this.worldRenderer['debugVideo'] = videoData
+            this.worldRenderer.cursorBlock.cursorLinesHidden = true
+            return
           }
-          break
         }
       }
     }
-    this.worldRenderer.reactiveState.world.intersectMedia = result
-    this.worldRenderer['debugVideo'] = result ? this.customMedia.get(result.id) : null
-    this.worldRenderer.cursorBlock.cursorLinesHidden = !!result
+
+    // No media intersection found
+    this.worldRenderer.reactiveState.world.intersectMedia = null
+    this.worldRenderer['debugVideo'] = null
+    this.worldRenderer.cursorBlock.cursorLinesHidden = false
   }
 }
