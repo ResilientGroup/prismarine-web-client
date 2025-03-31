@@ -299,20 +299,6 @@ export class WorldRendererThree extends WorldRendererCommon {
     //   this.debugRecomputedDeletedObjects++
     // }
 
-    // if (!this.initialChunksLoad && this.enableChunksLoadDelay) {
-    //   const newPromise = new Promise(resolve => {
-    //     if (this.droppedFpsPercentage > 0.5) {
-    //       setTimeout(resolve, 1000 / 50 * this.droppedFpsPercentage)
-    //     } else {
-    //       setTimeout(resolve)
-    //     }
-    //   })
-    //   this.promisesQueue.push(newPromise)
-    //   for (const promise of this.promisesQueue) {
-    //     await promise
-    //   }
-    // }
-
     const geometry = new THREE.BufferGeometry()
     geometry.setAttribute('position', new THREE.BufferAttribute(data.geometry.positions, 3))
     geometry.setAttribute('normal', new THREE.BufferAttribute(data.geometry.normals, 3))

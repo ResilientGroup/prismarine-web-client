@@ -183,7 +183,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     })
     if (this.wasChunkSentToWorker(chunkKey)) {
       const [x, y, z] = blockPos.split(',').map(Number)
-      this.setBlockStateId(new Vec3(x, y, z), undefined, false)
+      this.setBlockStateId(new Vec3(x, y, z), undefined)
     }
   }
 
@@ -722,7 +722,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   abstract worldStop? ()
 
   queueAwaited = false
-  messagesQueue = {} as { [workerIndex: string]: any[] }
+  toWorkerMessagesQueue = {} as { [workerIndex: string]: any[] }
 
   getWorkerNumber (pos: Vec3, updateAction = false) {
     if (updateAction) {
@@ -749,8 +749,8 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     // is always dispatched to the same worker
     const hash = this.getWorkerNumber(pos, useChangeWorker)
     this.sectionsWaiting.set(key, (this.sectionsWaiting.get(key) ?? 0) + 1)
-    this.messagesQueue[hash] ??= []
-    this.messagesQueue[hash].push({
+    this.toWorkerMessagesQueue[hash] ??= []
+    this.toWorkerMessagesQueue[hash].push({
       // this.workers[hash].postMessage({
       type: 'dirty',
       x: pos.x,
@@ -767,11 +767,11 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     this.queueAwaited = true
     setTimeout(() => {
       // group messages and send as one
-      for (const workerIndex in this.messagesQueue) {
+      for (const workerIndex in this.toWorkerMessagesQueue) {
         const worker = this.workers[Number(workerIndex)]
-        worker.postMessage(this.messagesQueue[workerIndex])
+        worker.postMessage(this.toWorkerMessagesQueue[workerIndex])
       }
-      this.messagesQueue = {}
+      this.toWorkerMessagesQueue = {}
       this.queueAwaited = false
     })
   }

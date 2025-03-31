@@ -353,11 +353,11 @@ importers:
         specifier: ^1.0.0
         version: 1.0.0
       mc-assets:
-        specifier: ^0.2.48
-        version: 0.2.48
+        specifier: ^0.2.49
+        version: 0.2.49
       minecraft-inventory-gui:
         specifier: github:zardoy/minecraft-inventory-gui#next
-        version: https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/69dee6aa15f7c8a6df2a2ab01972e6a7b2f9ee30(@types/react@18.2.20)(react@18.2.0)
+        version: https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/f57dd78ca8e3b7cdd724d4272d8cbf6743b0cf00(@types/react@18.2.20)(react@18.2.0)
       mineflayer:
         specifier: github:zardoy/mineflayer
         version: https://codeload.github.com/zardoy/mineflayer/tar.gz/06e3050ddf4d9aa655fea6e2bed182937a81705d(encoding@0.1.13)
@@ -6694,8 +6694,8 @@ packages:
   maxrects-packer@2.7.3:
     resolution: {integrity: sha512-bG6qXujJ1QgttZVIH4WDanhoJtvbud/xP/XPyf6A69C9RdA61BM4TomFALCq2nrTa+tARRIBB4LuIFsnUQU2wA==}
 
-  mc-assets@0.2.48:
-    resolution: {integrity: sha512-ixFBAkdWuluBZ3RhWXvD+KyLX5jKAK8ksXJamAuJxc7nXHP6xK5rEAR3qQ7JVYh27USl3mE+GWTFy/aF0CGRYg==}
+  mc-assets@0.2.49:
+    resolution: {integrity: sha512-pFR43FqG1bxiQVLXX8c4LNA/7wcFRGDFFclsBM6tY8tKFNolKhwiSaLmV0xtFHEF6SZGv9g2hkMqxsbAzMD/6A==}
     engines: {node: '>=18.0.0'}
 
   mcraft-fun-mineflayer@0.1.14:
@@ -6912,8 +6912,8 @@ packages:
   minecraft-folder-path@1.2.0:
     resolution: {integrity: sha512-qaUSbKWoOsH9brn0JQuBhxNAzTDMwrOXorwuRxdJKKKDYvZhtml+6GVCUrY5HRiEsieBEjCUnhVpDuQiKsiFaw==}
 
-  minecraft-inventory-gui@https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/69dee6aa15f7c8a6df2a2ab01972e6a7b2f9ee30:
-    resolution: {tarball: https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/69dee6aa15f7c8a6df2a2ab01972e6a7b2f9ee30}
+  minecraft-inventory-gui@https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/f57dd78ca8e3b7cdd724d4272d8cbf6743b0cf00:
+    resolution: {tarball: https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/f57dd78ca8e3b7cdd724d4272d8cbf6743b0cf00}
     version: 1.0.1
 
   minecraft-protocol@https://codeload.github.com/PrismarineJS/node-minecraft-protocol/tar.gz/3bd4dc1b2002cd7badfa5b9cf8dda35cd6cc9ac1:
@@ -17605,7 +17605,7 @@ snapshots:
 
   maxrects-packer@2.7.3: {}
 
-  mc-assets@0.2.48:
+  mc-assets@0.2.49:
     dependencies:
       maxrects-packer: 2.7.3
       zod: 3.24.1
@@ -17922,7 +17922,7 @@ snapshots:
 
   minecraft-folder-path@1.2.0: {}
 
-  minecraft-inventory-gui@https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/69dee6aa15f7c8a6df2a2ab01972e6a7b2f9ee30(@types/react@18.2.20)(react@18.2.0):
+  minecraft-inventory-gui@https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/f57dd78ca8e3b7cdd724d4272d8cbf6743b0cf00(@types/react@18.2.20)(react@18.2.0):
     dependencies:
       valtio: 1.11.2(@types/react@18.2.20)(react@18.2.0)
     transitivePeerDependencies:

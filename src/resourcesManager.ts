@@ -51,6 +51,7 @@ export interface ResourcesCurrentConfig {
   version: string
   texturesVersion?: string
   noBlockstatesModels?: boolean
+  noInventoryGui?: boolean
   includeOnlyBlocks?: string[]
 }
 
@@ -58,6 +59,7 @@ export interface UpdateAssetsRequest {
   _?: false
 }
 
+const STABLE_MODELS_VERSION = '1.21.4'
 export class ResourcesManager extends (EventEmitter as new () => TypedEmitter<ResourceManagerEvents>) {
   // Source data (imported, not changing)
   sourceBlockStatesModels: any = null
@@ -69,6 +71,10 @@ export class ResourcesManager extends (EventEmitter as new () => TypedEmitter<Re
   currentResources: LoadedResources | undefined
   currentConfig: ResourcesCurrentConfig | undefined
   abortController = new AbortController()
+  _promiseAssetsReadyResolvers = Promise.withResolvers<void>()
+  get promiseAssetsReady () {
+    return this._promiseAssetsReadyResolvers.promise
+  }
 
   async loadMcData (version: string) {
     await loadMinecraftData(version)
@@ -85,6 +91,7 @@ export class ResourcesManager extends (EventEmitter as new () => TypedEmitter<Re
 
   async updateAssetsData (request: UpdateAssetsRequest, unstableSkipEvent = false) {
     if (!this.currentConfig) throw new Error('No config loaded')
+    this._promiseAssetsReadyResolvers = Promise.withResolvers()
     const abortController = new AbortController()
     await this.loadSourceData(this.currentConfig.version)
     if (abortController.signal.aborted) return
@@ -165,7 +172,7 @@ export class ResourcesManager extends (EventEmitter as new () => TypedEmitter<Re
       resources.worldBlockProvider = worldBlockProvider(
         resources.blockstatesModels,
         resources.blocksAtlasParser.atlas,
-        'latest'
+        STABLE_MODELS_VERSION
       )
     }
 
@@ -174,8 +181,17 @@ export class ResourcesManager extends (EventEmitter as new () => TypedEmitter<Re
     this.currentResources = resources
     if (!unstableSkipEvent) { // todo rework resourcepack optimization
       this.emit('assetsTexturesUpdated')
+    }
+
+    if (this.currentConfig.noInventoryGui) {
+      this._promiseAssetsReadyResolvers.resolve()
+    } else {
       void this.generateGuiTextures().then(() => {
-        this.emit('assetsInventoryReady')
+        if (abortController.signal.aborted) return
+        if (!unstableSkipEvent) {
+          this.emit('assetsInventoryReady')
+        }
+        this._promiseAssetsReadyResolvers.resolve()
       })
     }
   }

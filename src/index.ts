@@ -702,6 +702,7 @@ export async function connect (connectOptions: ConnectOptions) {
           }
         })
       })
+      await appViewer.resourcesManager.promiseAssetsReady
     }
     console.log('try to focus window')
     window.focus?.()
