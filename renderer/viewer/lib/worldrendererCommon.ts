@@ -98,7 +98,6 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   ONMESSAGE_TIME_LIMIT = 30 // ms
 
   handleResize = () => { }
-  camera: THREE.PerspectiveCamera
   highestBlocksByChunks = {} as Record<string, { [chunkKey: string]: HighestBlockInfo }>
   highestBlocksBySections = {} as Record<string, { [sectionKey: string]: HighestBlockInfo }>
   blockEntities = {}
@@ -108,6 +107,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   maxWorkersProcessTime = 0
   geometryReceiveCount = {}
   allLoadedIn: undefined | number
+  onWorldSwitched = [] as Array<() => void>
 
   edgeChunks = {} as Record<string, boolean>
   lastAddChunk = null as null | {
@@ -118,9 +118,6 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   neighborChunkUpdates = true
   lastChunkDistance = 0
   debugStopGeometryUpdate = false
-
-  @worldCleanup()
-  itemsRenderer: ItemsRenderer | undefined
 
   protocolCustomBlocks = new Map<string, CustomBlockModels>()
 
@@ -186,7 +183,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     })
     if (this.wasChunkSentToWorker(chunkKey)) {
       const [x, y, z] = blockPos.split(',').map(Number)
-      this.setBlockStateId(new Vec3(x, y, z), undefined)
+      this.setBlockStateId(new Vec3(x, y, z), undefined, false)
     }
   }
 
@@ -544,7 +541,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     this.updateChunksStats()
   }
 
-  setBlockStateId (pos: Vec3, stateId: number | undefined) {
+  setBlockStateId (pos: Vec3, stateId: number | undefined, needAoRecalculation = true) {
     const set = async () => {
       const sectionX = Math.floor(pos.x / 16) * 16
       const sectionZ = Math.floor(pos.z / 16) * 16
@@ -558,7 +555,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       if (!this.loadedChunks[`${sectionX},${sectionZ}`]) {
         // console.debug('[should be unreachable] setBlockStateId called for unloaded chunk', pos)
       }
-      this.setBlockStateIdInner(pos, stateId)
+      this.setBlockStateIdInner(pos, stateId, needAoRecalculation)
     }
     void set()
   }
@@ -641,6 +638,10 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       this.lightUpdate(pos.x, pos.z)
     })
 
+    worldEmitter.on('onWorldSwitch', () => {
+      for (const fn of this.onWorldSwitched) fn()
+    })
+
     worldEmitter.on('time', (timeOfDay) => {
       this.timeUpdated?.(timeOfDay)
 
@@ -667,8 +668,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     worldEmitter.emit('listening')
   }
 
-  setBlockStateIdInner (pos: Vec3, stateId: number | undefined) {
-    const needAoRecalculation = true
+  setBlockStateIdInner (pos: Vec3, stateId: number | undefined, needAoRecalculation = true) {
     const chunkKey = `${Math.floor(pos.x / 16) * 16},${Math.floor(pos.z / 16) * 16}`
     const blockPosKey = `${pos.x},${pos.y},${pos.z}`
     const customBlockModels = this.protocolCustomBlocks.get(chunkKey) || {}
@@ -733,6 +733,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     if (this.viewDistance === -1) throw new Error('viewDistance not set')
     this.reactiveState.world.mesherWork = true
     const distance = this.getDistance(pos)
+    // todo shouldnt we check loadedChunks instead?
     if (!this.workers.length || distance[0] > this.viewDistance || distance[1] > this.viewDistance) return
     const key = `${Math.floor(pos.x / 16) * 16},${Math.floor(pos.y / 16) * 16},${Math.floor(pos.z / 16) * 16}`
     // if (this.sectionsOutstanding.has(key)) return

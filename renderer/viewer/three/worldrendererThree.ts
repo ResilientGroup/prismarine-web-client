@@ -49,6 +49,7 @@ export class WorldRendererThree extends WorldRendererCommon {
   cameraShake: CameraShake
   media: ThreeJsMedia
   waitingChunksToDisplay = {} as { [chunkKey: string]: SectionKey[] }
+  camera: THREE.PerspectiveCamera
 
   get tilesRendered () {
     return Object.values(this.sectionObjects).reduce((acc, obj) => acc + (obj as any).tilesCount, 0)
@@ -79,6 +80,14 @@ export class WorldRendererThree extends WorldRendererCommon {
 
     this.renderUpdateEmitter.on('chunkFinished', (chunkKey: string) => {
       this.finishChunk(chunkKey)
+    })
+    this.worldSwitchActions()
+  }
+
+  worldSwitchActions () {
+    this.onWorldSwitched.push(() => {
+      // clear custom blocks
+      this.protocolCustomBlocks.clear()
     })
   }
 

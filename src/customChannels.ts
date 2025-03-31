@@ -179,13 +179,30 @@ const registerMediaChannels = () => {
   ]
 
   // Register channels
-  bot._client.registerChannel(ADD_CHANNEL, addPacketStructure, true)
-  bot._client.registerChannel(PLAY_CHANNEL, noDataPacketStructure, true)
-  bot._client.registerChannel(PAUSE_CHANNEL, noDataPacketStructure, true)
-  bot._client.registerChannel(SEEK_CHANNEL, setNumberPacketStructure, true)
-  bot._client.registerChannel(VOLUME_CHANNEL, setNumberPacketStructure, true)
-  bot._client.registerChannel(SPEED_CHANNEL, setNumberPacketStructure, true)
-  bot._client.registerChannel(DESTROY_CHANNEL, noDataPacketStructure, true)
+  registerChannel(PLAY_CHANNEL, noDataPacketStructure, (data) => {
+    const { id } = data
+    getThreeJsRendererMethods()?.setVideoPlaying(id, true)
+  }, true)
+  registerChannel(PAUSE_CHANNEL, noDataPacketStructure, (data) => {
+    const { id } = data
+    getThreeJsRendererMethods()?.setVideoPlaying(id, false)
+  }, true)
+  registerChannel(SEEK_CHANNEL, setNumberPacketStructure, (data) => {
+    const { id, seconds } = data
+    getThreeJsRendererMethods()?.setVideoSeeking(id, seconds)
+  }, true)
+  registerChannel(VOLUME_CHANNEL, setNumberPacketStructure, (data) => {
+    const { id, volume } = data
+    getThreeJsRendererMethods()?.setVideoVolume(id, volume)
+  }, true)
+  registerChannel(SPEED_CHANNEL, setNumberPacketStructure, (data) => {
+    const { id, speed } = data
+    getThreeJsRendererMethods()?.setVideoSpeed(id, speed)
+  }, true)
+  registerChannel(DESTROY_CHANNEL, noDataPacketStructure, (data) => {
+    const { id } = data
+    getThreeJsRendererMethods()?.destroyMedia(id)
+  }, true)
 
   // Handle media add
   registerChannel(ADD_CHANNEL, addPacketStructure, (data) => {
@@ -206,42 +223,6 @@ const registerMediaChannels = () => {
       volume
     })
   })
-
-  // Handle media play
-  registerChannel(PLAY_CHANNEL, noDataPacketStructure, (data) => {
-    const { id } = data
-    getThreeJsRendererMethods()?.setVideoPlaying(id, true)
-  }, true)
-
-  // Handle media pause
-  registerChannel(PAUSE_CHANNEL, noDataPacketStructure, (data) => {
-    const { id } = data
-    getThreeJsRendererMethods()?.setVideoPlaying(id, false)
-  }, true)
-
-  // Handle media seek
-  registerChannel(SEEK_CHANNEL, setNumberPacketStructure, (data) => {
-    const { id, seconds } = data
-    getThreeJsRendererMethods()?.setVideoSeeking(id, seconds)
-  }, true)
-
-  // Handle media destroy
-  registerChannel(DESTROY_CHANNEL, noDataPacketStructure, (data) => {
-    const { id } = data
-    getThreeJsRendererMethods()?.destroyMedia(id)
-  }, true)
-
-  // Handle media volume
-  registerChannel(VOLUME_CHANNEL, setNumberPacketStructure, (data) => {
-    const { id, volume } = data
-    getThreeJsRendererMethods()?.setVideoVolume(id, volume)
-  }, true)
-
-  // Handle media speed
-  registerChannel(SPEED_CHANNEL, setNumberPacketStructure, (data) => {
-    const { id, speed } = data
-    getThreeJsRendererMethods()?.setVideoSpeed(id, speed)
-  }, true)
 
   // ---
 
