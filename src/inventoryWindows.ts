@@ -245,7 +245,7 @@ const getItemName = (slot: Item | RenderItem | null) => {
   const parsed = getItemNameRaw(slot, appViewer.resourcesManager)
   if (!parsed) return
   // todo display full text renderer from sign renderer
-  const text = flat(parsed as MessageFormatPart).map(x => x.text)
+  const text = flat(parsed as MessageFormatPart).map(x => (typeof x === 'string' ? x : x.text))
   return text.join('')
 }
 
