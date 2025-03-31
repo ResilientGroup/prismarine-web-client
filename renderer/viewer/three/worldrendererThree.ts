@@ -622,8 +622,13 @@ export class WorldRendererThree extends WorldRendererCommon {
     }
   }
 
+  worldStop () {
+    this.media.onWorldStop()
+  }
+
   destroy (): void {
     removeAllStats()
+    this.media.onWorldGone()
     super.destroy()
   }
 }

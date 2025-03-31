@@ -618,6 +618,10 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       this.updateViewerPosition(pos)
     })
 
+    worldEmitter.on('end', () => {
+      this.worldStop?.()
+    })
+
 
     worldEmitter.on('renderDistance', (d) => {
       this.viewDistance = d
@@ -714,6 +718,8 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       }
     }
   }
+
+  abstract worldStop? ()
 
   queueAwaited = false
   messagesQueue = {} as { [workerIndex: string]: any[] }

@@ -29,6 +29,7 @@ export type WorldDataEmitterEvents = {
   loadChunk: (data: { x: number, z: number, chunk: any, blockEntities: any, worldConfig: any, isLightUpdate: boolean }) => void
   updateLight: (data: { pos: Vec3 }) => void
   onWorldSwitch: () => void
+  end: () => void
 }
 
 /**
@@ -123,6 +124,9 @@ export class WorldDataEmitter extends (EventEmitter as new () => TypedEmitter<Wo
       },
       respawn: () => {
         this.emitter.emit('onWorldSwitch')
+      },
+      end: () => {
+        this.emitter.emit('end')
       },
     } satisfies Partial<BotEvents>
 
