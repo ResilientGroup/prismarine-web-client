@@ -735,6 +735,24 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     return hash + 1
   }
 
+  async debugGetWorkerCustomBlockModel (pos: Vec3) {
+    const data = [] as Array<Promise<string>>
+    for (const worker of this.workers) {
+      data.push(new Promise((resolve) => {
+        worker.addEventListener('message', (e) => {
+          if (e.data.type === 'customBlockModel') {
+            resolve(e.data.customBlockModel)
+          }
+        })
+      }))
+      worker.postMessage({
+        type: 'getCustomBlockModel',
+        pos
+      })
+    }
+    return Promise.all(data)
+  }
+
   setSectionDirty (pos: Vec3, value = true, useChangeWorker = false) { // value false is used for unloading chunks
     if (this.viewDistance === -1) throw new Error('viewDistance not set')
     this.reactiveState.world.mesherWork = true

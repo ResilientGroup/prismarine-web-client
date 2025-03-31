@@ -141,6 +141,13 @@ const handleMessage = data => {
 
       break
     }
+    case 'getCustomBlockModel': {
+      const pos = new Vec3(data.pos.x, data.pos.y, data.pos.z)
+      const chunkKey = `${Math.floor(pos.x / 16) * 16},${Math.floor(pos.z / 16) * 16}`
+      const customBlockModel = world.customBlockModels.get(chunkKey)?.[`${pos.x},${pos.y},${pos.z}`]
+      global.postMessage({ type: 'customBlockModel', chunkKey, customBlockModel })
+      break
+    }
   // No default
   }
 }
