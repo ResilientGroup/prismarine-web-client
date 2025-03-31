@@ -34,6 +34,7 @@ const getBackendMethods = (worldRenderer: WorldRendererThree) => {
 
     shakeFromDamage: worldRenderer.cameraShake.shakeFromDamage.bind(worldRenderer.cameraShake),
     onPageInteraction: worldRenderer.media.onPageInteraction.bind(worldRenderer.media),
+    downloadMesherLog: worldRenderer.downloadMesherLog.bind(worldRenderer),
   }
 }
 

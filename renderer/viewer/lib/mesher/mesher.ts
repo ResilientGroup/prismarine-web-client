@@ -53,7 +53,7 @@ function setSectionDirty (pos, value = true) {
   const key = sectionKey(x, y, z)
   if (!value) {
     dirtySections.delete(key)
-    postMessage({ type: 'sectionFinished', key })
+    postMessage({ type: 'sectionFinished', key, workerIndex })
     return
   }
 
@@ -61,7 +61,7 @@ function setSectionDirty (pos, value = true) {
   if (chunk?.getSection(pos)) {
     dirtySections.set(key, (dirtySections.get(key) || 0) + 1)
   } else {
-    postMessage({ type: 'sectionFinished', key })
+    postMessage({ type: 'sectionFinished', key, workerIndex })
   }
 }
 

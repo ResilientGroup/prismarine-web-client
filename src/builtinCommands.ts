@@ -1,6 +1,7 @@
 import fs from 'fs'
 import { join } from 'path'
 import JSZip from 'jszip'
+import { getThreeJsRendererMethods } from 'renderer/viewer/three/threeJsMethods'
 import { readLevelDat } from './loadSave'
 import { closeWan, openToWanAndCopyJoinLink } from './localServerMultiplayer'
 import { copyFilesAsync, uniqueFileNameFromWorldName } from './browserfs'
@@ -128,6 +129,13 @@ export const commands: Array<{
       const formatted = `${pos.x.toFixed(2)} ${pos.y.toFixed(2)} ${pos.z.toFixed(2)}`
       await navigator.clipboard.writeText(formatted)
       writeText(`Copied position to clipboard: ${formatted}`)
+    }
+  },
+  {
+    command: ['/mesherlog'],
+    alwaysAvailable: true,
+    invoke () {
+      getThreeJsRendererMethods()?.downloadMesherLog()
     }
   }
 ]

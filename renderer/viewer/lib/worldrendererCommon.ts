@@ -137,6 +137,10 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   abortController = new AbortController()
   lastRendered = 0
   renderingActive = true
+  workerLogger = {
+    contents: [] as string[],
+    active: new URL(location.href).searchParams.get('mesherlog') === 'true'
+  }
 
   constructor (public readonly resourcesManager: ResourcesManager, public displayOptions: DisplayWorldOptions, public version: string) {
     // this.initWorkers(1) // preload script on page load
@@ -151,6 +155,11 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     })
 
     this.connect(this.displayOptions.worldView)
+  }
+
+  logWorkerWork (message: string | (() => string)) {
+    if (!this.workerLogger.active) return
+    this.workerLogger.contents.push(typeof message === 'function' ? message() : message)
   }
 
   init () {
@@ -181,6 +190,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       ...this.protocolCustomBlocks.get(chunkKey),
       [blockPos]: model
     })
+    this.logWorkerWork(() => `-> updateCustomBlock ${chunkKey} ${blockPos} ${model} ${this.wasChunkSentToWorker(chunkKey)}`)
     if (this.wasChunkSentToWorker(chunkKey)) {
       const [x, y, z] = blockPos.split(',').map(Number)
       this.setBlockStateId(new Vec3(x, y, z), undefined)
@@ -221,19 +231,22 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
         } else {
           this.messageQueue.push(data)
         }
-        void this.processMessageQueue()
+        void this.processMessageQueue('worker')
       }
       if (worker.on) worker.on('message', (data) => { worker.onmessage({ data }) })
       this.workers.push(worker)
     }
   }
 
-  async processMessageQueue () {
+  async processMessageQueue (source: string) {
     if (this.isProcessingQueue || this.messageQueue.length === 0) return
+    this.logWorkerWork(`# ${source} processing queue`)
     if (this.lastRendered && performance.now() - this.lastRendered > 30 && this.worldRendererConfig._experimentalSmoothChunkLoading && this.renderingActive) {
+      const start = performance.now()
       await new Promise(resolve => {
         requestAnimationFrame(resolve)
       })
+      this.logWorkerWork(`# processing got delayed by ${performance.now() - start}ms`)
     }
     this.isProcessingQueue = true
 
@@ -251,7 +264,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
         if (this.messageQueue.length > 0) {
           requestAnimationFrame(async () => {
             this.isProcessingQueue = false
-            void this.processMessageQueue()
+            void this.processMessageQueue('queue-delay')
           })
           return
         }
@@ -268,6 +281,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       this.handleWorkerMessage(data)
     }
     if (data.type === 'geometry') {
+      this.logWorkerWork(() => `-> ${data.workerIndex} geometry ${data.key} ${JSON.stringify({ dataSize: JSON.stringify(data).length })}`)
       this.geometryReceiveCount[data.workerIndex] ??= 0
       this.geometryReceiveCount[data.workerIndex]++
       const geometry = data.geometry as MesherGeometryOutput
@@ -276,6 +290,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       this.lastChunkDistance = Math.max(...this.getDistance(new Vec3(chunkCoords[0], 0, chunkCoords[2])))
     }
     if (data.type === 'sectionFinished') { // on after load & unload section
+      this.logWorkerWork(`-> ${data.workerIndex} sectionFinished ${data.key} ${JSON.stringify({ processTime: data.processTime })}`)
       if (!this.sectionsWaiting.has(data.key)) throw new Error(`sectionFinished event for non-outstanding section ${data.key}`)
       this.sectionsWaiting.set(data.key, this.sectionsWaiting.get(data.key)! - 1)
       if (this.sectionsWaiting.get(data.key) === 0) {
@@ -334,6 +349,13 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
         this.blockStateModelInfo.set(cacheKey, info)
       }
     }
+  }
+
+  downloadMesherLog () {
+    const a = document.createElement('a')
+    a.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(this.workerLogger.contents.join('\n'))
+    a.download = 'mesher.log'
+    a.click()
   }
 
   checkAllFinished () {
@@ -446,6 +468,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     for (const worker of this.workers) {
       worker.postMessage({ type: 'mcData', mcData, config: this.getMesherConfig() })
     }
+    this.logWorkerWork('# mcData sent')
   }
 
   async updateAssetsData () {
@@ -466,6 +489,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       })
     }
 
+    this.logWorkerWork('# mesherData sent')
     console.log('textures loaded')
   }
 
@@ -502,6 +526,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
         customBlockModels: customBlockModels || undefined
       })
     }
+    this.logWorkerWork(`-> chunk ${JSON.stringify({ x, z, chunkLength: chunk.length, customBlockModelsLength: customBlockModels ? Object.keys(customBlockModels).length : 0 })}`)
     for (let y = this.worldMinYRender; y < this.worldSizeParams.worldHeight; y += 16) {
       const loc = new Vec3(x, y, z)
       this.setSectionDirty(loc)
@@ -517,6 +542,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   markAsLoaded (x, z) {
     this.loadedChunks[`${x},${z}`] = true
     this.finishedChunks[`${x},${z}`] = true
+    this.logWorkerWork(`-> markAsLoaded ${JSON.stringify({ x, z })}`)
     this.checkAllFinished()
   }
 
@@ -525,6 +551,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     for (const worker of this.workers) {
       worker.postMessage({ type: 'unloadChunk', x, z })
     }
+    this.logWorkerWork(`-> unloadChunk ${JSON.stringify({ x, z })}`)
     delete this.finishedChunks[`${x},${z}`]
     this.allChunksFinished = Object.keys(this.finishedChunks).length === this.chunksLength
     if (!this.allChunksFinished) {
@@ -539,6 +566,11 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     delete this.highestBlocksByChunks[`${x},${z}`]
 
     this.updateChunksStats()
+
+    if (Object.keys(this.loadedChunks).length === 0) {
+      this.workerLogger.contents = []
+      this.logWorkerWork('# all chunks unloaded. New log started')
+    }
   }
 
   setBlockStateId (pos: Vec3, stateId: number | undefined, needAoRecalculation = true) {
@@ -685,6 +717,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
         customBlockModels
       })
     }
+    this.logWorkerWork(`-> blockUpdate ${JSON.stringify({ pos, stateId, customBlockModels })}`)
     this.setSectionDirty(pos, true, true)
     if (this.neighborChunkUpdates) {
       if ((pos.x & 15) === 0) this.setSectionDirty(pos.offset(-16, 0, 0), true, true)
@@ -788,6 +821,9 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       for (const workerIndex in this.toWorkerMessagesQueue) {
         const worker = this.workers[Number(workerIndex)]
         worker.postMessage(this.toWorkerMessagesQueue[workerIndex])
+        for (const message of this.toWorkerMessagesQueue[workerIndex]) {
+          this.logWorkerWork(`-> ${workerIndex} dispatchMessages ${message.type} ${JSON.stringify({ x: message.x, y: message.y, z: message.z, value: message.value })}`)
+        }
       }
       this.toWorkerMessagesQueue = {}
       this.queueAwaited = false
