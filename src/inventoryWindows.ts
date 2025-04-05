@@ -258,6 +258,8 @@ const itemToVisualKey = (slot: RenderItem | Item | null) => {
   if (!slot) return ''
   const keys = [
     slot.name,
+    slot.durabilityUsed,
+    slot.maxDurability,
     slot['count'],
     slot['metadata'],
     slot.nbt ? JSON.stringify(slot.nbt) : '',
