@@ -129,18 +129,18 @@ function getDefaultTouchControlsPositions () {
     ],
     break: [
       70,
-      60
+      57
     ],
     jump: [
       84,
-      60
+      57
     ],
   } as Record<string, [number, number]>
 }
 
 function getTouchControlsSize () {
   return {
-    joystick: 60,
+    joystick: 55,
     action: 36,
     break: 36,
     jump: 36,
