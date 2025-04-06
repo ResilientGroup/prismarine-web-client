@@ -42,14 +42,14 @@ export const openBenchmark = async (renderDistance = DEFAULT_RENDER_DISTANCE) =>
     }
   }, 200)
 
-  let benchmarkName = `${fixture.url}`
+  let fixtureName = `${fixture.url}`
   if (fixture.spawn) {
-    benchmarkName += ` - ${fixture.spawn.join(',')}`
+    fixtureName += ` - ${fixture.spawn.join(',')}`
   }
-  benchmarkName += ` - ${renderDistance}`
+  fixtureName += ` - ${renderDistance}`
   const benchmarkAdapter: BenchmarkAdapterInfo = {
-    get benchmarkName () {
-      return benchmarkName
+    get fixture () {
+      return fixtureName
     },
     get worldLoadTimeSeconds () {
       return window.worldLoadTime
