@@ -5,6 +5,7 @@ import { setLoadingScreenStatus } from './appStatus'
 import { appQueryParams, appQueryParamsArray } from './appParams'
 import { VALID_REPLAY_EXTENSIONS, openFile } from './packetsReplay/replayPackets'
 import { createFullScreenProgressReporter } from './core/progressReporter'
+import { ConnectOptions } from './connect'
 
 export const getFixedFilesize = (bytes: number) => {
   return prettyBytes(bytes, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -65,24 +66,29 @@ const inner = async () => {
     await openWorldFromHttpDir(mapUrlDir, mapUrlDirBaseUrl ?? undefined)
     return true
   }
+
   if (mapUrlDirGuess) {
     // await openWorldFromHttpDir(undefined, mapUrlDirGuess)
     return true
   }
-  let mapUrl = appQueryParams.map
-  const { texturepack } = appQueryParams
+
+  const { map, texturepack } = appQueryParams
+  return downloadAndOpenMapFromUrl(map, texturepack)
+}
+
+export const downloadAndOpenMapFromUrl = async (mapUrl: string | undefined, texturepackUrl: string | undefined, connectOptions?: Partial<ConnectOptions>) => {
   // fixme
-  if (texturepack) mapUrl = texturepack
+  if (texturepackUrl) mapUrl = texturepackUrl
   if (!mapUrl) return false
 
-  if (texturepack) {
+  if (texturepackUrl) {
     await updateTexturePackInstalledState()
     if (resourcePackState.resourcePackInstalled) {
       if (!confirm(`You are going to install a new resource pack, which will REPLACE the current one: ${await getResourcePackNames()[0]} Continue?`)) return
     }
   }
   const name = mapUrl.slice(mapUrl.lastIndexOf('/') + 1).slice(-25)
-  const downloadThing = texturepack ? 'texturepack' : 'world'
+  const downloadThing = texturepackUrl ? 'texturepack' : 'world'
   setLoadingScreenStatus(`Downloading ${downloadThing} ${name}...`)
 
   const response = await fetch(mapUrl)
@@ -115,25 +121,25 @@ const inner = async () => {
         const progress = contentLength ? (downloadedBytes / contentLength) * 100 : undefined
         setLoadingScreenStatus(`Download ${downloadThing} progress: ${progress === undefined ? '?' : Math.floor(progress)}% (${getFixedFilesize(downloadedBytes)} / ${contentLength && getFixedFilesize(contentLength)})`, false, true)
 
-
         // Pass the received data to the controller
         controller.enqueue(value)
       }
     },
   })).arrayBuffer()
-  if (texturepack) {
+  if (texturepackUrl) {
     const name = mapUrl.slice(mapUrl.lastIndexOf('/') + 1).slice(-30)
     await installResourcepackPack(buffer, createFullScreenProgressReporter(), name)
   } else {
-    await openWorldZip(buffer)
+    await openWorldZip(buffer, undefined, connectOptions)
   }
+  return true
 }
 
 export default async () => {
   try {
     return await inner()
   } catch (err) {
-    setLoadingScreenStatus(`Failed to download. Either refresh page or remove map param from URL. Reason: ${err.message}`)
+    setLoadingScreenStatus(`Failed to download/open. Either refresh page or remove map param from URL. Reason: ${err.message}`)
     return true
   }
 }

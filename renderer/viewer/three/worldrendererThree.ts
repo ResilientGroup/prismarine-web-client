@@ -50,6 +50,7 @@ export class WorldRendererThree extends WorldRendererCommon {
   media: ThreeJsMedia
   waitingChunksToDisplay = {} as { [chunkKey: string]: SectionKey[] }
   camera: THREE.PerspectiveCamera
+  renderTimeAvg = 0
 
   get tilesRendered () {
     return Object.values(this.sectionObjects).reduce((acc, obj) => acc + (obj as any).tilesCount, 0)
@@ -403,6 +404,7 @@ export class WorldRendererThree extends WorldRendererCommon {
   }
 
   render (sizeChanged = false) {
+    const start = performance.now()
     this.lastRendered = performance.now()
     this.cursorBlock.render()
 
@@ -427,6 +429,11 @@ export class WorldRendererThree extends WorldRendererCommon {
     for (const onRender of this.onRender) {
       onRender()
     }
+    const end = performance.now()
+    const totalTime = end - start
+    this.renderTimeAvgCount++
+    this.renderTimeAvg = ((this.renderTimeAvg * (this.renderTimeAvgCount - 1)) + totalTime) / this.renderTimeAvgCount
+    this.renderTimeMax = Math.max(this.renderTimeMax, totalTime)
   }
 
   renderHead (position: Vec3, rotation: number, isWall: boolean, blockEntity) {
