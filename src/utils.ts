@@ -65,16 +65,6 @@ export const pointerLock = {
   }
 }
 
-export const logAction = (category: string, action: string, value?: string, label?: string) => {
-  if (!options.externalLoggingService) return
-  window.loggingServiceChannel?.({
-    category,
-    action,
-    value,
-    label
-  })
-}
-
 export const isInRealGameSession = () => {
   return isGameActive(true) && (!packetsReplayState.isOpen || packetsReplayState.isMinimized) && !gameAdditionalState.viewerConnection
 }
