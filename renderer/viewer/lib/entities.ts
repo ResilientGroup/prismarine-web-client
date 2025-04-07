@@ -1069,9 +1069,9 @@ function addArmorModel (entityMesh: THREE.Object3D, slotType: string, item: Item
         if (textureData) {
           const decodedData = JSON.parse(Buffer.from(textureData, 'base64').toString())
           texturePath = decodedData.textures?.SKIN?.url
-          if (miscUiState.appConfig?.skullTextureProxy) {
-            texturePath = texturePath.replace('http://textures.minecraft.net/', miscUiState.appConfig?.skullTextureProxy)
-              .replace('https://textures.minecraft.net/', miscUiState.appConfig?.skullTextureProxy)
+          if (miscUiState.appConfig?.skinTexturesProxy) {
+            texturePath = texturePath.replace('http://textures.minecraft.net/', miscUiState.appConfig?.skinTexturesProxy)
+              .replace('https://textures.minecraft.net/', miscUiState.appConfig?.skinTexturesProxy)
           }
         }
       } catch (err) {
