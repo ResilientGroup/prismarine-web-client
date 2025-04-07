@@ -8,7 +8,7 @@ import { disabledSettings, options } from './optionsStorage'
 import { BenchmarkAdapterInfo, getAllInfoLines } from './benchmarkAdapter'
 import { appQueryParams } from './appParams'
 
-const DEFAULT_RENDER_DISTANCE = 8
+const DEFAULT_RENDER_DISTANCE = 5
 
 const fixtures = {
   default: {
@@ -59,6 +59,9 @@ export const openBenchmark = async (renderDistance = DEFAULT_RENDER_DISTANCE) =>
     },
     get mesherProcessAvgMs () {
       return (window.world as WorldRendererCommon).workersProcessAverageTime
+    },
+    get mesherProcessTotalMs () {
+      return (window.world as WorldRendererCommon).workersProcessAverageTime * (window.world as WorldRendererCommon).workersProcessAverageTimeCount
     },
     get mesherProcessWorstMs () {
       return (window.world as WorldRendererCommon).maxWorkersProcessTime

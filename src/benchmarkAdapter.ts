@@ -9,6 +9,7 @@ export interface BenchmarkAdapterInfo {
   mesherWorkersCount: number
   mesherProcessAvgMs: number
   mesherProcessWorstMs: number
+  mesherProcessTotalMs: number
 
   // rendering backend
   averageRenderTimeMs: number
