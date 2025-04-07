@@ -32,7 +32,7 @@ jobs:
         run: |
           jq '.dependencies.cypress = .optionalDependencies.cypress | del(.optionalDependencies.cypress)' package.json > package.json.tmp
           mv package.json.tmp package.json
-      - run: pnpm install
+      - run: pnpm install --no-frozen-lockfile
       - run: pnpm build
       - run: nohup pnpm prod-start &
       - run: pnpm test:benchmark
