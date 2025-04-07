@@ -10,14 +10,20 @@ export interface BenchmarkAdapterInfo {
   mesherProcessAvgMs: number
   mesherProcessWorstMs: number
   mesherProcessTotalMs: number
+  chunksFullInfo: string
 
   // rendering backend
   averageRenderTimeMs: number
   worstRenderTimeMs: number
   fpsAveragePrediction: number
   fpsWorstPrediction: number
-  fpsAverageReal: number
+  fpsAverageReal: string
   fpsWorstReal: number
+  backendInfoReport: string
+
+  // main thread
+  fpsAverageMainThread: number
+  fpsWorstMainThread: number
 
   // memory total
   memoryUsageAverage: string

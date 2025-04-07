@@ -11,12 +11,12 @@ import { subscribeKey } from 'valtio/utils'
 import { dynamicMcDataFiles } from '../../buildMesherConfig.mjs'
 import { toMajorVersion } from '../../../src/utils'
 import { ResourcesManager } from '../../../src/resourcesManager'
-import { DisplayWorldOptions, RendererReactiveState } from '../../../src/appViewer'
+import { DisplayWorldOptions, GraphicsInitOptions, RendererReactiveState } from '../../../src/appViewer'
 import { SoundSystem } from '../three/threeJsSound'
 import { buildCleanupDecorator } from './cleanupDecorator'
 import { HighestBlockInfo, MesherGeometryOutput, CustomBlockModels, BlockStateModelInfo, getBlockAssetsCacheKey, MesherConfig } from './mesher/shared'
 import { chunkPos } from './simpleUtils'
-import { removeAllStats, removeStat, updateStatText } from './ui/newStats'
+import { addNewStat, removeAllStats, removeStat, updatePanesVisibility, updateStatText } from './ui/newStats'
 import { WorldDataEmitter } from './worldDataEmitter'
 import { IPlayerState } from './basePlayerState'
 
@@ -53,7 +53,6 @@ export const defaultWorldRendererConfig = {
 export type WorldRendererConfig = typeof defaultWorldRendererConfig
 
 export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any> {
-  displayStats = true
   worldSizeParams = { minY: 0, worldHeight: 256 }
 
   active = false
@@ -145,8 +144,23 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     contents: [] as string[],
     active: new URL(location.href).searchParams.get('mesherlog') === 'true'
   }
+  currentRenderedFrames = 0
+  fpsAverage = 0
+  fpsWorst = undefined as number | undefined
+  fpsSamples = 0
+  mainThreadRendering = true
+  backendInfoReport = '-'
+  chunksFullInfo = '-'
 
-  constructor (public readonly resourcesManager: ResourcesManager, public displayOptions: DisplayWorldOptions, public version: string) {
+  get version () {
+    return this.displayOptions.version
+  }
+
+  get displayAdvancedStats () {
+    return (this.initOptions.config.statsVisible ?? 0) > 1
+  }
+
+  constructor (public readonly resourcesManager: ResourcesManager, public displayOptions: DisplayWorldOptions, public initOptions: GraphicsInitOptions) {
     // this.initWorkers(1) // preload script on page load
     this.snapshotInitialValues()
     this.worldRendererConfig = displayOptions.inWorldRenderingConfig
@@ -158,13 +172,30 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       updateStatText('loaded-chunks', `${loadedChunks}/${this.chunksLength} chunks (${this.lastChunkDistance}/${this.viewDistance})`)
     })
 
+    addNewStat('downloaded-chunks', 100, 140, 20)
+
     this.connect(this.displayOptions.worldView)
 
     setInterval(() => {
       this.geometryReceiveCountPerSec = Object.values(this.geometryReceiveCount).reduce((acc, curr) => acc + curr, 0)
       this.geometryReceiveCount = {}
+      updatePanesVisibility(this.displayAdvancedStats)
       this.updateChunksStats()
+      if (this.mainThreadRendering) {
+        this.fpsUpdate()
+      }
     }, 1000)
+  }
+
+  fpsUpdate () {
+    this.fpsSamples++
+    this.fpsAverage = (this.fpsAverage * (this.fpsSamples - 1) + this.currentRenderedFrames) / this.fpsSamples
+    if (this.fpsWorst === undefined) {
+      this.fpsWorst = this.currentRenderedFrames
+    } else {
+      this.fpsWorst = Math.min(this.fpsWorst, this.currentRenderedFrames)
+    }
+    this.currentRenderedFrames = 0
   }
 
   logWorkerWork (message: string | (() => string)) {
@@ -444,7 +475,6 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
 
   // new game load happens here
   async setVersion (version: string) {
-    this.version = version
     this.resetWorld()
 
     // for workers in single file build
@@ -525,7 +555,9 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     this.displayOptions.nonReactiveState.world.chunksTotalNumber = this.chunksLength
     this.reactiveState.world.allChunksLoaded = this.allChunksFinished
 
-    updateStatText('downloaded-chunks', `${Object.keys(this.loadedChunks).length}/${this.chunksLength} chunks D (${this.workers.length}:${this.workersProcessAverageTime.toFixed(0)}ms/${this.geometryReceiveCountPerSec}ss/${this.allLoadedIn?.toFixed(1) ?? '-'}s)`)
+    const text = `Q: ${this.messageQueue.length} ${Object.keys(this.loadedChunks).length}/${Object.keys(this.finishedChunks).length}/${this.chunksLength} chunks (${this.workers.length}:${this.workersProcessAverageTime.toFixed(0)}ms/${this.geometryReceiveCountPerSec}ss/${this.allLoadedIn?.toFixed(1) ?? '-'}s)`
+    this.chunksFullInfo = text
+    updateStatText('downloaded-chunks', text)
   }
 
   addColumn (x: number, z: number, chunk: any, isLightUpdate: boolean) {

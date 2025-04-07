@@ -708,7 +708,7 @@ export async function connect (connectOptions: ConnectOptions) {
       progress.setMessage('Placing blocks (starting viewer)')
       if (!connectOptions.worldStateFileContents || connectOptions.worldStateFileContents.length < 3 * 1024 * 1024) {
         localStorage.lastConnectOptions = JSON.stringify(connectOptions)
-        if (process.env.NODE_ENV === 'development' && !localStorage.lockUrl && !Object.keys(window.debugQueryParams).length) {
+        if (process.env.NODE_ENV === 'development' && !localStorage.lockUrl && !location.search.slice(1).length) {
           lockUrl()
         }
       } else {

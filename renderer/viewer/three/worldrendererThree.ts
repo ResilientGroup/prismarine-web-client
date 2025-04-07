@@ -62,7 +62,7 @@ export class WorldRendererThree extends WorldRendererCommon {
 
   constructor (public renderer: THREE.WebGLRenderer, public initOptions: GraphicsInitOptions, public displayOptions: DisplayWorldOptions) {
     if (!initOptions.resourcesManager) throw new Error('resourcesManager is required')
-    super(initOptions.resourcesManager, displayOptions, displayOptions.version)
+    super(initOptions.resourcesManager, displayOptions, initOptions)
 
     displayOptions.rendererState.renderer = WorldRendererThree.getRendererInfo(renderer) ?? '...'
     this.starField = new StarField(this.scene)
@@ -233,9 +233,19 @@ export class WorldRendererThree extends WorldRendererCommon {
     this.debugOverlayAdded = true
     const pane = addNewStat('debug-overlay')
     setInterval(() => {
-      pane.setVisibility(this.displayStats)
-      if (this.displayStats) {
-        pane.updateText(`C: ${this.renderer.info.render.calls} TR: ${this.renderer.info.render.triangles} TE: ${this.renderer.info.memory.textures} F: ${this.tilesRendered} B: ${this.blocksRendered}`)
+      pane.setVisibility(this.displayAdvancedStats)
+      if (this.displayAdvancedStats) {
+        const formatBigNumber = (num: number) => {
+          return new Intl.NumberFormat('en-US', {}).format(num)
+        }
+        let text = ''
+        text += `C: ${formatBigNumber(this.renderer.info.render.calls)} `
+        text += `TR: ${formatBigNumber(this.renderer.info.render.triangles)} `
+        text += `TE: ${formatBigNumber(this.renderer.info.memory.textures)} `
+        text += `F: ${formatBigNumber(this.tilesRendered)} `
+        text += `B: ${formatBigNumber(this.blocksRendered)}`
+        pane.updateText(text)
+        this.backendInfoReport = text
       }
     }, 200)
   }
@@ -434,6 +444,7 @@ export class WorldRendererThree extends WorldRendererCommon {
     this.renderTimeAvgCount++
     this.renderTimeAvg = ((this.renderTimeAvg * (this.renderTimeAvgCount - 1)) + totalTime) / this.renderTimeAvgCount
     this.renderTimeMax = Math.max(this.renderTimeMax, totalTime)
+    this.currentRenderedFrames++
   }
 
   renderHead (position: Vec3, rotation: number, isWall: boolean, blockEntity) {

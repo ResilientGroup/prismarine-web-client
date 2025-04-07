@@ -7,6 +7,8 @@ import { activeModalStack, miscUiState } from './globalState'
 import { disabledSettings, options } from './optionsStorage'
 import { BenchmarkAdapterInfo, getAllInfoLines } from './benchmarkAdapter'
 import { appQueryParams } from './appParams'
+import { getScreenRefreshRate } from './utils'
+import { setLoadingScreenStatus } from './appStatus'
 
 const DEFAULT_RENDER_DISTANCE = 5
 
@@ -20,6 +22,19 @@ const fixtures = {
 Error.stackTraceLimit = Error.stackTraceLimit < 30 ? 30 : Error.stackTraceLimit
 
 export const openBenchmark = async (renderDistance = DEFAULT_RENDER_DISTANCE) => {
+  const SESSION_STORAGE_BACKUP_KEY = 'benchmark-backup'
+  if (sessionStorage.getItem(SESSION_STORAGE_BACKUP_KEY)) {
+    const backup = JSON.stringify(JSON.parse(sessionStorage.getItem(SESSION_STORAGE_BACKUP_KEY)!), null, 2)
+    setLoadingScreenStatus('Either other tab with benchmark is open or page crashed. Last data backup is downloaded. Reload page to retry.')
+    // download file
+    const a = document.createElement('a')
+    a.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(backup)
+    a.download = `benchmark-${appViewer.backend?.id}.txt`
+    a.click()
+    sessionStorage.removeItem(SESSION_STORAGE_BACKUP_KEY)
+    return
+  }
+
   const fixture: {
     url: string
     spawn?: [number, number, number]
@@ -42,11 +57,47 @@ export const openBenchmark = async (renderDistance = DEFAULT_RENDER_DISTANCE) =>
     }
   }, 200)
 
+  let mainThreadFpsAverage = 0
+  let mainThreadFpsWorst = undefined as number | undefined
+  let mainThreadFpsSamples = 0
+  let currentPassedFrames = 0
+  const mainLoop = () => {
+    currentPassedFrames++
+    requestAnimationFrame(mainLoop)
+  }
+  requestAnimationFrame(mainLoop)
+  setInterval(() => {
+    mainThreadFpsAverage = (mainThreadFpsAverage * mainThreadFpsSamples + currentPassedFrames) / (mainThreadFpsSamples + 1)
+    mainThreadFpsSamples++
+    if (mainThreadFpsWorst === undefined) {
+      mainThreadFpsWorst = currentPassedFrames
+    } else {
+      mainThreadFpsWorst = Math.min(mainThreadFpsWorst, currentPassedFrames)
+    }
+    currentPassedFrames = 0
+  }, 1000)
+
   let fixtureName = `${fixture.url}`
   if (fixture.spawn) {
-    fixtureName += ` - ${fixture.spawn.join(',')}`
+    fixtureName += ` - ${fixture.spawn.join(' ')}`
   }
   fixtureName += ` - ${renderDistance}`
+  if (process.env.NODE_ENV !== 'development') { // do not delay
+    setLoadingScreenStatus('Benchmark requested... Getting screen refresh rate')
+    await new Promise(resolve => {
+      setTimeout(resolve, 1000)
+    })
+  }
+  let start = 0
+  // interval to backup data in sessionStorage in case of page crash
+  const saveBackupInterval = setInterval(() => {
+    if (!window.world) return
+    const backup = JSON.parse(JSON.stringify(window.benchmarkAdapter))
+    backup.timePassed = ((Date.now() - start) / 1000).toFixed(2)
+    sessionStorage.setItem(SESSION_STORAGE_BACKUP_KEY, JSON.stringify(backup))
+  }, 500)
+
+  const screenRefreshRate = await getScreenRefreshRate()
   const benchmarkAdapter: BenchmarkAdapterInfo = {
     get fixture () {
       return fixtureName
@@ -66,6 +117,9 @@ export const openBenchmark = async (renderDistance = DEFAULT_RENDER_DISTANCE) =>
     get mesherProcessWorstMs () {
       return (window.world as WorldRendererCommon).maxWorkersProcessTime
     },
+    get chunksFullInfo () {
+      return (window.world as WorldRendererCommon).chunksFullInfo
+    },
     get averageRenderTimeMs () {
       return (window.world as WorldRendererCommon).renderTimeAvg
     },
@@ -81,10 +135,19 @@ export const openBenchmark = async (renderDistance = DEFAULT_RENDER_DISTANCE) =>
       return 1000 / maxRenderTime
     },
     get fpsAverageReal () {
-      return -1
+      return `${(window.world as WorldRendererCommon).fpsAverage.toFixed(0)} / ${screenRefreshRate}`
     },
     get fpsWorstReal () {
-      return -1
+      return (window.world as WorldRendererCommon).fpsWorst ?? -1
+    },
+    get backendInfoReport () {
+      return (window.world as WorldRendererCommon).backendInfoReport
+    },
+    get fpsAverageMainThread () {
+      return mainThreadFpsAverage
+    },
+    get fpsWorstMainThread () {
+      return mainThreadFpsWorst ?? -1
     },
     get memoryUsageAverage () {
       return prettyBytes(memoryUsageAverage)
@@ -117,6 +180,7 @@ export const openBenchmark = async (renderDistance = DEFAULT_RENDER_DISTANCE) =>
           localServer!.on('newPlayer', (player) => {
             player.on('dataLoaded', () => {
               player.position = new Vec3(...fixture.spawn!)
+              start = Date.now()
             })
           })
         }
@@ -124,12 +188,19 @@ export const openBenchmark = async (renderDistance = DEFAULT_RENDER_DISTANCE) =>
     }
   })
   document.addEventListener('cypress-world-ready', () => {
+    clearInterval(saveBackupInterval)
+    sessionStorage.removeItem(SESSION_STORAGE_BACKUP_KEY)
     let stats = getAllInfoLines(window.benchmarkAdapter)
-    if (appQueryParams.downloadBenchmark) {
+    const downloadFile = () => {
+      // const changedSettings =
+
       const a = document.createElement('a')
       a.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(stats.join('\n'))
       a.download = `benchmark-${appViewer.backend?.id}.txt`
       a.click()
+    }
+    if (appQueryParams.downloadBenchmark) {
+      downloadFile()
     }
 
     const panel = document.createElement('div')
@@ -179,6 +250,10 @@ export const registerOpenBenchmarkListener = () => {
   window.addEventListener('keydown', (e) => {
     if (e.code === 'KeyB' && e.shiftKey && !miscUiState.gameLoaded && activeModalStack.length === 0) {
       e.preventDefault()
+      // add ?openBenchmark=true to url without reload
+      const url = new URL(window.location.href)
+      url.searchParams.set('openBenchmark', 'true')
+      window.history.replaceState({}, '', url.toString())
       void openBenchmark()
     }
   })
