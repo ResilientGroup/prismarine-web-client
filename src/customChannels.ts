@@ -77,6 +77,17 @@ const registerSectionAnimationChannels = () => {
   const ADD_CHANNEL = 'minecraft-web-client:section-animation-add'
   const REMOVE_CHANNEL = 'minecraft-web-client:section-animation-remove'
 
+  /**
+   * Add a section animation
+   * @param id - Section position for animation like `16,32,16`
+   * @param offset - Initial offset in blocks
+   * @param speedX - Movement speed in blocks per second on X axis
+   * @param speedY - Movement speed in blocks per second on Y axis
+   * @param speedZ - Movement speed in blocks per second on Z axis
+   * @param limitX - Maximum offset in blocks on X axis (0 means no limit)
+   * @param limitY - Maximum offset in blocks on Y axis (0 means no limit)
+   * @param limitZ - Maximum offset in blocks on Z axis (0 means no limit)
+   */
   const addPacketStructure = [
     'container',
     [
@@ -91,6 +102,10 @@ const registerSectionAnimationChannels = () => {
     ]
   ]
 
+  /**
+   * Remove a section animation
+   * @param id - Identifier of the animation to remove
+   */
   const removePacketStructure = [
     'container',
     [
