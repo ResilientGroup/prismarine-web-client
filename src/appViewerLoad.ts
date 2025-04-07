@@ -4,13 +4,18 @@ import { options } from './optionsStorage'
 import { appViewer } from './appViewer'
 import { miscUiState } from './globalState'
 import { watchOptionsAfterViewerInit } from './watchOptions'
+import { showNotification } from './react/NotificationProvider'
 
+const backends = [
+  createGraphicsBackend,
+]
 const loadBackend = () => {
-  if (options.activeRenderer === 'webgpu') {
-    // appViewer.loadBackend(createWebgpuBackend)
-  } else {
-    appViewer.loadBackend(createGraphicsBackend)
+  let backend = backends.find(backend => backend.id === options.activeRenderer)
+  if (!backend) {
+    showNotification(`No backend found for renderer ${options.activeRenderer}`, `Falling back to ${backends[0].id}`, true)
+    backend = backends[0]
   }
+  appViewer.loadBackend(backend)
 }
 window.loadBackend = loadBackend
 if (process.env.SINGLE_FILE_BUILD_MODE) {
