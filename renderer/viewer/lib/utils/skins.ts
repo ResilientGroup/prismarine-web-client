@@ -8,6 +8,7 @@ export const steveTexture = new THREE.TextureLoader().loadAsync(stevePng)
 
 export async function loadImageFromUrl (imageUrl: string): Promise<HTMLImageElement> {
   const img = new Image()
+  img.crossOrigin = 'anonymous'
   img.src = imageUrl
   await new Promise<void>(resolve => {
     img.onload = () => resolve()
