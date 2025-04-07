@@ -156,6 +156,14 @@ customEvents.on('gameLoaded', () => {
 
   // Texture override from packet properties
   bot._client.on('player_info', (packet) => {
+    function applySkinTexturesProxy(url: string) {
+      if (miscUiState.appConfig?.skinTexturesProxy) {
+        return url.replace('http://textures.minecraft.net/', miscUiState.appConfig?.skinTexturesProxy)
+            .replace('https://textures.minecraft.net/', miscUiState.appConfig?.skinTexturesProxy)
+      }
+      return url;
+    }
+
     for (const playerEntry of packet.data) {
       if (!playerEntry.player && !playerEntry.properties) continue
       let textureProperty = playerEntry.properties?.find(prop => prop?.name === 'textures')
@@ -165,8 +173,8 @@ customEvents.on('gameLoaded', () => {
       if (textureProperty) {
         try {
           const textureData = JSON.parse(Buffer.from(textureProperty.value, 'base64').toString())
-          const skinUrl = textureData.textures?.SKIN?.url
-          const capeUrl = textureData.textures?.CAPE?.url
+          const skinUrl = applySkinTexturesProxy(textureData.textures?.SKIN?.url)
+          const capeUrl = applySkinTexturesProxy(textureData.textures?.CAPE?.url)
 
           // Find entity with matching UUID and update skin
           let entityId = ''

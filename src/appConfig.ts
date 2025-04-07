@@ -21,7 +21,7 @@ export type AppConfig = {
   allowAutoConnect?: boolean
   pauseLinks?: Array<Array<Record<string, any>>>
 
-  skullTextureProxy?: string
+  skinTexturesProxy?: string
 }
 
 export const loadAppConfig = (appConfig: AppConfig) => {

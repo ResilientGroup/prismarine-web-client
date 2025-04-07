@@ -255,9 +255,9 @@ export class WorldRendererThree extends WorldRendererCommon {
     try {
       const textureData = JSON.parse(Buffer.from(textures.Value, 'base64').toString())
       let skinUrl = textureData.textures?.SKIN?.url
-      if (miscUiState.appConfig?.skullTextureProxy) {
-        skinUrl = skinUrl.replace('http://textures.minecraft.net/', miscUiState.appConfig?.skullTextureProxy)
-          .replace('https://textures.minecraft.net/', miscUiState.appConfig?.skullTextureProxy)
+      if (miscUiState.appConfig?.skinTexturesProxy) {
+        skinUrl = skinUrl.replace('http://textures.minecraft.net/', miscUiState.appConfig?.skinTexturesProxy)
+          .replace('https://textures.minecraft.net/', miscUiState.appConfig?.skinTexturesProxy)
       }
 
       const mesh = getMesh(this, skinUrl, armorModel.head)
