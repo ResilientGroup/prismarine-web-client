@@ -158,7 +158,7 @@ customEvents.on('gameLoaded', () => {
   bot._client.on('player_info', (packet) => {
     function applySkinTexturesProxy(url: string) {
       if (miscUiState.appConfig?.skinTexturesProxy) {
-        return url.replace('http://textures.minecraft.net/', miscUiState.appConfig?.skinTexturesProxy)
+        return url?.replace('http://textures.minecraft.net/', miscUiState.appConfig?.skinTexturesProxy)
             .replace('https://textures.minecraft.net/', miscUiState.appConfig?.skinTexturesProxy)
       }
       return url;
