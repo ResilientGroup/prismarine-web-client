@@ -12,7 +12,12 @@ export const getFixedFilesize = (bytes: number) => {
 }
 
 const inner = async () => {
-  const { replayFileUrl } = appQueryParams
+  const { map, texturepack, replayFileUrl } = appQueryParams
+  const { mapDir } = appQueryParamsArray
+  return downloadAndOpenMapFromUrl(map, texturepack, mapDir, replayFileUrl)
+}
+
+export const downloadAndOpenMapFromUrl = async (mapUrl: string | undefined, texturepackUrl: string | undefined, mapUrlDir: string[] | undefined, replayFileUrl: string | undefined, connectOptions?: Partial<ConnectOptions>) => {
   if (replayFileUrl) {
     setLoadingScreenStatus('Downloading replay file')
     const response = await fetch(replayFileUrl)
@@ -59,10 +64,9 @@ const inner = async () => {
     return true
   }
 
-  const mapUrlDir = appQueryParamsArray.mapDir ?? []
   const mapUrlDirGuess = appQueryParams.mapDirGuess
   const mapUrlDirBaseUrl = appQueryParams.mapDirBaseUrl
-  if (mapUrlDir.length) {
+  if (mapUrlDir?.length) {
     await openWorldFromHttpDir(mapUrlDir, mapUrlDirBaseUrl ?? undefined)
     return true
   }
@@ -72,11 +76,6 @@ const inner = async () => {
     return true
   }
 
-  const { map, texturepack } = appQueryParams
-  return downloadAndOpenMapFromUrl(map, texturepack)
-}
-
-export const downloadAndOpenMapFromUrl = async (mapUrl: string | undefined, texturepackUrl: string | undefined, connectOptions?: Partial<ConnectOptions>) => {
   // fixme
   if (texturepackUrl) mapUrl = texturepackUrl
   if (!mapUrl) return false

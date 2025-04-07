@@ -12,16 +12,35 @@ import { setLoadingScreenStatus } from './appStatus'
 
 const DEFAULT_RENDER_DISTANCE = 5
 
-const fixtures = {
+interface BenchmarkFixture {
+  urlZip?: string
+  urlDir?: string[]
+  replayFileUrl?: string
+  spawn?: [number, number, number]
+}
+
+const fixtures: Record<string, BenchmarkFixture> = {
   default: {
-    url: 'https://bucket.mcraft.fun/Future CITY 4.4-slim.zip',
+    urlZip: 'https://bucket.mcraft.fun/Future CITY 4.4-slim.zip',
     spawn: [-133, 87, 309] as [number, number, number],
+  },
+  dir: {
+    urlDir: ['https://bucket.mcraft.fun/Greenfield%20v0.5.1/map-index.json', 'https://mcraft-proxy.vercel.app/0/bucket.mcraft.fun/Greenfield%20v0.5.1/map-index.json'],
+  },
+  replay: {
+    replayFileUrl: 'https://raw.githubusercontent.com/zardoy/mcraft-fun-replays/refs/heads/main/hypepixel-tnt-lobby.worldstate.txt',
   },
 }
 
 Error.stackTraceLimit = Error.stackTraceLimit < 30 ? 30 : Error.stackTraceLimit
 
 export const openBenchmark = async (renderDistance = DEFAULT_RENDER_DISTANCE) => {
+  let fixtureNameOpen = appQueryParams.openBenchmark
+  if (!fixtureNameOpen || fixtureNameOpen === '1' || fixtureNameOpen === 'true' || fixtureNameOpen === 'zip') {
+    fixtureNameOpen = 'default'
+  }
+
+
   const SESSION_STORAGE_BACKUP_KEY = 'benchmark-backup'
   if (sessionStorage.getItem(SESSION_STORAGE_BACKUP_KEY)) {
     const backup = JSON.stringify(JSON.parse(sessionStorage.getItem(SESSION_STORAGE_BACKUP_KEY)!), null, 2)
@@ -35,13 +54,15 @@ export const openBenchmark = async (renderDistance = DEFAULT_RENDER_DISTANCE) =>
     return
   }
 
-  const fixture: {
-    url: string
-    spawn?: [number, number, number]
-  } = appQueryParams.benchmarkMapZipUrl ? {
-    url: appQueryParams.benchmarkMapZipUrl,
+  const fixture: BenchmarkFixture = appQueryParams.benchmarkMapZipUrl ? {
+    urlZip: appQueryParams.benchmarkMapZipUrl,
     spawn: appQueryParams.benchmarkPosition ? appQueryParams.benchmarkPosition.split(',').map(Number) as [number, number, number] : fixtures.default.spawn,
-  } : fixtures.default
+  } : fixtures[fixtureNameOpen]
+
+  if (!fixture) {
+    setLoadingScreenStatus(`Benchmark fixture ${fixtureNameOpen} not found`)
+    return
+  }
 
   let memoryUsageAverage = 0
   let memoryUsageSamples = 0
@@ -77,7 +98,8 @@ export const openBenchmark = async (renderDistance = DEFAULT_RENDER_DISTANCE) =>
     currentPassedFrames = 0
   }, 1000)
 
-  let fixtureName = `${fixture.url}`
+  // todo urlDir fix
+  let fixtureName = `${fixture.urlZip ?? fixture.urlDir?.join('|') ?? fixture.replayFileUrl ?? 'unknown'}`
   if (fixture.spawn) {
     fixtureName += ` - ${fixture.spawn.join(' ')}`
   }
@@ -172,7 +194,7 @@ export const openBenchmark = async (renderDistance = DEFAULT_RENDER_DISTANCE) =>
   disabledSettings.value.add('renderDebug')
   options.renderDebug = 'advanced'
 
-  void downloadAndOpenMapFromUrl(fixture.url, undefined, {
+  void downloadAndOpenMapFromUrl(fixture.urlZip, undefined, fixture.urlDir, fixture.replayFileUrl, {
     connectEvents: {
       serverCreated () {
         if (fixture.spawn) {
