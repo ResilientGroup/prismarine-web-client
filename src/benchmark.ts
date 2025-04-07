@@ -106,6 +106,9 @@ export const openBenchmark = async (renderDistance = DEFAULT_RENDER_DISTANCE) =>
 
   disabledSettings.value.add('renderDistance')
   options.renderDistance = renderDistance
+  disabledSettings.value.add('renderDebug')
+  options.renderDebug = 'advanced'
+
   void downloadAndOpenMapFromUrl(fixture.url, undefined, {
     connectEvents: {
       serverCreated () {
