@@ -51,6 +51,23 @@ export class WorldRendererThree extends WorldRendererCommon {
   waitingChunksToDisplay = {} as { [chunkKey: string]: SectionKey[] }
   camera: THREE.PerspectiveCamera
   renderTimeAvg = 0
+  sectionsOffsetsAnimations = {} as {
+    [chunkKey: string]: {
+      time: number,
+      // also specifies direction
+      speedX: number,
+      speedY: number,
+      speedZ: number,
+
+      currentOffsetX: number,
+      currentOffsetY: number,
+      currentOffsetZ: number,
+
+      limitX?: number,
+      limitY?: number,
+      limitZ?: number,
+    }
+  }
 
   get tilesRendered () {
     return Object.values(this.sectionObjects).reduce((acc, obj) => acc + (obj as any).tilesCount, 0)
@@ -88,6 +105,8 @@ export class WorldRendererThree extends WorldRendererCommon {
     this.onWorldSwitched.push(() => {
       // clear custom blocks
       this.protocolCustomBlocks.clear()
+      // Reset section animations
+      this.sectionsOffsetsAnimations = {}
     })
   }
 
@@ -418,6 +437,8 @@ export class WorldRendererThree extends WorldRendererCommon {
     this.lastRendered = performance.now()
     this.cursorBlock.render()
 
+    this.updateSectionOffsets()
+
     const sizeOrFovChanged = sizeChanged || this.displayOptions.inWorldRenderingConfig.fov !== this.camera.fov
     if (sizeOrFovChanged) {
       this.camera.aspect = window.innerWidth / window.innerHeight
@@ -624,6 +645,53 @@ export class WorldRendererThree extends WorldRendererCommon {
 
   destroy (): void {
     super.destroy()
+  }
+
+  updateSectionOffsets () {
+    const currentTime = performance.now()
+    for (const [key, anim] of Object.entries(this.sectionsOffsetsAnimations)) {
+      const timeDelta = (currentTime - anim.time) / 1000 // Convert to seconds
+      anim.time = currentTime
+
+      // Update offsets based on speed and time delta
+      anim.currentOffsetX += anim.speedX * timeDelta
+      anim.currentOffsetY += anim.speedY * timeDelta
+      anim.currentOffsetZ += anim.speedZ * timeDelta
+
+      // Apply limits if they exist
+      if (anim.limitX !== undefined) {
+        if (anim.speedX > 0) {
+          anim.currentOffsetX = Math.min(anim.currentOffsetX, anim.limitX)
+        } else {
+          anim.currentOffsetX = Math.max(anim.currentOffsetX, anim.limitX)
+        }
+      }
+      if (anim.limitY !== undefined) {
+        if (anim.speedY > 0) {
+          anim.currentOffsetY = Math.min(anim.currentOffsetY, anim.limitY)
+        } else {
+          anim.currentOffsetY = Math.max(anim.currentOffsetY, anim.limitY)
+        }
+      }
+      if (anim.limitZ !== undefined) {
+        if (anim.speedZ > 0) {
+          anim.currentOffsetZ = Math.min(anim.currentOffsetZ, anim.limitZ)
+        } else {
+          anim.currentOffsetZ = Math.max(anim.currentOffsetZ, anim.limitZ)
+        }
+      }
+
+      // Apply the offset to the section object
+      const section = this.sectionObjects[key]
+      if (section) {
+        section.position.set(
+          anim.currentOffsetX,
+          anim.currentOffsetY,
+          anim.currentOffsetZ
+        )
+        section.updateMatrix()
+      }
+    }
   }
 }
 

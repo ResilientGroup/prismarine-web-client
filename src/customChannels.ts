@@ -13,6 +13,7 @@ export default () => {
     })
     registerBlockModelsChannel()
     registerMediaChannels()
+    registerSectionAnimationChannels()
     registeredJeiChannel()
   })
 }
@@ -70,6 +71,71 @@ const registerBlockModelsChannel = () => {
 
     getThreeJsRendererMethods()?.updateCustomBlock(chunkKey, blockPosKey, model)
   }, true)
+}
+
+const registerSectionAnimationChannels = () => {
+  const ADD_CHANNEL = 'minecraft-web-client:section-animation-add'
+  const REMOVE_CHANNEL = 'minecraft-web-client:section-animation-remove'
+
+  const addPacketStructure = [
+    'container',
+    [
+      { name: 'id', type: ['pstring', { countType: 'i16' }] },
+      { name: 'offset', type: 'f32' },
+      { name: 'speedX', type: 'f32' },
+      { name: 'speedY', type: 'f32' },
+      { name: 'speedZ', type: 'f32' },
+      { name: 'limitX', type: 'f32' },
+      { name: 'limitY', type: 'f32' },
+      { name: 'limitZ', type: 'f32' }
+    ]
+  ]
+
+  const removePacketStructure = [
+    'container',
+    [
+      { name: 'id', type: ['pstring', { countType: 'i16' }] }
+    ]
+  ]
+
+  registerChannel(ADD_CHANNEL, addPacketStructure, (data) => {
+    const { id, offset, speedX, speedY, speedZ, limitX, limitY, limitZ } = data
+    getThreeJsRendererMethods()?.addSectionAnimation(id, {
+      time: performance.now(),
+      speedX,
+      speedY,
+      speedZ,
+      currentOffsetX: offset,
+      currentOffsetY: offset,
+      currentOffsetZ: offset,
+      limitX: limitX === 0 ? undefined : limitX,
+      limitY: limitY === 0 ? undefined : limitY,
+      limitZ: limitZ === 0 ? undefined : limitZ
+    })
+  }, true)
+
+  registerChannel(REMOVE_CHANNEL, removePacketStructure, (data) => {
+    const { id } = data
+    getThreeJsRendererMethods()?.removeSectionAnimation(id)
+  }, true)
+
+  console.debug('Registered section animation channels')
+}
+
+window.testSectionAnimation = (speedY = 1) => {
+  const pos = bot.entity.position
+  const id = `${Math.floor(pos.x / 16) * 16},${Math.floor(pos.y / 16) * 16},${Math.floor(pos.z / 16) * 16}`
+  getThreeJsRendererMethods()?.addSectionAnimation(id, {
+    time: performance.now(),
+    speedX: 0,
+    speedY,
+    speedZ: 0,
+    currentOffsetX: 0,
+    currentOffsetY: 0,
+    currentOffsetZ: 0,
+    // limitX: 10,
+    // limitY: 10,
+  })
 }
 
 const registeredJeiChannel = () => {
