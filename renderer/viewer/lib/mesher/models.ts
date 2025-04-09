@@ -253,7 +253,7 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
         if (!neighbor.transparent && (isCube(neighbor) || identicalCull(element, neighbor, new Vec3(...dir)))) continue
       } else {
         needSectionRecomputeOnChange = true
-        continue
+        // continue
       }
     }
 
