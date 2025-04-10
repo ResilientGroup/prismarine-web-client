@@ -35,7 +35,7 @@ WORKDIR /app
 COPY --from=build /app/dist /app/dist
 COPY server.js /app/server.js
 # Install express
-RUN npm corepack enable
+RUN corepack enable
 RUN npm init -yp
 RUN pnpm i express github:zardoy/prismarinejs-net-browserify compression cors
 EXPOSE 8080
