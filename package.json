@@ -221,10 +221,10 @@
     "ignoredBuiltDependencies": [
       "canvas",
       "core-js",
-      "gl",
-      "sharp"
+      "gl"
     ],
     "onlyBuiltDependencies": [
+      "sharp",
       "cypress",
       "esbuild",
       "fsevents"
