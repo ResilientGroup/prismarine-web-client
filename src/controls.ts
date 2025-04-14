@@ -177,6 +177,7 @@ contro.on('movementUpdate', ({ vector, soleVector, gamepadIndex }) => {
       if (action) {
         void contro.emit('trigger', { command: 'general.forward' } as any)
       } else {
+        void contro.emit('release', { command: 'general.forward' } as any)
         setSprinting(false)
       }
     }

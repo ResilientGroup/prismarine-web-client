@@ -54,6 +54,7 @@ import { useAppScale } from './scaleInterface'
 import PacketsReplayProvider from './react/PacketsReplayProvider'
 import TouchInteractionHint from './react/TouchInteractionHint'
 import { ua } from './react/utils'
+import ControDebug from './react/ControDebug'
 
 const isFirefox = ua.getBrowser().name === 'Firefox'
 if (isFirefox) {
@@ -208,6 +209,7 @@ const App = () => {
                 <HeldMapUi />
               </InGameComponent>
             </div>
+            <ControDebug />
             <div />
           </RobustPortal>
           <EnterFullscreenButton />
