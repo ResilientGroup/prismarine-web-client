@@ -761,6 +761,11 @@ const selectItem = async () => {
 }
 
 addEventListener('mousedown', async (e) => {
+  // always prevent default for side buttons (back / forward navigation)
+  if (e.button === 3 || e.button === 4) {
+    e.preventDefault()
+  }
+
   if ((e.target as HTMLElement).matches?.('#VRButton')) return
   if (!isInRealGameSession() && !(e.target as HTMLElement).id.includes('ui-root')) return
   void pointerLock.requestPointerLock()
