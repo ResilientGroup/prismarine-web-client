@@ -42,6 +42,7 @@ export type AppQsParams = {
   suggest_save?: string
   noPacketsValidation?: string
   testCrashApp?: string
+  freezeSettings?: string
 
   // Replay params
   replayFilter?: string
