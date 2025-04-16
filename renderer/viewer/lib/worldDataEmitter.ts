@@ -37,8 +37,8 @@ export type WorldDataEmitterEvents = {
  * It's up to the consumer to serialize the data if needed
  */
 export class WorldDataEmitter extends (EventEmitter as new () => TypedEmitter<WorldDataEmitterEvents>) {
-  private loadedChunks: Record<ChunkPosKey, boolean>
-  private readonly lastPos: Vec3
+  loadedChunks: Record<ChunkPosKey, boolean>
+  readonly lastPos: Vec3
   private eventListeners: Record<string, any> = {}
   private readonly emitter: WorldDataEmitter
 
@@ -140,7 +140,7 @@ export class WorldDataEmitter extends (EventEmitter as new () => TypedEmitter<Wo
 
     bot._client.on('update_light', ({ chunkX, chunkZ }) => {
       const chunkPos = new Vec3(chunkX * 16, 0, chunkZ * 16)
-      if (!this.waitingSpiralChunksLoad[`${chunkX},${chunkZ}`]) {
+      if (!this.waitingSpiralChunksLoad[`${chunkX},${chunkZ}`] && this.loadedChunks[`${chunkX},${chunkZ}`]) {
         void this.loadChunk(chunkPos, true)
       }
     })
@@ -242,6 +242,8 @@ export class WorldDataEmitter extends (EventEmitter as new () => TypedEmitter<Wo
 
   async loadChunk (pos: ChunkPos, isLightUpdate = false) {
     const [botX, botZ] = chunkPos(this.lastPos)
+    console.log('loadChunk', botX - pos.x / 16, botZ - pos.z / 16)
+
     const dx = Math.abs(botX - Math.floor(pos.x / 16))
     const dz = Math.abs(botZ - Math.floor(pos.z / 16))
     if (dx <= this.viewDistance && dz <= this.viewDistance) {

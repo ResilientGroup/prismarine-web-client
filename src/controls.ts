@@ -615,6 +615,13 @@ export const f3Keybinds: Array<{
     mobileTitle: 'Toggle chunk borders',
   },
   {
+    key: 'KeyH',
+    action () {
+      showModal({ reactType: 'chunks-debug' })
+    },
+    mobileTitle: 'Show Chunks Debug',
+  },
+  {
     key: 'KeyY',
     async action () {
       // waypoints

@@ -55,6 +55,8 @@ import PacketsReplayProvider from './react/PacketsReplayProvider'
 import TouchInteractionHint from './react/TouchInteractionHint'
 import { ua } from './react/utils'
 import ControDebug from './react/ControDebug'
+import ChunksDebug from './react/ChunksDebug'
+import ChunksDebugScreen from './react/ChunksDebugScreen'
 
 const isFirefox = ua.getBrowser().name === 'Firefox'
 if (isFirefox) {
@@ -157,6 +159,7 @@ const InGameUi = () => {
           {!disabledUiParts.includes('crosshair') && <Crosshair />}
           {!disabledUiParts.includes('books') && <BookProvider />}
           {!disabledUiParts.includes('bossbars') && displayBossBars && <BossBarOverlayProvider />}
+          <ChunksDebugScreen />
         </PerComponentErrorBoundary>
       </div>
 
