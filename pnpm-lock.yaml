@@ -341,7 +341,7 @@ importers:
         version: 0.2.52
       minecraft-inventory-gui:
         specifier: github:zardoy/minecraft-inventory-gui#next
-        version: https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/f57dd78ca8e3b7cdd724d4272d8cbf6743b0cf00(@types/react@18.3.18)(react@18.3.1)
+        version: https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/98bc5bb8ee6da8b4b771c05b404cee796318ccd4(@types/react@18.3.18)(react@18.3.1)
       mineflayer:
         specifier: github:GenerelSchwerz/mineflayer
         version: https://codeload.github.com/GenerelSchwerz/mineflayer/tar.gz/d459d2ed76a997af1a7c94718ed7d5dee4478b8a(encoding@0.1.13)
@@ -6673,8 +6673,8 @@ packages:
   minecraft-folder-path@1.2.0:
     resolution: {integrity: sha512-qaUSbKWoOsH9brn0JQuBhxNAzTDMwrOXorwuRxdJKKKDYvZhtml+6GVCUrY5HRiEsieBEjCUnhVpDuQiKsiFaw==}
 
-  minecraft-inventory-gui@https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/f57dd78ca8e3b7cdd724d4272d8cbf6743b0cf00:
-    resolution: {tarball: https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/f57dd78ca8e3b7cdd724d4272d8cbf6743b0cf00}
+  minecraft-inventory-gui@https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/98bc5bb8ee6da8b4b771c05b404cee796318ccd4:
+    resolution: {tarball: https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/98bc5bb8ee6da8b4b771c05b404cee796318ccd4}
     version: 1.0.1
 
   minecraft-protocol@https://codeload.github.com/PrismarineJS/node-minecraft-protocol/tar.gz/9e116c3dd4682b17c4e2c80249a2447a093d9284:
@@ -17309,7 +17309,7 @@ snapshots:
 
   minecraft-folder-path@1.2.0: {}
 
-  minecraft-inventory-gui@https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/f57dd78ca8e3b7cdd724d4272d8cbf6743b0cf00(@types/react@18.3.18)(react@18.3.1):
+  minecraft-inventory-gui@https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/98bc5bb8ee6da8b4b771c05b404cee796318ccd4(@types/react@18.3.18)(react@18.3.1):
     dependencies:
       valtio: 1.13.2(@types/react@18.3.18)(react@18.3.1)
     transitivePeerDependencies:
