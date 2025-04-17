@@ -41,35 +41,42 @@ const controlOptions = {
 export const contro = new ControMax({
   commands: {
     general: {
+      // movement
       jump: ['Space', 'A'],
       inventory: ['KeyE', 'X'],
       drop: ['KeyQ', 'B'],
       sneak: ['ShiftLeft'],
       toggleSneakOrDown: [null, 'Right Stick'],
       sprint: ['ControlLeft', 'Left Stick'],
+      // game interactions
       nextHotbarSlot: [null, 'Right Bumper'],
       prevHotbarSlot: [null, 'Left Bumper'],
       attackDestroy: [null, 'Right Trigger'],
       interactPlace: [null, 'Left Trigger'],
-      chat: [['KeyT', 'Enter']],
-      command: ['Slash'],
       swapHands: ['KeyF'],
-      zoom: ['KeyC'],
       selectItem: ['KeyH'], // default will be removed
       rotateCameraLeft: [null],
       rotateCameraRight: [null],
       rotateCameraUp: [null],
       rotateCameraDown: [null],
-      viewerConsole: ['Backquote']
+      // ui?
+      chat: [['KeyT', 'Enter']],
+      command: ['Slash'],
+      // client side
+      zoom: ['KeyC'],
+      viewerConsole: ['Backquote'],
     },
     ui: {
       toggleFullscreen: ['F11'],
       back: [null/* 'Escape' */, 'B'],
-      toggleMap: ['KeyM'],
+      toggleMap: ['KeyJ'],
       leftClick: [null, 'A'],
       rightClick: [null, 'Y'],
       speedupCursor: [null, 'Left Stick'],
       pauseMenu: [null, 'Start']
+    },
+    communication: {
+      toggleMicrophone: ['KeyK'],
     },
     advanced: {
       lockUrl: ['KeyY'],
@@ -548,6 +555,10 @@ contro.on('trigger', ({ command }) => {
         }
         break
     }
+  }
+
+  if (command === 'communication.toggleMicrophone') {
+    // toggleMicrophoneMuted()
   }
 
   if (command === 'ui.pauseMenu') {
