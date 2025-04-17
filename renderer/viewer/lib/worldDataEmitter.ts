@@ -41,6 +41,14 @@ export class WorldDataEmitter extends (EventEmitter as new () => TypedEmitter<Wo
   readonly lastPos: Vec3
   private eventListeners: Record<string, any> = {}
   private readonly emitter: WorldDataEmitter
+  debugChunksInfo: Record<ChunkPosKey, {
+    loads: Array<{
+      dataLength: number
+      reason: string
+      time: number
+    }>
+    // blockUpdates: number
+  }> = {}
 
   waitingSpiralChunksLoad = {} as Record<ChunkPosKey, (value: boolean) => void>
 
@@ -66,12 +74,12 @@ export class WorldDataEmitter extends (EventEmitter as new () => TypedEmitter<Wo
   setBlockStateId (position: Vec3, stateId: number) {
     const val = this.world.setBlockStateId(position, stateId) as Promise<void> | void
     if (val) throw new Error('setBlockStateId returned promise (not supported)')
-    const chunkX = Math.floor(position.x / 16)
-    const chunkZ = Math.floor(position.z / 16)
-    if (!this.loadedChunks[`${chunkX},${chunkZ}`] && !this.waitingSpiralChunksLoad[`${chunkX},${chunkZ}`]) {
-      void this.loadChunk({ x: chunkX, z: chunkZ })
-      return
-    }
+    // const chunkX = Math.floor(position.x / 16)
+    // const chunkZ = Math.floor(position.z / 16)
+    // if (!this.loadedChunks[`${chunkX},${chunkZ}`] && !this.waitingSpiralChunksLoad[`${chunkX},${chunkZ}`]) {
+    //   void this.loadChunk({ x: chunkX, z: chunkZ })
+    //   return
+    // }
 
     this.emit('blockUpdate', { pos: position, stateId })
   }
@@ -117,6 +125,8 @@ export class WorldDataEmitter extends (EventEmitter as new () => TypedEmitter<Wo
         if (this.waitingSpiralChunksLoad[`${pos.x},${pos.z}`]) {
           this.waitingSpiralChunksLoad[`${pos.x},${pos.z}`](true)
           delete this.waitingSpiralChunksLoad[`${pos.x},${pos.z}`]
+        } else if (this.loadedChunks[`${pos.x},${pos.z}`]) {
+          void this.loadChunk(pos, false, 'Received another chunkColumnLoad event while already loaded')
         }
       },
       chunkColumnUnload: (pos: Vec3) => {
@@ -141,7 +151,7 @@ export class WorldDataEmitter extends (EventEmitter as new () => TypedEmitter<Wo
     bot._client.on('update_light', ({ chunkX, chunkZ }) => {
       const chunkPos = new Vec3(chunkX * 16, 0, chunkZ * 16)
       if (!this.waitingSpiralChunksLoad[`${chunkX},${chunkZ}`] && this.loadedChunks[`${chunkX},${chunkZ}`]) {
-        void this.loadChunk(chunkPos, true)
+        void this.loadChunk(chunkPos, true, 'update_light')
       }
     })
 
@@ -240,7 +250,7 @@ export class WorldDataEmitter extends (EventEmitter as new () => TypedEmitter<Wo
   // debugGotChunkLatency = [] as number[]
   // lastTime = 0
 
-  async loadChunk (pos: ChunkPos, isLightUpdate = false) {
+  async loadChunk (pos: ChunkPos, isLightUpdate = false, reason = 'spiral') {
     const [botX, botZ] = chunkPos(this.lastPos)
     console.log('loadChunk', botX - pos.x / 16, botZ - pos.z / 16)
 
@@ -263,6 +273,15 @@ export class WorldDataEmitter extends (EventEmitter as new () => TypedEmitter<Wo
         //@ts-expect-error
         this.emitter.emit('loadChunk', { x: pos.x, z: pos.z, chunk, blockEntities: column.blockEntities, worldConfig, isLightUpdate })
         this.loadedChunks[`${pos.x},${pos.z}`] = true
+
+        this.debugChunksInfo[`${pos.x},${pos.z}`] ??= {
+          loads: []
+        }
+        this.debugChunksInfo[`${pos.x},${pos.z}`].loads.push({
+          dataLength: chunk.length,
+          reason,
+          time: Math.floor(performance.now()),
+        })
       } else if (this.isPlayground) { // don't allow in real worlds pre-flag chunks as loaded to avoid race condition when the chunk might still be loading. In playground it's assumed we always pre-load all chunks first
         this.emitter.emit('markAsLoaded', { x: pos.x, z: pos.z })
       }
@@ -281,6 +300,7 @@ export class WorldDataEmitter extends (EventEmitter as new () => TypedEmitter<Wo
   unloadChunk (pos: ChunkPos) {
     this.emitter.emit('unloadChunk', { x: pos.x, z: pos.z })
     delete this.loadedChunks[`${pos.x},${pos.z}`]
+    delete this.debugChunksInfo[`${pos.x},${pos.z}`]
   }
 
   async updatePosition (pos: Vec3, force = false) {
