@@ -111,13 +111,13 @@ export default ({
       </div>
 
       {showSidebar && selectedChunk && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }} className='text-select'>
           {selectedChunk.displayLines.map((line, i) => (
             <div key={i} style={{ fontSize: '10px', wordBreak: 'break-word' }}>
               {line}
             </div>
           ))}
-          <div style={{ marginTop: '10px', fontSize: '10px' }} className='text-select'>
+          <div style={{ marginTop: '10px', fontSize: '10px', whiteSpace: 'pre', maxWidth: 100, }}>
             <div>Sidebar Info:</div>
             {selectedChunk.sidebarLines.map((line, i) => (
               <div key={i}>{line}</div>

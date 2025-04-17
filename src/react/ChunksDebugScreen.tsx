@@ -22,13 +22,21 @@ const Inner = () => {
     )
   }, [])
 
-  const chunksWaitingServer = Object.keys(worldView!.waitingSpiralChunksLoad).map((x): ChunkDebug => ({
-    x: Number(x.split(',')[0]),
-    z: Number(x.split(',')[1]),
-    state: 'server-waiting',
-    lines: [],
-    sidebarLines: [],
-  }))
+  const mapChunk = (key: string, state: ChunkDebug['state']): ChunkDebug => {
+    const chunk = worldView!.debugChunksInfo[key]
+    return {
+      x: Number(key.split(',')[0]),
+      z: Number(key.split(',')[1]),
+      state,
+      lines: [String(chunk?.loads.length ?? 0)],
+      sidebarLines: [
+        `loads: ${chunk.loads.map(l => `${l.reason} ${l.dataLength} ${l.time}`).join('\n')}`,
+        // `blockUpdates: ${chunk.blockUpdates}`,
+      ],
+    }
+  }
+
+  const chunksWaitingServer = Object.keys(worldView!.waitingSpiralChunksLoad).map(key => mapChunk(key, 'server-waiting'))
 
   const world = globalThis.world as WorldRendererThree
 
@@ -37,39 +45,15 @@ const Inner = () => {
     return [`${x},${z}`, true]
   }))
 
-  const chunksWaitingClient = Object.keys(worldView!.loadedChunks).map((x): ChunkDebug => ({
-    x: Number(x.split(',')[0]),
-    z: Number(x.split(',')[1]),
-    state: 'client-waiting',
-    lines: [],
-    sidebarLines: [],
-  }))
+  const chunksWaitingClient = Object.keys(worldView!.loadedChunks).map(key => mapChunk(key, 'client-waiting'))
 
-  const clientProcessingChunks = Object.keys(world.loadedChunks).map((x): ChunkDebug => ({
-    x: Number(x.split(',')[0]),
-    z: Number(x.split(',')[1]),
-    state: 'client-processing',
-    lines: [],
-    sidebarLines: [],
-  }))
+  const clientProcessingChunks = Object.keys(world.loadedChunks).map(key => mapChunk(key, 'client-processing'))
 
   const chunksDoneEmpty = Object.keys(world.finishedChunks)
     .filter(chunkPos => !loadedSectionsChunks[chunkPos])
-    .map((x): ChunkDebug => ({
-      x: Number(x.split(',')[0]),
-      z: Number(x.split(',')[1]),
-      state: 'done-empty',
-      lines: [],
-      sidebarLines: [],
-    }))
+    .map(key => mapChunk(key, 'done-empty'))
 
-  const chunksDone = Object.keys(world.finishedChunks).map((x): ChunkDebug => ({
-    x: Number(x.split(',')[0]),
-    z: Number(x.split(',')[1]),
-    state: 'done',
-    lines: [],
-    sidebarLines: [],
-  }))
+  const chunksDone = Object.keys(world.finishedChunks).map(key => mapChunk(key, 'done'))
 
   const allChunks = [
     ...chunksWaitingServer,
