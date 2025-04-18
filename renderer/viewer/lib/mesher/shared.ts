@@ -33,7 +33,8 @@ export type MesherGeometryOutput = {
   t_colors?: number[],
   t_uvs?: number[],
 
-  indices: number[],
+  indices: Uint32Array,
+  indicesCount: number,
   tiles: Record<string, BlockType>,
   heads: Record<string, any>,
   signs: Record<string, any>,

@@ -423,13 +423,19 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
 
     if (!needTiles) {
       if (doAO && aos[0] + aos[3] >= aos[1] + aos[2]) {
-        attr.indices.push(
-          ndx, ndx + 3, ndx + 2, ndx, ndx + 1, ndx + 3
-        )
+        attr.indices[attr.indicesCount++] = ndx
+        attr.indices[attr.indicesCount++] = ndx + 3
+        attr.indices[attr.indicesCount++] = ndx + 2
+        attr.indices[attr.indicesCount++] = ndx
+        attr.indices[attr.indicesCount++] = ndx + 1
+        attr.indices[attr.indicesCount++] = ndx + 3
       } else {
-        attr.indices.push(
-          ndx, ndx + 1, ndx + 2, ndx + 2, ndx + 1, ndx + 3
-        )
+        attr.indices[attr.indicesCount++] = ndx
+        attr.indices[attr.indicesCount++] = ndx + 1
+        attr.indices[attr.indicesCount++] = ndx + 2
+        attr.indices[attr.indicesCount++] = ndx + 2
+        attr.indices[attr.indicesCount++] = ndx + 1
+        attr.indices[attr.indicesCount++] = ndx + 3
       }
     }
   }
@@ -462,7 +468,8 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
     t_normals: [],
     t_colors: [],
     t_uvs: [],
-    indices: [],
+    indices: new Uint32Array(442_368), // Maximum possible indices
+    indicesCount: 0, // Track current index position
     tiles: {},
     // todo this can be removed here
     heads: {},
@@ -605,12 +612,19 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
 
   let ndx = attr.positions.length / 3
   for (let i = 0; i < attr.t_positions!.length / 12; i++) {
-    attr.indices.push(
-      ndx, ndx + 1, ndx + 2, ndx + 2, ndx + 1, ndx + 3,
-      // eslint-disable-next-line @stylistic/function-call-argument-newline
-      // back face
-      ndx, ndx + 2, ndx + 1, ndx + 2, ndx + 3, ndx + 1
-    )
+    attr.indices[attr.indicesCount++] = ndx
+    attr.indices[attr.indicesCount++] = ndx + 1
+    attr.indices[attr.indicesCount++] = ndx + 2
+    attr.indices[attr.indicesCount++] = ndx + 2
+    attr.indices[attr.indicesCount++] = ndx + 1
+    attr.indices[attr.indicesCount++] = ndx + 3
+    // back face
+    attr.indices[attr.indicesCount++] = ndx
+    attr.indices[attr.indicesCount++] = ndx + 2
+    attr.indices[attr.indicesCount++] = ndx + 1
+    attr.indices[attr.indicesCount++] = ndx + 2
+    attr.indices[attr.indicesCount++] = ndx + 3
+    attr.indices[attr.indicesCount++] = ndx + 1
     ndx += 4
   }
 
