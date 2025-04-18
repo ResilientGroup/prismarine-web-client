@@ -470,6 +470,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
     t_uvs: [],
     indices: new Uint32Array(442_368), // Maximum possible indices
     indicesCount: 0, // Track current index position
+    using32Array: true,
     tiles: {},
     // todo this can be removed here
     heads: {},

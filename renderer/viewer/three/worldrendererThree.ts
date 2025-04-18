@@ -333,7 +333,11 @@ export class WorldRendererThree extends WorldRendererCommon {
     geometry.setAttribute('normal', new THREE.BufferAttribute(data.geometry.normals, 3))
     geometry.setAttribute('color', new THREE.BufferAttribute(data.geometry.colors, 3))
     geometry.setAttribute('uv', new THREE.BufferAttribute(data.geometry.uvs, 2))
-    geometry.index = new THREE.Uint16BufferAttribute(data.geometry.indices, 1)
+    if (data.geometry.using32Array) {
+      geometry.index = new THREE.Uint32BufferAttribute(data.geometry.indices, 1)
+    } else {
+      geometry.index = new THREE.Uint16BufferAttribute(data.geometry.indices, 1)
+    }
 
     const mesh = new THREE.Mesh(geometry, this.material)
     mesh.position.set(data.geometry.sx, data.geometry.sy, data.geometry.sz)
