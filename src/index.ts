@@ -543,6 +543,7 @@ export async function connect (connectOptions: ConnectOptions) {
     window.bot = bot
     if (connectOptions.viewerWsConnect) {
       void handleCustomChannel()
+      bot.physicsEnabled = false
     }
     customEvents.emit('mineflayerBotCreated')
     if (singleplayer || p2pMultiplayer || localReplaySession) {
