@@ -82,7 +82,7 @@ import packetsPatcher from './mineflayer/plugins/packetsPatcher'
 import { mainMenuState } from './react/MainMenuRenderApp'
 import './mobileShim'
 import { parseFormattedMessagePacket } from './botUtils'
-import { getViewerVersionData, getWsProtocolStream, handleCustomChannel } from './viewerConnector'
+import { getViewerVersionData, getWsProtocolStream, onBotCreatedViewerHandler } from './viewerConnector'
 import { getWebsocketStream } from './mineflayer/websocket-core'
 import { appQueryParams, appQueryParamsArray } from './appParams'
 import { playerState } from './mineflayer/playerState'
@@ -552,8 +552,7 @@ export async function connect (connectOptions: ConnectOptions) {
     }) as unknown as typeof __type_bot
     window.bot = bot
     if (connectOptions.viewerWsConnect) {
-      void handleCustomChannel()
-      bot.physicsEnabled = false
+      void onBotCreatedViewerHandler()
     }
     customEvents.emit('mineflayerBotCreated')
     if (singleplayer || p2pMultiplayer || localReplaySession) {

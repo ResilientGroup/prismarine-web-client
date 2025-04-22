@@ -81,7 +81,7 @@
     "google-drive-browserfs": "github:zardoy/browserfs#google-drive",
     "jszip": "^3.10.1",
     "lodash-es": "^4.17.21",
-    "mcraft-fun-mineflayer": "^0.1.14",
+    "mcraft-fun-mineflayer": "^0.1.21",
     "minecraft-data": "3.83.1",
     "minecraft-protocol": "github:PrismarineJS/node-minecraft-protocol#master",
     "mineflayer-item-map-downloader": "github:zardoy/mineflayer-item-map-downloader",
