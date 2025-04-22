@@ -93,11 +93,12 @@ import ping from './mineflayer/plugins/ping'
 import mouse from './mineflayer/plugins/mouse'
 import { startLocalReplayServer } from './packetsReplay/replayPackets'
 import { localRelayServerPlugin } from './mineflayer/plugins/packetsRecording'
-import { createConsoleLogProgressReporter, createFullScreenProgressReporter, ProgressReporter } from './core/progressReporter'
+import { createConsoleLogProgressReporter, createFullScreenProgressReporter, createWrappedProgressReporter, ProgressReporter } from './core/progressReporter'
 import { appViewer } from './appViewer'
 import './appViewerLoad'
 import { registerOpenBenchmarkListener } from './benchmark'
 import { tryHandleBuiltinCommand } from './builtinCommands'
+import { loadingTimerState } from './react/LoadingTimer'
 
 window.debug = debug
 window.beforeRenderFrame = []
@@ -168,6 +169,8 @@ export async function connect (connectOptions: ConnectOptions) {
     })
   }
 
+  loadingTimerState.loading = true
+  loadingTimerState.start = Date.now()
   miscUiState.hasErrors = false
   lastConnectOptions.value = connectOptions
 
@@ -211,6 +214,7 @@ export async function connect (connectOptions: ConnectOptions) {
   let bot!: typeof __type_bot
   const destroyAll = (wasKicked = false) => {
     if (ended) return
+    loadingTimerState.loading = false
     const hadConnected = !!bot
     if (!wasKicked && miscUiState.appConfig?.allowAutoConnect && appQueryParams.autoConnect && hadConnected) {
       location.reload()
@@ -302,10 +306,12 @@ export async function connect (connectOptions: ConnectOptions) {
     Object.assign(serverOptions, connectOptions.serverOverridesFlat ?? {})
 
     await progress.executeWithMessage('Downloading minecraft data', 'download-mcdata', async () => {
+      loadingTimerState.networkOnlyStart = Date.now()
       await Promise.all([
         downloadAllMinecraftData(),
         downloadOtherGameData()
       ])
+      loadingTimerState.networkOnlyStart = 0
     })
 
     let dataDownloaded = false
@@ -401,8 +407,10 @@ export async function connect (connectOptions: ConnectOptions) {
     } else if (connectOptions.server) {
       if (!finalVersion) {
         const versionAutoSelect = getVersionAutoSelect()
-        setLoadingScreenStatus(`Fetching server version. Preffered: ${versionAutoSelect}`)
+        const wrapped = createWrappedProgressReporter(progress, `Fetching server version. Preffered: ${versionAutoSelect}`)
+        loadingTimerState.networkOnlyStart = Date.now()
         const autoVersionSelect = await getServerInfo(server.host, server.port ? Number(server.port) : undefined, versionAutoSelect)
+        wrapped.end()
         finalVersion = autoVersionSelect.version
       }
       initialLoadingText = `Connecting to server ${server.host}:${server.port ?? 25_565} with version ${finalVersion}`
@@ -416,6 +424,7 @@ export async function connect (connectOptions: ConnectOptions) {
     setLoadingScreenStatus(initialLoadingText)
 
     if (parsedServer.isWebSocket) {
+      loadingTimerState.networkOnlyStart = Date.now()
       clientDataStream = (await getWebsocketStream(server.host)).mineflayerStream
     }
 
@@ -459,6 +468,7 @@ export async function connect (connectOptions: ConnectOptions) {
 
     if (finalVersion) {
       // ensure data is downloaded
+      loadingTimerState.networkOnlyStart ??= Date.now()
       await downloadMcData(finalVersion)
     }
 
@@ -672,6 +682,7 @@ export async function connect (connectOptions: ConnectOptions) {
   onBotCreate()
 
   bot.once('login', () => {
+    loadingTimerState.networkOnlyStart = 0
     setLoadingScreenStatus('Loading world')
   })
 

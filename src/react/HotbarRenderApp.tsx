@@ -81,9 +81,6 @@ const HotbarInner = () => {
     const controller = new AbortController()
 
     const inv = openItemsCanvas('HotbarWin', {
-      _client: {
-        write () {}
-      },
       clickWindow (slot, mouseButton, mode) {
         if (mouseButton === 1) {
           console.log('right click')
