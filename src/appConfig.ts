@@ -26,6 +26,9 @@ export type AppConfig = {
   splashText?: string
   pauseLinks?: Array<Array<Record<string, any>>>
   keybindings?: Record<string, any>
+  defaultLanguage?: string
+  displayLanguageSelector?: boolean
+  supportedLanguages?: string[]
 }
 
 export const loadAppConfig = (appConfig: AppConfig) => {

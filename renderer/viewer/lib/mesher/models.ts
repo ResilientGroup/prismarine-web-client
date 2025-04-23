@@ -468,7 +468,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
     t_normals: [],
     t_colors: [],
     t_uvs: [],
-    indices: new Uint32Array(442_368), // Maximum possible indices
+    indices: [],
     indicesCount: 0, // Track current index position
     using32Array: true,
     tiles: {},
@@ -643,6 +643,12 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
   attr.normals = new Float32Array(attr.normals) as any
   attr.colors = new Float32Array(attr.colors) as any
   attr.uvs = new Float32Array(attr.uvs) as any
+  attr.using32Array = arrayNeedsUint32(attr.indices)
+  if (attr.using32Array) {
+    attr.indices = new Uint32Array(attr.indices)
+  } else {
+    attr.indices = new Uint16Array(attr.indices)
+  }
 
   if (needTiles) {
     delete attr.positions
@@ -652,6 +658,21 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
   }
 
   return attr
+}
+
+// copied from three.js
+function arrayNeedsUint32 (array) {
+
+  // assumes larger values usually on last
+
+  for (let i = array.length - 1; i >= 0; -- i) {
+
+    if (array[i] >= 65_535) return true // account for PRIMITIVE_RESTART_FIXED_INDEX, #24565
+
+  }
+
+  return false
+
 }
 
 export const setBlockStatesData = (blockstatesModels, blocksAtlas: any, _needTiles = false, useUnknownBlockModel = true, version = 'latest') => {

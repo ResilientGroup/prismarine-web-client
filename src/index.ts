@@ -14,6 +14,7 @@ import './mineflayer/java-tester/index'
 import './external'
 import './appConfig'
 import './mineflayer/timers'
+import './mineflayer/plugins'
 import { getServerInfo } from './mineflayer/mc-protocol'
 import { onGameLoad } from './inventoryWindows'
 import initCollisionShapes from './getCollisionInteractionShapes'
@@ -78,11 +79,10 @@ import { ConnectOptions, loadMinecraftData, getVersionAutoSelect, downloadOtherG
 import { ref, subscribe } from 'valtio'
 import { signInMessageState } from './react/SignInMessageProvider'
 import { updateAuthenticatedAccountData, updateLoadedServerData, updateServerConnectionHistory } from './react/serversStorage'
-import packetsPatcher from './mineflayer/plugins/packetsPatcher'
 import { mainMenuState } from './react/MainMenuRenderApp'
 import './mobileShim'
 import { parseFormattedMessagePacket } from './botUtils'
-import { getViewerVersionData, getWsProtocolStream, onBotCreatedViewerHandler } from './viewerConnector'
+import { getViewerVersionData, getWsProtocolStream, handleCustomChannel } from './viewerConnector'
 import { getWebsocketStream } from './mineflayer/websocket-core'
 import { appQueryParams, appQueryParamsArray } from './appParams'
 import { playerState } from './mineflayer/playerState'
@@ -111,7 +111,6 @@ void registerServiceWorker().then(() => {
 watchFov()
 initCollisionShapes()
 initializePacketsReplay()
-packetsPatcher()
 onAppLoad()
 customChannels()
 
@@ -621,14 +620,6 @@ export async function connect (connectOptions: ConnectOptions) {
     handleError(err)
   }
   if (!bot) return
-
-  if (connectOptions.server) {
-    bot.loadPlugin(ping)
-  }
-  bot.loadPlugin(mouse)
-  if (!localReplaySession) {
-    bot.loadPlugin(localRelayServerPlugin)
-  }
 
   const p2pConnectTimeout = p2pMultiplayer ? setTimeout(() => { throw new UserError('Spawn timeout. There might be error on the other side, check console.') }, 20_000) : undefined
 

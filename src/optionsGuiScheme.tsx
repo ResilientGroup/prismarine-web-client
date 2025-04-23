@@ -231,6 +231,18 @@ export const guiOptionsScheme: {
       custom () {
         return <Button label='VR...' onClick={() => openOptionsMenu('VR')} inScreen />
       },
+    },
+    {
+      custom () {
+        const { appConfig } = useSnapshot(miscUiState)
+        if (!appConfig?.displayLanguageSelector) return null
+        return <Button
+          label='Language...' onClick={async () => {
+            const newLang = await showOptionsModal('Set Language', (appConfig.supportedLanguages ?? []) as string[])
+            if (!newLang) return
+            options.language = newLang.split(' - ')[0]
+          }} inScreen />
+      },
     }
   ],
   interface: [

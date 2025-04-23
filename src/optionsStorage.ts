@@ -4,6 +4,7 @@ import { omitObj } from '@zardoy/utils'
 import { appQueryParams, appQueryParamsArray } from './appParams'
 import type { AppConfig } from './appConfig'
 import { appStorage } from './react/appStorageProvider'
+import { miscUiState } from './globalState'
 
 const isDev = process.env.NODE_ENV === 'development'
 const initialAppConfig = process.env?.INLINED_APP_CONFIG as AppConfig ?? {}
@@ -60,7 +61,7 @@ const defaultOptions = {
   customChannels: false,
   remoteContentNotSameOrigin: false as boolean | string[],
   packetsRecordingAutoStart: false,
-  locale: 'auto',
+  language: 'auto',
   preciseMouseInput: false,
   // todo ui setting, maybe enable by default?
   waitForChunksRender: false as 'sp-only' | boolean,
@@ -295,9 +296,9 @@ export const useOptionValue = (setting, valueCallback) => {
   subscribe(setting, valueCallback)
 }
 
-export const getLocale = () => {
-  if (options.locale === 'auto') {
-    return navigator.language
+export const getAppLanguage = () => {
+  if (options.language === 'auto') {
+    return miscUiState.appConfig?.defaultLanguage ?? navigator.language
   }
-  return options.locale
+  return options.language
 }

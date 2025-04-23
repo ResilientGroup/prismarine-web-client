@@ -68,12 +68,13 @@ const createGraphicsBackend: GraphicsBackendLoader = (initOptions: GraphicsInitO
     await initOptions.resourcesManager.updateAssetsData({ })
   }
 
-  const startWorld = (displayOptions: DisplayWorldOptions) => {
+  const startWorld = async (displayOptions: DisplayWorldOptions) => {
     if (panoramaRenderer) {
       panoramaRenderer.dispose()
       panoramaRenderer = null
     }
     worldRenderer = new WorldRendererThree(documentRenderer.renderer, initOptions, displayOptions)
+    await worldRenderer.worldReadyPromise
     documentRenderer.render = (sizeChanged: boolean) => {
       worldRenderer?.render(sizeChanged)
     }
