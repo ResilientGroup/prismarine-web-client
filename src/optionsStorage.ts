@@ -66,6 +66,9 @@ const defaultOptions = {
   // todo ui setting, maybe enable by default?
   waitForChunksRender: false as 'sp-only' | boolean,
   jeiEnabled: true as boolean | Array<'creative' | 'survival' | 'adventure' | 'spectator'>,
+  modsSupport: false,
+  modsAutoUpdate: 'check' as 'check' | 'never' | 'always',
+  modsUpdatePeriodCheck: 24, // hours
   preventBackgroundTimeoutKick: false,
   preventSleep: false,
   debugContro: false,

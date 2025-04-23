@@ -81,6 +81,7 @@ import { updateAuthenticatedAccountData, updateLoadedServerData, updateServerCon
 import { mainMenuState } from './react/MainMenuRenderApp'
 import './mobileShim'
 import { parseFormattedMessagePacket } from './botUtils'
+import { appStartup } from './clientMods'
 import { getViewerVersionData, getWsProtocolStream, onBotCreatedViewerHandler } from './viewerConnector'
 import { getWebsocketStream } from './mineflayer/websocket-core'
 import { appQueryParams, appQueryParamsArray } from './appParams'
@@ -95,6 +96,7 @@ import './appViewerLoad'
 import { registerOpenBenchmarkListener } from './benchmark'
 import { tryHandleBuiltinCommand } from './builtinCommands'
 import { loadingTimerState } from './react/LoadingTimer'
+import { loadPluginsIntoWorld } from './react/CreateWorldProvider'
 
 window.debug = debug
 window.beforeRenderFrame = []
@@ -368,6 +370,16 @@ export async function connect (connectOptions: ConnectOptions) {
       // in setProtocol: we emit 'connect' here below so in that file we send set_protocol and login_start (onLogin handler)
       // Client (class) of flying-squid (in server/login.js of mc-protocol): onLogin handler: skip most logic & go to loginClient() which assigns uuid and sends 'success' back to client (onLogin handler) and emits 'login' on the server (login.js in flying-squid handler)
       // flying-squid: 'login' -> player.login -> now sends 'login' event to the client (handled in many plugins in mineflayer) -> then 'update_health' is sent which emits 'spawn' in mineflayer
+
+      const serverPlugins = new URLSearchParams(location.search).getAll('serverPlugin')
+      if (serverPlugins.length > 0 && !serverOptions.worldFolder) {
+        console.log('Placing server plugins', serverPlugins)
+
+        serverOptions.worldFolder ??= '/temp'
+        await loadPluginsIntoWorld('/temp', serverPlugins)
+
+        console.log('Server plugins placed')
+      }
 
       localServer = window.localServer = window.server = startLocalServer(serverOptions)
       connectOptions?.connectEvents?.serverCreated?.()
@@ -669,7 +681,7 @@ export async function connect (connectOptions: ConnectOptions) {
 
   bot.once('login', () => {
     loadingTimerState.networkOnlyStart = 0
-    setLoadingScreenStatus('Loading world')
+    progress.setMessage('Loading world')
   })
 
   let worldWasReady = false
@@ -984,4 +996,5 @@ if (initialLoader) {
 window.pageLoaded = true
 
 void possiblyHandleStateVariable()
+appViewer.waitBackendLoadPromises.push(appStartup())
 registerOpenBenchmarkListener()
