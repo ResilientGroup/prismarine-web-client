@@ -8,6 +8,7 @@ import { options } from '../optionsStorage'
 import { loadOrPlaySound } from '../basicSounds'
 import { getActiveResourcepackBasePath, resourcePackState } from '../resourcePack'
 import { showNotification } from '../react/NotificationProvider'
+import { pixelartIcons } from '../react/PixelartIcon'
 import { createSoundMap, SoundMap } from './soundsMap'
 import { musicSystem } from './musicSystem'
 
@@ -33,7 +34,7 @@ subscribeKey(miscUiState, 'gameLoaded', async () => {
   globalThis.soundMap = soundMap
   if (!soundMap) return
   if (soundMap.noVersionIdMapping) {
-    showNotification('No sound ID mapping for this version', undefined, true)
+    showNotification('No exact sound ID mappings for this version', undefined, false, pixelartIcons['warning-box'])
   }
   void updateResourcePack()
   startMusicSystem()
