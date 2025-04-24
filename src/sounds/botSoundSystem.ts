@@ -115,7 +115,7 @@ subscribeKey(miscUiState, 'gameLoaded', async () => {
     const soundResource = packet['soundEvent']?.resource as string | undefined
     const pos = new Vec3(packet.x / 8, packet.y / 8, packet.z / 8)
     if (packet.soundId !== 0 || !soundResource) {
-      const soundKey = soundMap!.soundsIdToName[packet.soundId]
+      const soundKey = soundMap!.soundsIdToName[packet.soundId - 1]
       if (soundKey === undefined) return
       await playGeneralSound(soundKey, pos, packet.volume, packet.pitch)
       return
