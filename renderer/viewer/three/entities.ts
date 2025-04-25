@@ -464,7 +464,7 @@ export class Entities {
     }
   }
 
-  playAnimation (entityPlayerId, animation: 'walking' | 'running' | 'oneSwing' | 'idle') {
+  playAnimation (entityPlayerId, animation: 'walking' | 'running' | 'oneSwing' | 'idle' | 'crouch' | 'crouchWalking') {
     const playerObject = this.getPlayerObject(entityPlayerId)
     if (!playerObject) return
 
@@ -477,11 +477,11 @@ export class Entities {
     if (playerObject.animation instanceof WalkingGeneralSwing) {
       playerObject.animation.switchAnimationCallback = () => {
         if (!(playerObject.animation instanceof WalkingGeneralSwing)) throw new Error('Expected WalkingGeneralSwing')
-        playerObject.animation.isMoving = animation !== 'idle'
+        playerObject.animation.isMoving = animation === 'walking' || animation === 'running' || animation === 'crouchWalking'
         playerObject.animation.isRunning = animation === 'running'
+        playerObject.animation.isCrouched = animation === 'crouch' || animation === 'crouchWalking'
       }
     }
-
   }
 
   parseEntityLabel (jsonLike) {

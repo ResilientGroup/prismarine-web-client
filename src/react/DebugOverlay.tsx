@@ -274,7 +274,8 @@ const hardcodedListOfDebugPacketsToIgnore = {
     'entity_status',
     'set_ticking_state',
     'ping_response',
-    'block_change'
+    'block_change',
+    'damage_event'
   ],
   sent: [
     'pong',
