@@ -60,7 +60,7 @@ export default () => {
           updateLoadedServerData((server) => {
             server.autoLogin ??= {}
             const password = message.split(' ')[1]
-            server.autoLogin[bot.player.username] = password
+            server.autoLogin[bot.username] = password
             return server
           })
           hideNotification()
