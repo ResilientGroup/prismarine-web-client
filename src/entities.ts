@@ -137,7 +137,7 @@ customEvents.on('gameLoaded', () => {
             }
           }
           // even if not found, still record to cache
-          getThreeJsRendererMethods()?.updatePlayerSkin(entityId, playerEntry.player?.name, playerEntry.uuid, skinUrl, capeUrl)
+          void getThreeJsRendererMethods()?.updatePlayerSkin(entityId, playerEntry.player?.name, playerEntry.uuid, skinUrl, capeUrl)
         } catch (err) {
           console.error('Error decoding player texture:', err)
         }

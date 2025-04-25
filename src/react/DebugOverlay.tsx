@@ -273,7 +273,8 @@ const hardcodedListOfDebugPacketsToIgnore = {
     'scoreboard_score',
     'entity_status',
     'set_ticking_state',
-    'ping_response'
+    'ping_response',
+    'block_change'
   ],
   sent: [
     'pong',
