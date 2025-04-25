@@ -115,6 +115,9 @@ export class WorldDataEmitter extends (EventEmitter as new () => TypedEmitter<Wo
       entityUpdate (e: any) {
         emitEntity(e)
       },
+      entityEquip (e: any) {
+        emitEntity(e)
+      },
       entityMoved (e: any) {
         emitEntity(e, 'entityMoved')
       },

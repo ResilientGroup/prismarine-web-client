@@ -724,8 +724,9 @@ export class Entities {
 
     // check if entity has armor
     if (entity.equipment) {
-      this.addItemModel(e, 'left', entity.equipment[0])
-      this.addItemModel(e, 'right', entity.equipment[1])
+      const isPlayer = entity.type === 'player'
+      this.addItemModel(e, isPlayer ? 'right' : 'left', entity.equipment[0], isPlayer)
+      this.addItemModel(e, isPlayer ? 'left' : 'right', entity.equipment[1], isPlayer)
       addArmorModel(this.worldRenderer, e, 'feet', entity.equipment[2])
       addArmorModel(this.worldRenderer, e, 'legs', entity.equipment[3], 2)
       addArmorModel(this.worldRenderer, e, 'chest', entity.equipment[4])
@@ -1019,11 +1020,13 @@ export class Entities {
     return texture
   }
 
-  addItemModel (entityMesh: SceneEntity, hand: 'left' | 'right', item: Item) {
-    const parentName = `bone_${hand}item`
+  addItemModel (entityMesh: SceneEntity, hand: 'left' | 'right', item: Item, isPlayer = false) {
+    const bedrockParentName = `bone_${hand}item`
+    const itemName = `custom_item_${hand}`
+
     // remove existing item
     entityMesh.traverse(c => {
-      if (c.parent?.name.toLowerCase() === parentName) {
+      if (c.name === itemName) {
         c.removeFromParent()
         if (c['additionalCleanup']) c['additionalCleanup']()
       }
@@ -1035,7 +1038,7 @@ export class Entities {
     })
     if (itemObject?.mesh) {
       entityMesh.traverse(c => {
-        if (c.name.toLowerCase() === parentName) {
+        if (c.name.toLowerCase() === bedrockParentName || c.name === `${hand}Arm`) {
           const group = new THREE.Object3D()
           group['additionalCleanup'] = () => {
             // important: avoid texture memory leak and gpu slowdown
@@ -1051,7 +1054,18 @@ export class Entities {
             group.rotation.y = Math.PI / 2
             group.scale.multiplyScalar(2)
           }
+
+          // if player, move item below and forward a bit
+          if (isPlayer) {
+            group.position.y = -8
+            group.position.z = 5
+            group.position.x = hand === 'left' ? 1 : -1
+            group.rotation.x = Math.PI
+          }
+
           group.add(itemMesh)
+
+          group.name = itemName
           c.add(group)
         }
       })
