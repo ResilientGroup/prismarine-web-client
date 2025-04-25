@@ -271,14 +271,17 @@ const hardcodedListOfDebugPacketsToIgnore = {
     'playerlist_header',
     'scoreboard_objective',
     'scoreboard_score',
-    'entity_status'
+    'entity_status',
+    'set_ticking_state',
+    'ping_response'
   ],
   sent: [
     'pong',
     'position',
     'look',
     'keep_alive',
-    'position_look'
+    'position_look',
+    'ping_request'
   ]
 }
 
