@@ -137,14 +137,24 @@ export function isAllowedChatCharacter (char: string): boolean {
 
 export const isStringAllowed = (str: string) => {
   const invalidChars = new Set<string>()
-  for (const char of str) {
+  for (const [i, char] of [...str].entries()) {
+    const isSurrogatePair = str.codePointAt(i) !== str['charCodeAt'](i)
+    if (isSurrogatePair) continue
+
     if (!isAllowedChatCharacter(char)) {
       invalidChars.add(char)
     }
   }
 
+  const valid = invalidChars.size === 0
+  if (valid) {
+    return {
+      valid: true
+    }
+  }
+
   return {
-    valid: invalidChars.size === 0,
+    valid,
     clean: [...str].filter(c => !invalidChars.has(c)).join(''),
     invalid: [...invalidChars]
   }

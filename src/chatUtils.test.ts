@@ -70,9 +70,15 @@ test('isAllowedChatCharacter', () => {
   expect(isAllowedChatCharacter('a')).toBe(true)
   expect(isAllowedChatCharacter('§')).toBe(false)
   expect(isAllowedChatCharacter(' ')).toBe(true)
-  expect(isAllowedChatCharacter('ツ')).toBe(true)
-  expect(isStringAllowed('🟢')).toMatchObject({
+  expect(isStringAllowed('a§b')).toMatchObject({
+    valid: false,
+    clean: 'ab',
+    invalid: ['§']
+  })
+  expect(isStringAllowed('aツ')).toMatchObject({
     valid: true,
-    invalid: null
+  })
+  expect(isStringAllowed('a🟢')).toMatchObject({
+    valid: true,
   })
 })
