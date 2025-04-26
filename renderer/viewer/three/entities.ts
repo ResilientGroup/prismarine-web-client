@@ -1089,6 +1089,14 @@ export class Entities {
       })
     }
   }
+
+  raycastScene () {
+    // return any object from scene. raycast from camera
+    const raycaster = new THREE.Raycaster()
+    raycaster.setFromCamera(new THREE.Vector2(0, 0), this.worldRenderer.camera)
+    const intersects = raycaster.intersectObjects(this.worldRenderer.scene.children)
+    return intersects[0]?.object
+  }
 }
 
 function getGeneralEntitiesMetadata (entity: { name; metadata }): Partial<UnionToIntersection<EntityMetadataVersions[keyof EntityMetadataVersions]>> {
@@ -1186,12 +1194,6 @@ function addArmorModel (worldRenderer: WorldRendererThree, entityMesh: THREE.Obj
   const group = new THREE.Object3D()
   group.name = `armor_${slotType}${overlay ? '_overlay' : ''}`
   group.add(mesh)
-
-  const skeletonHelper = new THREE.SkeletonHelper(mesh)
-  //@ts-expect-error
-  skeletonHelper.material.linewidth = 2
-  skeletonHelper.visible = false
-  group.add(skeletonHelper)
 
   entityMesh.add(mesh)
 }
