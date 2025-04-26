@@ -527,12 +527,6 @@ export class EntityMesh {
         debugFlags)
       mesh.name = `geometry_${name}`
       this.mesh.add(mesh)
-
-      const skeletonHelper = new THREE.SkeletonHelper(mesh)
-      //@ts-expect-error
-      skeletonHelper.material.linewidth = 2
-      skeletonHelper.visible = false
-      this.mesh.add(skeletonHelper)
     }
     debugFlags.type = 'bedrock'
   }
