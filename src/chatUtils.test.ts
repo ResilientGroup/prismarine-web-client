@@ -1,6 +1,6 @@
 import { test, expect } from 'vitest'
 import mcData from 'minecraft-data'
-import { formatMessage } from './chatUtils'
+import { formatMessage, isAllowedChatCharacter, isStringAllowed } from './chatUtils'
 
 //@ts-expect-error
 globalThis.loadedData ??= mcData('1.20.1')
@@ -63,4 +63,16 @@ test('formatMessage', () => {
       },
     ]
   `)
+})
+
+test('isAllowedChatCharacter', () => {
+  expect(isAllowedChatCharacter('a')).toBe(true)
+  expect(isAllowedChatCharacter('a')).toBe(true)
+  expect(isAllowedChatCharacter('§')).toBe(false)
+  expect(isAllowedChatCharacter(' ')).toBe(true)
+  expect(isAllowedChatCharacter('ツ')).toBe(true)
+  expect(isStringAllowed('🟢')).toMatchObject({
+    valid: true,
+    invalid: null
+  })
 })
