@@ -54,7 +54,7 @@ export const parseSkinTexturesValue = (value: string) => {
 
 export async function loadSkinImage (skinUrl: string): Promise<{ canvas: HTMLCanvasElement, image: HTMLImageElement }> {
   if (!skinUrl.startsWith('data:')) {
-    skinUrl = await fetchAndConvertBase64Skin(skinUrl)
+    skinUrl = await fetchAndConvertBase64Skin(skinUrl.replace('http://', 'https://'))
   }
 
   const image = await loadImageFromUrl(skinUrl)
