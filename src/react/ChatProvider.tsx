@@ -79,11 +79,11 @@ export default () => {
         if (chatVanillaRestrictions && !miscUiState.flyingSquid) {
           const validation = isStringAllowed(message)
           if (!validation.valid) {
-            const choice = await showOptionsModal(`Can't send invalid characters to vanilla server (${validation.invalid.join(', ')}). You can use them only in command blocks.`, [
+            const choice = await showOptionsModal(`Can't send invalid characters to vanilla server (${validation.invalid?.join(', ')}). You can use them only in command blocks.`, [
               'Remove Them & Send'
             ])
             if (!choice) return
-            message = validation.clean
+            message = validation.clean!
           }
         }
 
