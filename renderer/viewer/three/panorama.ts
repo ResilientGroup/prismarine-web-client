@@ -31,11 +31,12 @@ export class PanoramaRenderer {
   private readonly abortController = new AbortController()
   private worldRenderer: WorldRendererCommon | WorldRendererThree | undefined
   public WorldRendererClass = WorldRendererThree
+  public startTimes = new Map<THREE.MeshBasicMaterial, number>()
 
   constructor (private readonly documentRenderer: DocumentRenderer, private readonly options: GraphicsInitOptions, private readonly doWorldBlocksPanorama = false) {
     this.scene = new THREE.Scene()
-    // dark blue background
-    this.scene.background = new THREE.Color(0x00_22_11)
+    // #324568
+    this.scene.background = new THREE.Color(0x32_45_68)
 
     // Add ambient light
     this.ambientLight = new THREE.AmbientLight(0xcc_cc_cc)
@@ -73,13 +74,15 @@ export class PanoramaRenderer {
     const panorGeo = new THREE.BoxGeometry(1000, 1000, 1000)
     const loader = new THREE.TextureLoader()
     const panorMaterials = [] as THREE.MeshBasicMaterial[]
-    const startTimes = new Map<THREE.MeshBasicMaterial, number>()
     const fadeInDuration = 200
 
     for (const file of panoramaFiles) {
+      // eslint-disable-next-line prefer-const
+      let material: THREE.MeshBasicMaterial
+
       const texture = loader.load(join('background', file), () => {
         // Start fade-in when texture is loaded
-        startTimes.set(material, Date.now())
+        this.startTimes.set(material, Date.now())
       })
 
       // Instead of using repeat/offset to flip, we'll use the texture matrix
@@ -93,7 +96,7 @@ export class PanoramaRenderer {
       texture.minFilter = THREE.LinearFilter
       texture.magFilter = THREE.LinearFilter
 
-      const material = new THREE.MeshBasicMaterial({
+      material = new THREE.MeshBasicMaterial({
         map: texture,
         transparent: true,
         side: THREE.DoubleSide,
@@ -111,7 +114,7 @@ export class PanoramaRenderer {
 
       // Time-based fade in animation for each material
       for (const material of panorMaterials) {
-        const startTime = startTimes.get(material)
+        const startTime = this.startTimes.get(material)
         if (startTime) {
           const elapsed = Date.now() - startTime
           const progress = Math.min(1, elapsed / fadeInDuration)
