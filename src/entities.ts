@@ -119,9 +119,13 @@ customEvents.on('gameLoaded', () => {
   bot.on('entityUpdate', entityData)
   bot.on('entityEquip', entityData)
 
-  // Texture override from packet properties
   bot._client.on('player_info', (packet) => {
     for (const playerEntry of packet.data) {
+      // Switch player nametag visibility based on gamemode (spectator doesn't show nametags)
+      if (playerEntry.gamemode && playerEntry.uuid === bot.player.uuid) {
+        getThreeJsRendererMethods()?.togglePlayerNametags(playerEntry.gamemode !== 3)
+      }
+      // Texture override from packet properties
       if (!playerEntry.player && !playerEntry.properties) continue
       let textureProperty = playerEntry.properties?.find(prop => prop?.name === 'textures')
       if (!textureProperty) {
