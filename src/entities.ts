@@ -119,6 +119,13 @@ customEvents.on('gameLoaded', () => {
       }
     }
   }
+  const updateCamera = (entity: Entity) => {
+    if (bot.game.gameMode !== 'spectator') return
+    viewer.setFirstPersonCamera(entity.position, entity.yaw, entity.pitch)
+    bot.entity.position = entity.position
+    bot.entity.yaw = entity.yaw
+    bot.entity.pitch = entity.pitch
+  }
   viewer.entities.addListener('remove', (e) => {
     loadedSkinEntityIds.delete(e.id)
     playerPerAnimation[e.id] = ''
@@ -128,6 +135,9 @@ customEvents.on('gameLoaded', () => {
   bot.on('entityMoved', (e) => {
     playerRenderSkin(e)
     entityData(e)
+    if (viewer.world.cameraEntity === e.id) {
+      updateCamera(e)
+    }
   })
   bot._client.on('entity_velocity', (packet) => {
     const e = bot.entities[packet.entityId]
@@ -150,6 +160,18 @@ customEvents.on('gameLoaded', () => {
   bot.on('entityUpdate', entityData)
   bot.on('entityEquip', entityData)
 
+  bot._client.on('camera', (packet) => {
+    if (bot.player.entity.id === packet.cameraId) {
+      viewer.world.cameraEntity = undefined
+    } else if (bot.game.gameMode === 'spectator') {
+      const entity = bot.entities[packet.cameraId]
+      if (entity) {
+        viewer.world.cameraEntity = packet.cameraId
+        updateCamera(entity)
+      }
+    }
+  })
+
   watchValue(options, o => {
     viewer.entities.setDebugMode(o.showChunkBorders ? 'basic' : 'none')
   })
@@ -159,6 +181,7 @@ customEvents.on('gameLoaded', () => {
       // Switch player nametag visibility based on gamemode (spectator doesn't show nametags)
       if (playerEntry.gamemode && playerEntry.uuid === bot.player.uuid) {
         viewer.entities.togglePlayerNametags(playerEntry.gamemode !== 3)
+        viewer.world.cameraEntity = undefined
       }
       // Texture override from packet properties
       if (!playerEntry.player && !playerEntry.properties) continue
