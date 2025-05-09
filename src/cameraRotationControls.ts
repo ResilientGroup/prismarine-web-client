@@ -17,6 +17,7 @@ export type CameraMoveEvent = {
 export function onCameraMove (e: MouseEvent | CameraMoveEvent) {
   if (!isGameActive(true)) return
   if (e.type === 'mousemove' && !document.pointerLockElement) return
+  if (viewer.world.cameraEntity !== undefined) return
   e.stopPropagation?.()
   const now = performance.now()
   // todo: limit camera movement for now to avoid unexpected jumps
