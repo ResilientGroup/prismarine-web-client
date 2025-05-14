@@ -121,7 +121,6 @@ customEvents.on('gameLoaded', () => {
   }
   const updateCamera = (entity: Entity) => {
     if (bot.game.gameMode !== 'spectator') return
-    viewer.setFirstPersonCamera(entity.position, entity.yaw, entity.pitch)
     bot.entity.position = entity.position
     bot.entity.yaw = entity.yaw
     bot.entity.pitch = entity.pitch
@@ -162,12 +161,17 @@ customEvents.on('gameLoaded', () => {
 
   bot._client.on('camera', (packet) => {
     if (bot.player.entity.id === packet.cameraId) {
-      viewer.world.cameraEntity = undefined
+      if (viewer.world.cameraEntity) {
+        const entity = bot.entities[viewer.world.cameraEntity]
+        viewer.world.cameraEntity = undefined
+        viewer.updateEntity(entity)
+      }
     } else if (bot.game.gameMode === 'spectator') {
       const entity = bot.entities[packet.cameraId]
       if (entity) {
         viewer.world.cameraEntity = packet.cameraId
         updateCamera(entity)
+        viewer.updateEntity(entity)
       }
     }
   })

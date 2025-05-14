@@ -729,7 +729,7 @@ export class Entities extends EventEmitter {
 
     //@ts-expect-error
     // set visibility
-    const isInvisible = entity.metadata?.[0] & 0x20
+    const isInvisible = entity.metadata?.[0] & 0x20 || viewer.world.cameraEntity === entity.id
     for (const child of mesh.children ?? []) {
       if (child.name !== 'nametag') {
         child.visible = !isInvisible
