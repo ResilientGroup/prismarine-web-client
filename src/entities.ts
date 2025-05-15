@@ -155,7 +155,12 @@ customEvents.on('gameLoaded', () => {
     }
   }
 
-  bot.on('entitySpawn', entityData)
+  bot.on('entitySpawn', (e) => {
+    entityData(e)
+    if (viewer.world.cameraEntity === e.id) {
+      updateCamera(e)
+    }
+  })
   bot.on('entityUpdate', entityData)
   bot.on('entityEquip', entityData)
 
@@ -168,8 +173,8 @@ customEvents.on('gameLoaded', () => {
       }
     } else if (bot.game.gameMode === 'spectator') {
       const entity = bot.entities[packet.cameraId]
+      viewer.world.cameraEntity = packet.cameraId
       if (entity) {
-        viewer.world.cameraEntity = packet.cameraId
         updateCamera(entity)
         viewer.updateEntity(entity)
       }
