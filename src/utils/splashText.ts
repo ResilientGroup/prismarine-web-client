@@ -1,17 +1,15 @@
 const MAX_WORDS = 5
 const HTTPS_REGEX = /^https?:\/\/[-\w@:%.+~#=]{1,256}\.[a-zA-Z\d()]{1,6}\b([-\w()@:%+.~#?&/=]*)$/
 const TIMEOUT_MS = 5000
-
-const sanitizeText = (text: string): string => {
-  return text.replaceAll(/<[^>]*>/g, '').replaceAll(/[^\w\s.,!?-]/g, '')
-}
+const SPLASH_CACHE_KEY = 'minecraft_splash_text_cache'
+const SPLASH_URL_KEY = 'minecraft_splash_url'
 
 const limitWords = (text: string): string => {
   const words = text.split(/\s+/)
   if (words.length <= MAX_WORDS) {
-    return sanitizeText(text)
+    return text
   }
-  return sanitizeText(words.slice(0, MAX_WORDS).join(' ') + '...')
+  return words.slice(0, MAX_WORDS).join(' ') + '...'
 }
 
 export const isRemoteSplashText = (text: string): boolean => {
@@ -49,4 +47,51 @@ export const loadRemoteSplashText = async (url: string): Promise<string> => {
     console.error('Error loading remote splash text:', error)
     return 'Failed to load splash text!'
   }
+}
+
+export const cacheSourceUrl = (url: string): void => {
+  localStorage.setItem(SPLASH_URL_KEY, url)
+}
+
+export const hasSourceUrlChanged = (newUrl?: string): boolean => {
+  const cachedUrl = localStorage.getItem(SPLASH_URL_KEY)
+
+  if ((!cachedUrl && newUrl) || (cachedUrl && !newUrl)) {
+    return true
+  }
+
+  return cachedUrl !== newUrl
+}
+
+export const clearSplashCache = (): void => {
+  localStorage.removeItem(SPLASH_CACHE_KEY)
+}
+
+export const getCachedSplashText = (): string | null => {
+  return localStorage.getItem(SPLASH_CACHE_KEY)
+}
+
+export const cacheSplashText = (text: string): void => {
+  localStorage.setItem(SPLASH_CACHE_KEY, text)
+}
+
+export const getDisplayText = (splashText?: string, fallbackText?: string): string => {
+  const cachedText = getCachedSplashText()
+
+  if (cachedText) return cachedText
+
+  if (fallbackText) return fallbackText
+
+  if (splashText && isRemoteSplashText(splashText)) return ''
+
+  return splashText || ''
+}
+
+export const getDirectDisplayText = (splashText?: string, fallbackText?: string): string => {
+
+  if (splashText && !isRemoteSplashText(splashText)) return splashText
+
+  if (fallbackText) return fallbackText
+
+  return ''
 }

@@ -4,7 +4,15 @@ import { useSnapshot } from 'valtio'
 import { haveDirectoryPicker } from '../utils'
 import { ConnectOptions } from '../connect'
 import { miscUiState } from '../globalState'
-import { isRemoteSplashText, loadRemoteSplashText } from '../utils/splashText'
+import {
+  isRemoteSplashText,
+  loadRemoteSplashText,
+  getDisplayText,
+  cacheSplashText,
+  hasSourceUrlChanged,
+  cacheSourceUrl,
+  clearSplashCache
+} from '../utils/splashText'
 import styles from './mainMenu.module.css'
 import Button from './Button'
 import ButtonWithTooltip from './ButtonWithTooltip'
@@ -48,24 +56,46 @@ export default ({
   singleplayerAvailable = true
 }: Props) => {
   const { appConfig } = useSnapshot(miscUiState)
-  const [splashText, setSplashText] = useState(appConfig?.splashText || '')
+
+  useEffect(() => {
+    if (hasSourceUrlChanged(appConfig?.splashText)) {
+      clearSplashCache()
+      if (appConfig?.splashText && isRemoteSplashText(appConfig.splashText)) {
+        cacheSourceUrl(appConfig.splashText)
+      }
+    }
+  }, [appConfig?.splashText])
+
+  const initialSplashText = getDisplayText(appConfig?.splashText, appConfig?.splashTextFallback)
+  const [splashText, setSplashText] = useState(initialSplashText)
+  const [showSplash, setShowSplash] = useState(false)
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSplash(true)
+    }, 100)
+    return () => clearTimeout(timer)
+  }, [])
 
   useEffect(() => {
     const loadSplashText = async () => {
       try {
         if (appConfig?.splashText && isRemoteSplashText(appConfig.splashText)) {
           const text = await loadRemoteSplashText(appConfig.splashText)
-          setSplashText(text)
-        } else {
-          setSplashText(appConfig?.splashText || '')
+
+          if (text && text.trim() !== '') {
+            setSplashText(text)
+            cacheSplashText(text)
+          }
+        } else if (appConfig?.splashText && !isRemoteSplashText(appConfig.splashText)) {
+          setSplashText(appConfig.splashText)
         }
       } catch (error) {
         console.error('Failed to load splash text:', error)
-        setSplashText('Error loading splash text')
       }
     }
     void loadSplashText()
-  }, [appConfig?.splashText])
+  }, [appConfig?.splashText, appConfig?.splashTextFallback])
 
   if (!bottomRightLinks?.trim()) bottomRightLinks = undefined
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
@@ -112,7 +142,7 @@ export default ({
       <div className={styles['game-title']}>
         <div className={styles.minecraft}>
           <div className={styles.edition} />
-          <span className={styles.splash}>{splashText}</span>
+          {showSplash && <span className={styles.splash}>{splashText}</span>}
         </div>
       </div>
 
