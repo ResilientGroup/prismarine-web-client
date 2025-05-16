@@ -1,5 +1,5 @@
 const MAX_WORDS = 5
-const HTTPS_REGEX = /^https?:\/\//
+const HTTPS_REGEX = /^https?:\/\/[-\w@:%.+~#=]{1,256}\.[a-zA-Z\d()]{1,6}\b([-\w()@:%+.~#?&/=]*)$/
 
 const limitWords = (text: string): string => {
   const words = text.split(/\s+/)
@@ -19,6 +19,8 @@ export const loadRemoteSplashText = async (url: string): Promise<string> => {
     if (!response.ok) {
       throw new Error(`Failed to fetch splash text: ${response.statusText}`)
     }
+
+    const clonedResponse = response.clone()
     try {
       const json = await response.json()
 
@@ -32,8 +34,7 @@ export const loadRemoteSplashText = async (url: string): Promise<string> => {
 
       return limitWords(String(json))
     } catch (jsonError) {
-
-      const text = await response.text()
+      const text = await clonedResponse.text()
       return limitWords(text.trim())
     }
   } catch (error) {

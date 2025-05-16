@@ -52,11 +52,16 @@ export default ({
 
   useEffect(() => {
     const loadSplashText = async () => {
-      if (appConfig?.splashText && isRemoteSplashText(appConfig.splashText)) {
-        const text = await loadRemoteSplashText(appConfig.splashText)
-        setSplashText(text)
-      } else {
-        setSplashText(appConfig?.splashText || '')
+      try {
+        if (appConfig?.splashText && isRemoteSplashText(appConfig.splashText)) {
+          const text = await loadRemoteSplashText(appConfig.splashText)
+          setSplashText(text)
+        } else {
+          setSplashText(appConfig?.splashText || '')
+        }
+      } catch (error) {
+        console.error('Failed to load splash text:', error)
+        setSplashText('Error loading splash text')
       }
     }
     void loadSplashText()
