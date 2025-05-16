@@ -1,9 +1,10 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { openURL } from 'renderer/viewer/lib/simpleUtils'
 import { useSnapshot } from 'valtio'
 import { haveDirectoryPicker } from '../utils'
 import { ConnectOptions } from '../connect'
 import { miscUiState } from '../globalState'
+import { isRemoteSplashText, loadRemoteSplashText } from '../utils/splashText'
 import styles from './mainMenu.module.css'
 import Button from './Button'
 import ButtonWithTooltip from './ButtonWithTooltip'
@@ -47,6 +48,19 @@ export default ({
   singleplayerAvailable = true
 }: Props) => {
   const { appConfig } = useSnapshot(miscUiState)
+  const [splashText, setSplashText] = useState(appConfig?.splashText || '')
+
+  useEffect(() => {
+    const loadSplashText = async () => {
+      if (appConfig?.splashText && isRemoteSplashText(appConfig.splashText)) {
+        const text = await loadRemoteSplashText(appConfig.splashText)
+        setSplashText(text)
+      } else {
+        setSplashText(appConfig?.splashText || '')
+      }
+    }
+    void loadSplashText()
+  }, [appConfig?.splashText])
 
   if (!bottomRightLinks?.trim()) bottomRightLinks = undefined
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
@@ -75,7 +89,7 @@ export default ({
   const connectToServerLongPress = useLongPress(
     () => {
       if (process.env.NODE_ENV === 'development') {
-      // Connect to <origin>:25565
+        // Connect to <origin>:25565
         const origin = window.location.hostname
         const connectOptions: ConnectOptions = {
           server: `${origin}:25565`,
@@ -93,7 +107,7 @@ export default ({
       <div className={styles['game-title']}>
         <div className={styles.minecraft}>
           <div className={styles.edition} />
-          <span className={styles.splash}>{appConfig?.splashText}</span>
+          <span className={styles.splash}>{splashText}</span>
         </div>
       </div>
 
