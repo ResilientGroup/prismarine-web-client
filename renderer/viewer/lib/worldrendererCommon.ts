@@ -37,6 +37,7 @@ export const defaultWorldRendererConfig = {
   numWorkers: 4,
   isPlayground: false,
   renderEars: true,
+  unknownEntityDisplay: true,
   // game renderer setting actually
   showHand: false,
   viewBobbing: false
@@ -133,6 +134,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     blocks?: CustomTexturesData
     armor?: CustomTexturesData
   } = {}
+  customItemModelData: Record<string, any[]> = {}
   itemsDefinitionsStore = getLoadedItemDefinitionsStore(this.sourceData.itemDefinitionsJson)
   workersProcessAverageTime = 0
   workersProcessAverageTimeCount = 0

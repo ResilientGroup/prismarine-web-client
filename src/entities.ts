@@ -186,6 +186,14 @@ customEvents.on('gameLoaded', () => {
   })
 
   bot._client.on('player_info', (packet) => {
+    function applySkinTexturesProxy(url: string) {
+      if (miscUiState.appConfig?.skinTexturesProxy) {
+        return url?.replace('http://textures.minecraft.net/', miscUiState.appConfig?.skinTexturesProxy)
+            .replace('https://textures.minecraft.net/', miscUiState.appConfig?.skinTexturesProxy)
+      }
+      return url;
+    }
+
     for (const playerEntry of packet.data) {
       // Switch player nametag visibility based on gamemode (spectator doesn't show nametags)
       if (playerEntry.gamemode && playerEntry.uuid === bot.player.uuid) {
@@ -201,8 +209,8 @@ customEvents.on('gameLoaded', () => {
       if (textureProperty) {
         try {
           const textureData = JSON.parse(Buffer.from(textureProperty.value, 'base64').toString())
-          const skinUrl = textureData.textures?.SKIN?.url
-          const capeUrl = textureData.textures?.CAPE?.url
+          const skinUrl = applySkinTexturesProxy(textureData.textures?.SKIN?.url)
+          const capeUrl = applySkinTexturesProxy(textureData.textures?.CAPE?.url)
 
           // Find entity with matching UUID and update skin
           let entityId = ''

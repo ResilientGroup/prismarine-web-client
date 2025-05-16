@@ -88,6 +88,7 @@ const defaultOptions = {
   /** Actually might be useful */
   showCursorBlockInSpectator: false,
   renderEntities: true,
+  unknownEntityDisplay: true,
   smoothLighting: true,
   newVersionsLighting: false,
   chatSelect: true,

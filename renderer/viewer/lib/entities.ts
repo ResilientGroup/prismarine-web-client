@@ -14,7 +14,9 @@ import mojangson from 'mojangson'
 import { snakeCase } from 'change-case'
 import { Item } from 'prismarine-item'
 import { BlockModel } from 'mc-assets'
+import PrismarineChatLoader from "prismarine-chat";
 import { EntityMetadataVersions } from '../../../src/mcDataTypes'
+import { miscUiState } from '../../../src/globalState'
 import * as Entity from './entity/EntityMesh'
 import { getMesh } from './entity/EntityMesh'
 import { WalkingGeneralSwing } from './entity/animations'
@@ -25,6 +27,7 @@ import { getBlockMeshFromModel } from './holdingBlock'
 import { ItemSpecificContextProperties } from './basePlayerState'
 import { loadSkinImage, getLookupUrl, stevePngUrl, steveTexture } from './utils/skins'
 import { loadTexture } from './utils'
+import { renderComponent } from "../sign-renderer";
 
 export const TWEEN_DURATION = 120
 
@@ -89,44 +92,49 @@ function getUsernameTexture ({
   username,
   nameTagBackgroundColor = 'rgba(0, 0, 0, 0.3)',
   nameTagTextOpacity = 255
-}: any, { fontFamily = 'sans-serif' }: any) {
+}: any) {
+
   const canvas = document.createElement('canvas')
+
+  const PrismarineChat = PrismarineChatLoader(viewer.world.version!)
+
   const ctx = canvas.getContext('2d')
   if (!ctx) throw new Error('Could not get 2d context')
 
   const fontSize = 48
   const padding = 5
-  ctx.font = `${fontSize}px ${fontFamily}`
+  ctx.font = `${fontSize}px mojangles`
 
-  const lines = String(username).split('\n')
-
+  const plainLines = String(typeof username === 'string' ? username : new PrismarineChat(username).toString()).split('\n')
   let textWidth = 0
-  for (const line of lines) {
+  for (const line of plainLines) {
     const width = ctx.measureText(line).width + padding * 2
     if (width > textWidth) textWidth = width
   }
 
   canvas.width = textWidth
-  canvas.height = (fontSize + padding) * lines.length
+  canvas.height = (fontSize + padding) * plainLines.length
 
   ctx.fillStyle = nameTagBackgroundColor
   ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-  ctx.font = `${fontSize}px ${fontFamily}`
-  ctx.fillStyle = `rgba(255, 255, 255, ${nameTagTextOpacity / 255})`
-  let i = 0
-  for (const line of lines) {
-    i++
-    ctx.fillText(line, (textWidth - ctx.measureText(line).width) / 2, -padding + fontSize * i)
-  }
+  ctx.globalAlpha = nameTagTextOpacity / 255
+
+  renderComponent(username, PrismarineChat, canvas, fontSize, 'white', -padding + fontSize)
+
+  ctx.globalAlpha = 1
 
   return canvas
 }
 
-const addNametag = (entity, options, mesh) => {
+const addNametag = (entity, mesh) => {
+  for (const c of mesh.children) {
+    if (c.name === 'nametag') {
+      c.removeFromParent()
+    }
+  }
   if (entity.username !== undefined) {
-    if (mesh.children.some(c => c.name === 'nametag')) return // todo update
-    const canvas = getUsernameTexture(entity, options)
+    const canvas = getUsernameTexture(entity)
     const tex = new THREE.Texture(canvas)
     tex.needsUpdate = true
     let nameTag
@@ -175,13 +183,15 @@ function getEntityMesh (entity, world, options, overrides) {
       const e = new Entity.EntityMesh('1.16.4', entityName, world, overrides)
 
       if (e.mesh) {
-        addNametag(entity, options, e.mesh)
+        addNametag(entity, e.mesh)
         return e.mesh
       }
     } catch (err) {
       reportError?.(err)
     }
   }
+
+  if (!world.config.unknownEntityDisplay) return
 
   const geometry = new THREE.BoxGeometry(entity.width, entity.height, entity.width)
   geometry.translate(0, entity.height / 2, 0)
@@ -192,7 +202,7 @@ function getEntityMesh (entity, world, options, overrides) {
     addNametag({
       username: entity.name,
       height: entity.height,
-    }, options, cube)
+    }, cube)
   }
   return cube
 }
@@ -500,6 +510,7 @@ export class Entities extends EventEmitter {
   }
 
   getItemMesh (item, specificProps: ItemSpecificContextProperties, previousModel?: string) {
+    if (!item.nbt && item.nbtData) item.nbt = item.nbtData
     const textureUv = this.getItemUv?.(item, specificProps)
     if (previousModel && previousModel === textureUv?.modelName) return undefined
 
@@ -745,20 +756,18 @@ export class Entities extends EventEmitter {
     // entity specific meta
     const textDisplayMeta = getSpecificEntityMetadata('text_display', entity)
     const displayTextRaw = textDisplayMeta?.text || meta.custom_name_visible && meta.custom_name
-    const displayText = this.parseEntityLabel(displayTextRaw)
-    if (entity.name !== 'player' && displayText) {
+    if (entity.name !== 'player' && displayTextRaw) {
       const nameTagFixed = textDisplayMeta && (textDisplayMeta.billboard_render_constraints === 'fixed' || !textDisplayMeta.billboard_render_constraints)
-      const nameTagBackgroundColor = textDisplayMeta && toRgba(textDisplayMeta.background_color)
+      const nameTagBackgroundColor = (textDisplayMeta && (parseInt(textDisplayMeta.style_flags, 10) & 0x04) === 0) ? toRgba(textDisplayMeta.background_color) : undefined
       let nameTagTextOpacity: any
       if (textDisplayMeta?.text_opacity) {
         const rawOpacity = parseInt(textDisplayMeta?.text_opacity, 10)
         nameTagTextOpacity = rawOpacity > 0 ? rawOpacity : 256 - rawOpacity
       }
       addNametag(
-        { ...entity, username: displayText, nameTagBackgroundColor, nameTagTextOpacity, nameTagFixed,
+        { ...entity, username: nbt.simplify(displayTextRaw), nameTagBackgroundColor, nameTagTextOpacity, nameTagFixed,
           nameTagScale: textDisplayMeta?.scale, nameTagTranslation: textDisplayMeta && (textDisplayMeta.translation || new THREE.Vector3(0, 0, 0)),
           nameTagRotationLeft: toQuaternion(textDisplayMeta?.left_rotation), nameTagRotationRight: toQuaternion(textDisplayMeta?.right_rotation) },
-        this.entitiesOptions,
         mesh
       )
     }
@@ -998,7 +1007,7 @@ export class Entities extends EventEmitter {
     const itemObject = this.getItemMesh(item, {
       'minecraft:display_context': 'thirdperson',
     })
-    if (itemObject) {
+    if (itemObject?.mesh) {
       entityMesh.traverse(c => {
         if (c.name.toLowerCase() === parentName) {
           const group = new THREE.Object3D()
@@ -1080,6 +1089,10 @@ function addArmorModel (entityMesh: THREE.Object3D, slotType: string, item: Item
         if (textureData) {
           const decodedData = JSON.parse(Buffer.from(textureData, 'base64').toString())
           texturePath = decodedData.textures?.SKIN?.url
+          if (miscUiState.appConfig?.skinTexturesProxy) {
+            texturePath = texturePath.replace('http://textures.minecraft.net/', miscUiState.appConfig?.skinTexturesProxy)
+              .replace('https://textures.minecraft.net/', miscUiState.appConfig?.skinTexturesProxy)
+          }
         }
       } catch (err) {
         console.error('Error decoding player head texture:', err)
