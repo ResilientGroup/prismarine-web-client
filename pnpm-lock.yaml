@@ -136,7 +136,7 @@ importers:
         version: 4.17.21
       mcraft-fun-mineflayer:
         specifier: ^0.1.23
-        version: 0.1.23(encoding@0.1.13)(mineflayer@https://codeload.github.com/zardoy/mineflayer/tar.gz/5602eca4174c0aff079e60234d7c68327eeb6fe6(encoding@0.1.13))
+        version: 0.1.23(encoding@0.1.13)(mineflayer@https://codeload.github.com/zardoy/mineflayer/tar.gz/e4818de9e1ba2783a930b4358499ac4033e6383d(encoding@0.1.13))
       minecraft-data:
         specifier: 3.83.1
         version: 3.83.1
@@ -338,10 +338,10 @@ importers:
         version: 0.2.54
       minecraft-inventory-gui:
         specifier: github:zardoy/minecraft-inventory-gui#next
-        version: https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/98bc5bb8ee6da8b4b771c05b404cee796318ccd4(@types/react@18.3.18)(react@18.3.1)
+        version: https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/f425e6a2db796d42cd2c09cf715dad841dec643d(@types/react@18.3.18)(react@18.3.1)
       mineflayer:
         specifier: github:zardoy/mineflayer#gen-the-master
-        version: https://codeload.github.com/zardoy/mineflayer/tar.gz/5602eca4174c0aff079e60234d7c68327eeb6fe6(encoding@0.1.13)
+        version: https://codeload.github.com/zardoy/mineflayer/tar.gz/e4818de9e1ba2783a930b4358499ac4033e6383d(encoding@0.1.13)
       mineflayer-mouse:
         specifier: ^0.1.10
         version: 0.1.10(@types/debug@4.1.12)(@types/node@22.13.9)(jiti@2.4.2)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0)
@@ -4428,6 +4428,15 @@ packages:
       supports-color:
         optional: true
 
+  debug@4.4.1:
+    resolution: {integrity: sha512-KcKCqiftBJcZr++7ykoDIEwSa3XWowTfNPo92BYxjXiyYEVrUQh2aLyhxBCwww+heortUFxEJYcRzosstTEBYQ==}
+    engines: {node: '>=6.0'}
+    peerDependencies:
+      supports-color: '*'
+    peerDependenciesMeta:
+      supports-color:
+        optional: true
+
   decamelize-keys@1.1.1:
     resolution: {integrity: sha512-WiPxgEirIV0/eIOMcnFBA3/IJZAZqKnwAwWyvvdi4lsr1WCN22nhdf/3db3DoZcUjTV2SqfzIwNyp6y2xs3nmg==}
     engines: {node: '>=0.10.0'}
@@ -6684,8 +6693,8 @@ packages:
   minecraft-folder-path@1.2.0:
     resolution: {integrity: sha512-qaUSbKWoOsH9brn0JQuBhxNAzTDMwrOXorwuRxdJKKKDYvZhtml+6GVCUrY5HRiEsieBEjCUnhVpDuQiKsiFaw==}
 
-  minecraft-inventory-gui@https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/98bc5bb8ee6da8b4b771c05b404cee796318ccd4:
-    resolution: {tarball: https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/98bc5bb8ee6da8b4b771c05b404cee796318ccd4}
+  minecraft-inventory-gui@https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/f425e6a2db796d42cd2c09cf715dad841dec643d:
+    resolution: {tarball: https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/f425e6a2db796d42cd2c09cf715dad841dec643d}
     version: 1.0.1
 
   minecraft-protocol@https://codeload.github.com/PrismarineJS/node-minecraft-protocol/tar.gz/9e116c3dd4682b17c4e2c80249a2447a093d9284:
@@ -6715,8 +6724,8 @@ packages:
     resolution: {integrity: sha512-3bxph4jfbkBh5HpeouorxzrfSLNV+i+1gugNJ2jf52HW+rt+tW7eiiFPxrJEsOVkPT/3O/dEIW7j93LRlojMkQ==}
     engines: {node: '>=22'}
 
-  mineflayer@https://codeload.github.com/zardoy/mineflayer/tar.gz/5602eca4174c0aff079e60234d7c68327eeb6fe6:
-    resolution: {tarball: https://codeload.github.com/zardoy/mineflayer/tar.gz/5602eca4174c0aff079e60234d7c68327eeb6fe6}
+  mineflayer@https://codeload.github.com/zardoy/mineflayer/tar.gz/e4818de9e1ba2783a930b4358499ac4033e6383d:
+    resolution: {tarball: https://codeload.github.com/zardoy/mineflayer/tar.gz/e4818de9e1ba2783a930b4358499ac4033e6383d}
     version: 4.27.0
     engines: {node: '>=22'}
 
@@ -14480,6 +14489,10 @@ snapshots:
     optionalDependencies:
       supports-color: 8.1.1
 
+  debug@4.4.1:
+    dependencies:
+      ms: 2.1.3
+
   decamelize-keys@1.1.1:
     dependencies:
       decamelize: 1.2.0
@@ -16128,7 +16141,7 @@ snapshots:
     dependencies:
       '@tootallnate/once': 2.0.0
       agent-base: 6.0.2
-      debug: 4.4.0(supports-color@8.1.1)
+      debug: 4.4.1
     transitivePeerDependencies:
       - supports-color
     optional: true
@@ -17019,12 +17032,12 @@ snapshots:
       maxrects-packer: '@zardoy/maxrects-packer@2.7.4'
       zod: 3.24.2
 
-  mcraft-fun-mineflayer@0.1.23(encoding@0.1.13)(mineflayer@https://codeload.github.com/zardoy/mineflayer/tar.gz/5602eca4174c0aff079e60234d7c68327eeb6fe6(encoding@0.1.13)):
+  mcraft-fun-mineflayer@0.1.23(encoding@0.1.13)(mineflayer@https://codeload.github.com/zardoy/mineflayer/tar.gz/e4818de9e1ba2783a930b4358499ac4033e6383d(encoding@0.1.13)):
     dependencies:
       '@zardoy/flying-squid': 0.0.49(encoding@0.1.13)
       exit-hook: 2.2.1
       minecraft-protocol: https://codeload.github.com/PrismarineJS/node-minecraft-protocol/tar.gz/9e116c3dd4682b17c4e2c80249a2447a093d9284(patch_hash=1546deaf50efae3d6564fcc9f08da99d3ae8096ac98f420b87b48b8c9501fd37)(encoding@0.1.13)
-      mineflayer: https://codeload.github.com/zardoy/mineflayer/tar.gz/5602eca4174c0aff079e60234d7c68327eeb6fe6(encoding@0.1.13)
+      mineflayer: https://codeload.github.com/zardoy/mineflayer/tar.gz/e4818de9e1ba2783a930b4358499ac4033e6383d(encoding@0.1.13)
       prismarine-item: 1.16.0
       ws: 8.18.1
     transitivePeerDependencies:
@@ -17335,7 +17348,7 @@ snapshots:
 
   minecraft-folder-path@1.2.0: {}
 
-  minecraft-inventory-gui@https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/98bc5bb8ee6da8b4b771c05b404cee796318ccd4(@types/react@18.3.18)(react@18.3.1):
+  minecraft-inventory-gui@https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/f425e6a2db796d42cd2c09cf715dad841dec643d(@types/react@18.3.18)(react@18.3.1):
     dependencies:
       valtio: 1.13.2(@types/react@18.3.18)(react@18.3.1)
     transitivePeerDependencies:
@@ -17461,7 +17474,7 @@ snapshots:
       - encoding
       - supports-color
 
-  mineflayer@https://codeload.github.com/zardoy/mineflayer/tar.gz/5602eca4174c0aff079e60234d7c68327eeb6fe6(encoding@0.1.13):
+  mineflayer@https://codeload.github.com/zardoy/mineflayer/tar.gz/e4818de9e1ba2783a930b4358499ac4033e6383d(encoding@0.1.13):
     dependencies:
       '@nxg-org/mineflayer-physics-util': 1.8.8
       minecraft-data: 3.83.1
@@ -19180,7 +19193,7 @@ snapshots:
 
   send@1.2.0:
     dependencies:
-      debug: 4.4.0(supports-color@8.1.1)
+      debug: 4.4.1
       encodeurl: 2.0.0
       escape-html: 1.0.3
       etag: 1.8.1
@@ -19535,7 +19548,7 @@ snapshots:
   socks-proxy-agent@7.0.0:
     dependencies:
       agent-base: 6.0.2
-      debug: 4.4.0(supports-color@8.1.1)
+      debug: 4.4.1
       socks: 2.8.4
     transitivePeerDependencies:
       - supports-color
