@@ -13,6 +13,7 @@ const limitWords = (text: string): string => {
 }
 
 export const isRemoteSplashText = (text: string): boolean => {
+  if (!text) return false
   return HTTPS_REGEX.test(text)
 }
 
@@ -55,6 +56,10 @@ export const cacheSourceUrl = (url: string): void => {
 
 export const hasSourceUrlChanged = (newUrl?: string): boolean => {
   const cachedUrl = localStorage.getItem(SPLASH_URL_KEY)
+
+  if (!cachedUrl && !newUrl) {
+    return false
+  }
 
   if ((!cachedUrl && newUrl) || (cachedUrl && !newUrl)) {
     return true
