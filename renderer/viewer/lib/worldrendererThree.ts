@@ -233,7 +233,7 @@ export class WorldRendererThree extends WorldRendererCommon {
 
     if (pos) {
       this.currentPosTween?.stop()
-      this.currentPosTween = new tweenJs.Tween(this.camera.position).to({ x: pos.x, y: pos.y, z: pos.z }, 150).start()
+      this.currentPosTween = new tweenJs.Tween(this.camera.position).to({ x: pos.x, y: pos.y, z: pos.z }, this.cameraEntity ? 150 : 50).start()
       this.freeFlyState.position = pos
     }
     const { rotation } = this.camera
