@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { openURL } from 'renderer/viewer/lib/simpleUtils'
 import { useSnapshot } from 'valtio'
 import { haveDirectoryPicker } from '../utils'
@@ -55,65 +55,44 @@ export default ({
   singleplayerAvailable = true
 }: Props) => {
   const { appConfig } = useSnapshot(miscUiState)
-  const [splashText, setSplashText] = useState<string | undefined>(undefined)
+
+  const splashText = useMemo(() => {
+    const cachedText = getCachedSplashText()
+
+    const configSplashFromApp = appConfig?.splashText
+    const isRemote = configSplashFromApp && isRemoteSplashText(configSplashFromApp)
+    const sourceKey = isRemote ? configSplashFromApp : (configSplashFromApp || '')
+    const storedSourceKey = localStorage.getItem('minecraft_splash_url')
+
+    if (storedSourceKey !== sourceKey) {
+      clearSplashCache()
+      cacheSourceUrl(sourceKey)
+    } else if (cachedText) {
+      return cachedText
+    }
+
+    if (!isRemote && configSplashFromApp && configSplashFromApp.trim() !== '') {
+      cacheSplashText(configSplashFromApp)
+      return configSplashFromApp
+    }
+
+    return appConfig?.splashTextFallback || ''
+  }, [appConfig])
 
   useEffect(() => {
-    const determineAndSetSplashTextForSession = async () => {
-      const configSplashFromApp = appConfig?.splashText
-      const configFallbackFromApp = appConfig?.splashTextFallback
-
-      const isRemote = configSplashFromApp && isRemoteSplashText(configSplashFromApp)
-      let currentSourceKey: string
-      if (isRemote) {
-        currentSourceKey = configSplashFromApp!
-      } else {
-        currentSourceKey = configSplashFromApp || ''
-      }
-
-      const storedSourceKey = localStorage.getItem('minecraft_splash_url')
-
-      if (storedSourceKey !== currentSourceKey) {
-        clearSplashCache()
-        cacheSourceUrl(currentSourceKey)
-      }
-
-      const cachedText = getCachedSplashText()
-      if (cachedText) {
-        setSplashText(cachedText)
-        return
-      }
-
-      if (isRemote && configSplashFromApp) {
-        try {
-          const fetchedText = await loadRemoteSplashText(configSplashFromApp)
+    const configSplashFromApp = appConfig?.splashText
+    if (configSplashFromApp && isRemoteSplashText(configSplashFromApp)) {
+      loadRemoteSplashText(configSplashFromApp)
+        .then(fetchedText => {
           if (fetchedText && fetchedText.trim() !== '' && !fetchedText.includes('Failed to load')) {
             cacheSplashText(fetchedText)
-            setSplashText(fetchedText)
-          } else {
-            const finalText = configFallbackFromApp || ''
-            setSplashText(finalText)
-            cacheSplashText(finalText)
           }
-        } catch (error) {
-          console.error('Session splash load error:', error)
-          const finalText = configFallbackFromApp || ''
-          setSplashText(finalText)
-          cacheSplashText(finalText)
-        }
-      } else if (configSplashFromApp && typeof configSplashFromApp === 'string' && configSplashFromApp.trim() !== '') {
-        setSplashText(configSplashFromApp)
-        cacheSplashText(configSplashFromApp)
-      } else {
-        const finalText = configFallbackFromApp || ''
-        setSplashText(finalText)
-        cacheSplashText(finalText)
-      }
+        })
+        .catch(error => {
+          console.error('Failed to preload splash text for next session:', error)
+        })
     }
-
-    if (appConfig) {
-      void determineAndSetSplashTextForSession()
-    }
-  }, [appConfig])
+  }, [appConfig?.splashText])
 
   if (!bottomRightLinks?.trim()) bottomRightLinks = undefined
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
@@ -160,7 +139,7 @@ export default ({
       <div className={styles['game-title']}>
         <div className={styles.minecraft}>
           <div className={styles.edition} />
-          <span className={styles.splash}>{splashText === undefined ? '' : splashText}</span>
+          <span className={styles.splash}>{splashText}</span>
         </div>
       </div>
 
