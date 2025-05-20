@@ -54,20 +54,6 @@ export const cacheSourceUrl = (url: string): void => {
   localStorage.setItem(SPLASH_URL_KEY, url)
 }
 
-export const hasSourceUrlChanged = (newUrl?: string): boolean => {
-  const cachedUrl = localStorage.getItem(SPLASH_URL_KEY)
-
-  if (!cachedUrl && !newUrl) {
-    return false
-  }
-
-  if ((!cachedUrl && newUrl) || (cachedUrl && !newUrl)) {
-    return true
-  }
-
-  return cachedUrl !== newUrl
-}
-
 export const clearSplashCache = (): void => {
   localStorage.removeItem(SPLASH_CACHE_KEY)
 }
@@ -78,25 +64,4 @@ export const getCachedSplashText = (): string | null => {
 
 export const cacheSplashText = (text: string): void => {
   localStorage.setItem(SPLASH_CACHE_KEY, text)
-}
-
-export const getDisplayText = (splashText?: string, fallbackText?: string): string => {
-  const cachedText = getCachedSplashText()
-
-  if (cachedText) return cachedText
-
-  if (fallbackText) return fallbackText
-
-  if (splashText && isRemoteSplashText(splashText)) return ''
-
-  return splashText || ''
-}
-
-export const getDirectDisplayText = (splashText?: string, fallbackText?: string): string => {
-
-  if (splashText && !isRemoteSplashText(splashText)) return splashText
-
-  if (fallbackText) return fallbackText
-
-  return ''
 }

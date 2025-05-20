@@ -7,9 +7,8 @@ import { miscUiState } from '../globalState'
 import {
   isRemoteSplashText,
   loadRemoteSplashText,
-  getDisplayText,
+  getCachedSplashText,
   cacheSplashText,
-  hasSourceUrlChanged,
   cacheSourceUrl,
   clearSplashCache
 } from '../utils/splashText'
@@ -56,46 +55,65 @@ export default ({
   singleplayerAvailable = true
 }: Props) => {
   const { appConfig } = useSnapshot(miscUiState)
+  const [splashText, setSplashText] = useState<string | undefined>(undefined)
 
   useEffect(() => {
-    if (hasSourceUrlChanged(appConfig?.splashText)) {
-      clearSplashCache()
-      if (appConfig?.splashText && isRemoteSplashText(appConfig.splashText)) {
-        cacheSourceUrl(appConfig.splashText)
+    const determineAndSetSplashTextForSession = async () => {
+      const configSplashFromApp = appConfig?.splashText
+      const configFallbackFromApp = appConfig?.splashTextFallback
+
+      const isRemote = configSplashFromApp && isRemoteSplashText(configSplashFromApp)
+      let currentSourceKey: string
+      if (isRemote) {
+        currentSourceKey = configSplashFromApp!
+      } else {
+        currentSourceKey = configSplashFromApp || ''
       }
-    }
-  }, [appConfig?.splashText])
 
-  const initialSplashText = getDisplayText(appConfig?.splashText, appConfig?.splashTextFallback)
-  const [splashText, setSplashText] = useState(initialSplashText)
-  const [showSplash, setShowSplash] = useState(false)
+      const storedSourceKey = localStorage.getItem('minecraft_splash_url')
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowSplash(true)
-    }, 100)
-    return () => clearTimeout(timer)
-  }, [])
+      if (storedSourceKey !== currentSourceKey) {
+        clearSplashCache()
+        cacheSourceUrl(currentSourceKey)
+      }
 
-  useEffect(() => {
-    const loadSplashText = async () => {
-      try {
-        if (appConfig?.splashText && isRemoteSplashText(appConfig.splashText)) {
-          const text = await loadRemoteSplashText(appConfig.splashText)
+      const cachedText = getCachedSplashText()
+      if (cachedText) {
+        setSplashText(cachedText)
+        return
+      }
 
-          if (text && text.trim() !== '') {
-            setSplashText(text)
-            cacheSplashText(text)
+      if (isRemote && configSplashFromApp) {
+        try {
+          const fetchedText = await loadRemoteSplashText(configSplashFromApp)
+          if (fetchedText && fetchedText.trim() !== '' && !fetchedText.includes('Failed to load')) {
+            cacheSplashText(fetchedText)
+            setSplashText(fetchedText)
+          } else {
+            const finalText = configFallbackFromApp || ''
+            setSplashText(finalText)
+            cacheSplashText(finalText)
           }
-        } else if (appConfig?.splashText && !isRemoteSplashText(appConfig.splashText)) {
-          setSplashText(appConfig.splashText)
+        } catch (error) {
+          console.error('Session splash load error:', error)
+          const finalText = configFallbackFromApp || ''
+          setSplashText(finalText)
+          cacheSplashText(finalText)
         }
-      } catch (error) {
-        console.error('Failed to load splash text:', error)
+      } else if (configSplashFromApp && typeof configSplashFromApp === 'string' && configSplashFromApp.trim() !== '') {
+        setSplashText(configSplashFromApp)
+        cacheSplashText(configSplashFromApp)
+      } else {
+        const finalText = configFallbackFromApp || ''
+        setSplashText(finalText)
+        cacheSplashText(finalText)
       }
     }
-    void loadSplashText()
-  }, [appConfig?.splashText, appConfig?.splashTextFallback])
+
+    if (appConfig) {
+      void determineAndSetSplashTextForSession()
+    }
+  }, [appConfig])
 
   if (!bottomRightLinks?.trim()) bottomRightLinks = undefined
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
@@ -142,7 +160,7 @@ export default ({
       <div className={styles['game-title']}>
         <div className={styles.minecraft}>
           <div className={styles.edition} />
-          {showSplash && <span className={styles.splash}>{splashText}</span>}
+          <span className={styles.splash}>{splashText === undefined ? '' : splashText}</span>
         </div>
       </div>
 

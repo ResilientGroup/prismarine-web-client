@@ -26,8 +26,8 @@
     }
   ],
   "rightSideText": "A Minecraft client clone in the browser!",
+  "splashText": "GEN is cooking",
   "splashTextFallback": "Welcome!",
-  "splashText": "https://jsonplaceholder.typicode.com/posts/1",
   "pauseLinks": [
     [
       {
