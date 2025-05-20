@@ -77,7 +77,7 @@ export default ({
     }
 
     return appConfig?.splashTextFallback || ''
-  }, [appConfig])
+  }, [])
 
   useEffect(() => {
     const configSplashFromApp = appConfig?.splashText
