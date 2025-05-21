@@ -61,7 +61,7 @@ customEvents.on('gameLoaded', () => {
       if (!tracking) continue
       const e = bot.entities[id]
       if (!e) continue
-      const speed = info.avgSpeed
+      const speed = info.avgVel
       const WALKING_SPEED = 0.03
       const SPRINTING_SPEED = 0.18
       const isCrouched = e['crouching']
