@@ -609,6 +609,7 @@ const updateTextures = async (progressReporter = createConsoleLogProgressReporte
       viewer.world.rerenderAllChunks?.()
     }
   }
+  customEvents.emit('resourcesUpdated')
 }
 
 export const resourcepackReload = async (version) => {

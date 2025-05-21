@@ -192,12 +192,14 @@ const HotbarInner = () => {
       }
       touchStart = 0
     })
+    customEvents.on('resourcesUpdated', upHotbarItems)
 
     return () => {
       inv.destroy()
       controller.abort()
       unsub2()
       viewer.world.renderUpdateEmitter.off('textureDownloaded', upHotbarItems)
+      customEvents.off('resourcesUpdated', upHotbarItems)
     }
   }, [])
 
