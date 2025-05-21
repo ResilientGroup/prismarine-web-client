@@ -13,7 +13,7 @@ const updateAutoJump = () => {
   if (!bot?.autoJumper) return
   const autoJump = options.autoParkour || (options.autoJump === 'auto' ? miscUiState.currentTouch && !miscUiState.usingGamepadInput : options.autoJump === 'always')
   bot.autoJumper.setOpts({
-    jumpIntoWater: options.autoParkour,
+    // jumpIntoWater: options.autoParkour,
     jumpOnAllEdges: options.autoParkour,
     // strictBlockCollision: true,
   })
