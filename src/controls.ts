@@ -27,6 +27,7 @@ import { onCameraMove, onControInit } from './cameraRotationControls'
 import { createNotificationProgressReporter } from './core/progressReporter'
 import { appStorage } from './react/appStorageProvider'
 import { switchGameMode } from './packetsReplay/replayPackets'
+import { tabListState } from './react/PlayerListOverlayProvider'
 
 
 export const customKeymaps = proxy(appStorage.keybindings)
@@ -65,6 +66,7 @@ export const contro = new ControMax({
       // client side
       zoom: ['KeyC'],
       viewerConsole: ['Backquote'],
+      playersList: ['Tab'],
     },
     ui: {
       toggleFullscreen: ['F11'],
@@ -404,6 +406,9 @@ const onTriggerOrReleased = (command: Command, pressed: boolean) => {
       case 'general.rotateCameraUp':
       case 'general.rotateCameraDown':
         cameraRotationControls.handleCommand(command, pressed)
+        break
+      case 'general.playersList':
+        tabListState.isOpen = pressed
         break
     }
   }
