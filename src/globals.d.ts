@@ -24,6 +24,7 @@ declare const customEvents: import('typed-emitter').default<{
   digStart (): void
   gameLoaded (): void
   mineflayerBotCreated (): void
+  resourcesUpdated (): void
   search (q: string): void
   activateItem (item: Item, slot: number, offhand: boolean): void
   hurtAnimation (): void

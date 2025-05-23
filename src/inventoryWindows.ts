@@ -26,6 +26,7 @@ import { getItemModelName } from './resourcesManager'
 const loadedImagesCache = new Map<string, HTMLImageElement>()
 const cleanLoadedImagesCache = () => {
   loadedImagesCache.delete('blocks')
+  loadedImagesCache.delete('items')
 }
 
 let lastWindow: ReturnType<typeof showInventory>
@@ -55,7 +56,10 @@ export const onGameLoad = (onLoad) => {
       allImagesLoadedState.value = true
     }, 0)
   }
-  viewer.world.renderUpdateEmitter.on('textureDownloaded', checkIfLoaded)
+  viewer.world.renderUpdateEmitter.on('textureDownloaded', () => {
+    checkIfLoaded()
+    cleanLoadedImagesCache()
+  })
   checkIfLoaded()
 
   PrismarineItem = PItem(version)
