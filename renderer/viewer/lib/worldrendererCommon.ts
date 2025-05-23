@@ -116,6 +116,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   handleResize = () => { }
   mesherConfig = defaultMesherConfig
   camera: THREE.PerspectiveCamera
+  cameraEntity: number | undefined
   highestBlocks = new Map<string, HighestBlockInfo>()
   blockstatesModels: any
   customBlockStates: Record<string, any> | undefined

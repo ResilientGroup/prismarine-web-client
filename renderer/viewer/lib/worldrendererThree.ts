@@ -29,6 +29,8 @@ export class WorldRendererThree extends WorldRendererCommon {
   holdingBlock: HoldingBlock
   holdingBlockLeft: HoldingBlock
   rendererDevice = '...'
+  private currentPosTween: tweenJs.Tween<THREE.Vector3>
+  private currentRotTween: tweenJs.Tween<THREE.Euler>
 
   get tilesRendered () {
     return Object.values(this.sectionObjects).reduce((acc, obj) => acc + (obj as any).tilesCount, 0)
@@ -231,10 +233,27 @@ export class WorldRendererThree extends WorldRendererCommon {
     }
 
     if (pos) {
-      new tweenJs.Tween(this.camera.position).to({ x: pos.x, y: pos.y, z: pos.z }, 50).start()
+      this.currentPosTween?.stop()
+      this.currentPosTween = new tweenJs.Tween(this.camera.position).to({ x: pos.x, y: pos.y, z: pos.z }, this.cameraEntity ? 150 : 50).start()
       this.freeFlyState.position = pos
     }
-    this.camera.rotation.set(pitch, yaw, this.cameraRoll, 'ZYX')
+    const { rotation } = this.camera
+    if (this.cameraEntity) {
+      // wrap in the correct direction
+      if (Math.abs(rotation.y - yaw) > Math.PI) {
+        if (yaw > Math.PI) {
+          yaw -= Math.PI * 2
+        } else {
+          yaw += Math.PI * 2
+        }
+      }
+      this.currentRotTween?.stop()
+      this.currentRotTween = new tweenJs.Tween(rotation).to({ x: pitch, y: yaw, z: this.cameraRoll }, 25)
+        .onUpdate(params => rotation.set(params.x, params.y, params.z, 'ZYX')).start()
+    } else {
+      this.currentRotTween?.stop()
+      rotation.set(pitch, yaw, this.cameraRoll, 'ZYX')
+    }
   }
 
   render () {
@@ -242,7 +261,7 @@ export class WorldRendererThree extends WorldRendererCommon {
     // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
     const cam = this.camera instanceof THREE.Group ? this.camera.children.find(child => child instanceof THREE.PerspectiveCamera) as THREE.PerspectiveCamera : this.camera
     this.renderer.render(this.scene, cam)
-    if (this.config.showHand && !this.freeFlyMode) {
+    if (this.config.showHand && !this.freeFlyMode && bot.game.gameMode !== 'spectator') {
       this.holdingBlock.render(this.camera, this.renderer, viewer.ambientLight, viewer.directionalLight)
       this.holdingBlockLeft.render(this.camera, this.renderer, viewer.ambientLight, viewer.directionalLight)
     }

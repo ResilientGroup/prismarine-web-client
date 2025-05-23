@@ -119,6 +119,12 @@ customEvents.on('gameLoaded', () => {
       }
     }
   }
+  const updateCamera = (entity: Entity) => {
+    if (bot.game.gameMode !== 'spectator') return
+    bot.entity.position = entity.position
+    bot.entity.yaw = entity.yaw
+    bot.entity.pitch = entity.pitch
+  }
   viewer.entities.addListener('remove', (e) => {
     loadedSkinEntityIds.delete(e.id)
     playerPerAnimation[e.id] = ''
@@ -128,6 +134,9 @@ customEvents.on('gameLoaded', () => {
   bot.on('entityMoved', (e) => {
     playerRenderSkin(e)
     entityData(e)
+    if (viewer.world.cameraEntity === e.id) {
+      updateCamera(e)
+    }
   })
   bot._client.on('entity_velocity', (packet) => {
     const e = bot.entities[packet.entityId]
@@ -146,15 +155,36 @@ customEvents.on('gameLoaded', () => {
     }
   }
 
-  bot.on('entitySpawn', entityData)
+  bot.on('entitySpawn', (e) => {
+    entityData(e)
+    if (viewer.world.cameraEntity === e.id) {
+      updateCamera(e)
+    }
+  })
   bot.on('entityUpdate', entityData)
   bot.on('entityEquip', entityData)
+
+  bot._client.on('camera', (packet) => {
+    if (bot.player.entity.id === packet.cameraId) {
+      if (viewer.world.cameraEntity) {
+        const entity = bot.entities[viewer.world.cameraEntity]
+        viewer.world.cameraEntity = undefined
+        viewer.updateEntity(entity)
+      }
+    } else if (bot.game.gameMode === 'spectator') {
+      const entity = bot.entities[packet.cameraId]
+      viewer.world.cameraEntity = packet.cameraId
+      if (entity) {
+        updateCamera(entity)
+        viewer.updateEntity(entity)
+      }
+    }
+  })
 
   watchValue(options, o => {
     viewer.entities.setDebugMode(o.showChunkBorders ? 'basic' : 'none')
   })
 
-  // Texture override from packet properties
   bot._client.on('player_info', (packet) => {
     function applySkinTexturesProxy(url: string) {
       if (miscUiState.appConfig?.skinTexturesProxy) {
@@ -165,6 +195,12 @@ customEvents.on('gameLoaded', () => {
     }
 
     for (const playerEntry of packet.data) {
+      // Switch player nametag visibility based on gamemode (spectator doesn't show nametags)
+      if (playerEntry.gamemode && playerEntry.uuid === bot.player.uuid) {
+        viewer.entities.togglePlayerNametags(playerEntry.gamemode !== 3)
+        viewer.world.cameraEntity = undefined
+      }
+      // Texture override from packet properties
       if (!playerEntry.player && !playerEntry.properties) continue
       let textureProperty = playerEntry.properties?.find(prop => prop?.name === 'textures')
       if (!textureProperty) {

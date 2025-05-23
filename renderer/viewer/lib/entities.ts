@@ -674,6 +674,9 @@ export class Entities extends EventEmitter {
           nameTag.position.y = playerObject.position.y + playerObject.scale.y * 16 + 3
           nameTag.renderOrder = 1000
 
+          nameTag.name = 'nametag'
+          nameTag.visible = bot.game.gameMode !== 'spectator'
+
           //@ts-expect-error
           wrapper.add(nameTag)
         }
@@ -737,7 +740,7 @@ export class Entities extends EventEmitter {
 
     //@ts-expect-error
     // set visibility
-    const isInvisible = entity.metadata?.[0] & 0x20
+    const isInvisible = entity.metadata?.[0] & 0x20 || viewer.world.cameraEntity === entity.id
     for (const child of mesh.children ?? []) {
       if (child.name !== 'nametag') {
         child.visible = !isInvisible
@@ -907,6 +910,18 @@ export class Entities extends EventEmitter {
       const da = (entity.yaw - e.rotation.y) % (Math.PI * 2)
       const dy = 2 * da % (Math.PI * 2) - da
       new TWEEN.Tween(e.rotation).to({ y: e.rotation.y + dy }, TWEEN_DURATION).start()
+    }
+  }
+
+  togglePlayerNametags (show: boolean) {
+    for (const entity of Object.values(this.entities)) {
+      if (entity['realName'] === 'player') {
+        entity.traverse(c => {
+          if (c.name === 'nametag') {
+            c.visible = show
+          }
+        })
+      }
     }
   }
 
