@@ -499,6 +499,7 @@ contro.on('trigger', ({ command }) => {
       case 'general.rotateCameraRight':
       case 'general.rotateCameraUp':
       case 'general.rotateCameraDown':
+      case 'general.playersList':
         // no-op
         break
       case 'general.swapHands': {
