@@ -43,6 +43,7 @@ export const defaultWorldRendererConfig = {
   starfield: true,
   addChunksBatchWaitTime: 200,
   vrSupport: true,
+  vrPageGameRendering: true,
   renderEntities: true,
   fov: 75,
   fetchPlayerSkins: true,
