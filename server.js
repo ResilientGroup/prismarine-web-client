@@ -16,9 +16,18 @@ try {
 const app = express()
 
 const isProd = process.argv.includes('--prod') || process.env.NODE_ENV === 'production'
+const timeoutIndex = process.argv.indexOf('--timeout')
 app.use(compression())
 app.use(cors())
-app.use(netApi({ allowOrigin: '*' }))
+app.use(netApi({
+  allowOrigin: '*',
+  log: process.argv.includes('--log') || process.env.LOG === 'true',
+  timeout: timeoutIndex > -1 && timeoutIndex + 1 < process.argv.length
+      ? parseInt(process.argv[timeoutIndex + 1])
+      : process.env.TIMEOUT
+          ? parseInt(process.env.TIMEOUT)
+          : 10000
+}))
 if (!isProd) {
   app.use('/sounds', express.static(path.join(__dirname, './generated/sounds/')))
 }
