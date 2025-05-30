@@ -28,6 +28,7 @@ import { createNotificationProgressReporter } from './core/progressReporter'
 import { appStorage } from './react/appStorageProvider'
 import { switchGameMode } from './packetsReplay/replayPackets'
 import { tabListState } from './react/PlayerListOverlayProvider'
+import { type ActionType, type ActionHoldConfig, type CustomAction } from './appConfig'
 
 
 export const customKeymaps = proxy(appStorage.keybindings)
@@ -55,7 +56,7 @@ export const contro = new ControMax({
       attackDestroy: [null, 'Right Trigger'],
       interactPlace: [null, 'Left Trigger'],
       swapHands: ['KeyF'],
-      selectItem: ['KeyH'], // default will be removed
+      selectItem: ['KeyH'],
       rotateCameraLeft: [null],
       rotateCameraRight: [null],
       rotateCameraUp: [null],
@@ -63,10 +64,12 @@ export const contro = new ControMax({
       // ui?
       chat: [['KeyT', 'Enter']],
       command: ['Slash'],
+      playersList: ['Tab'],
+      debugOverlay: ['F3'],
+      debugOverlayHelpMenu: [null],
       // client side
       zoom: ['KeyC'],
       viewerConsole: ['Backquote'],
-      playersList: ['Tab'],
     },
     ui: {
       toggleFullscreen: ['F11'],
@@ -234,7 +237,7 @@ const inModalCommand = (command: Command, pressed: boolean) => {
   if (pressed && !gamepadUiCursorState.display) return
 
   if (pressed) {
-    if (command === 'ui.back') {
+    if (command === 'ui.back' || command === 'ui.pauseMenu') {
       hideCurrentModal()
     }
     if (command === 'ui.leftClick' || command === 'ui.rightClick') {
@@ -401,6 +404,27 @@ const onTriggerOrReleased = (command: Command, pressed: boolean) => {
       case 'general.zoom':
         gameAdditionalState.isZooming = pressed
         break
+      case 'general.debugOverlay':
+        if (pressed) {
+          hardcodedPressedKeys.add('F3')
+          const pressedKey = [...contro.pressedKeys].find(key => key !== 'F3')
+          if (pressedKey) {
+            const keybind = f3Keybinds.find((v) => v.key === pressedKey)
+            if (keybind && (keybind.enabled?.() ?? true)) {
+              void keybind.action()
+            }
+          } else {
+            miscUiState.showDebugHud = !miscUiState.showDebugHud
+          }
+        } else {
+          hardcodedPressedKeys.delete('F3')
+        }
+        break
+      case 'general.debugOverlayHelpMenu':
+        if (pressed) {
+          void onF3LongPress()
+        }
+        break
       case 'general.rotateCameraLeft':
       case 'general.rotateCameraRight':
       case 'general.rotateCameraUp':
@@ -409,6 +433,26 @@ const onTriggerOrReleased = (command: Command, pressed: boolean) => {
         break
       case 'general.playersList':
         tabListState.isOpen = pressed
+        break
+    }
+  } else if (stringStartsWith(command, 'ui')) {
+    switch (command) {
+      case 'ui.back':
+      case 'ui.pauseMenu':
+        if (pressed) {
+          if (activeModalStack.length) {
+            hideCurrentModal()
+          } else {
+            showModal({ reactType: 'pause-screen' })
+          }
+        }
+        break
+      case 'ui.toggleFullscreen':
+      case 'ui.toggleMap':
+      case 'ui.leftClick':
+      case 'ui.rightClick':
+      case 'ui.speedupCursor':
+        // These are handled elsewhere
         break
     }
   }
@@ -499,6 +543,8 @@ contro.on('trigger', ({ command }) => {
       case 'general.rotateCameraRight':
       case 'general.rotateCameraUp':
       case 'general.rotateCameraDown':
+      case 'general.debugOverlay':
+      case 'general.debugOverlayHelpMenu':
       case 'general.playersList':
         // no-op
         break
@@ -565,10 +611,6 @@ contro.on('trigger', ({ command }) => {
 
   if (command === 'communication.toggleMicrophone') {
     // toggleMicrophoneMuted()
-  }
-
-  if (command === 'ui.pauseMenu') {
-    showModal({ reactType: 'pause-screen' })
   }
 
   if (command === 'ui.toggleFullscreen') {
@@ -891,5 +933,54 @@ export function updateBinds (commands: any) {
 
       return [key, newValue]
     }))
+  }
+}
+
+export const onF3LongPress = async () => {
+  const select = await showOptionsModal('', f3Keybinds.filter(f3Keybind => {
+    return f3Keybind.mobileTitle && (f3Keybind.enabled?.() ?? true)
+  }).map(f3Keybind => {
+    return `${f3Keybind.mobileTitle}${f3Keybind.key ? ` (F3+${f3Keybind.key})` : ''}`
+  }))
+  if (!select) return
+  const f3Keybind = f3Keybinds.find(f3Keybind => f3Keybind.mobileTitle === select)
+  if (f3Keybind) void f3Keybind.action()
+}
+
+export const handleMobileButtonCustomAction = (action: CustomAction) => {
+  const handler = customCommandsConfig[action.type]?.handler
+  if (handler) {
+    handler([...action.input])
+  }
+}
+
+export const handleMobileButtonActionCommand = (command: ActionType | ActionHoldConfig, isDown: boolean) => {
+  const commandValue = typeof command === 'string' ? command : 'command' in command ? command.command : command
+
+  if (typeof commandValue === 'string' && !stringStartsWith(commandValue, 'custom')) {
+    const event: CommandEventArgument<typeof contro['_commandsRaw']> = {
+      command: commandValue as Command,
+      schema: {
+        keys: [],
+        gamepad: []
+      }
+    }
+    if (isDown) {
+      contro.emit('trigger', event)
+    } else {
+      contro.emit('release', event)
+    }
+  } else if (typeof commandValue === 'object') {
+    if (isDown) {
+      handleMobileButtonCustomAction(commandValue)
+    }
+  }
+}
+
+export const handleMobileButtonLongPress = (actionHold: ActionHoldConfig) => {
+  if (typeof actionHold.longPressAction === 'string' && actionHold.longPressAction === 'general.debugOverlayHelpMenu') {
+    void onF3LongPress()
+  } else if (actionHold.longPressAction) {
+    handleMobileButtonActionCommand(actionHold.longPressAction, true)
   }
 }

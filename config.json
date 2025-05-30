@@ -37,5 +37,33 @@
         "type": "discord"
       }
     ]
+  ],
+  "mobileButtons": [
+    {
+      "action": "general.drop",
+      "actionHold": "",
+      "label": "Q"
+    },
+    {
+      "action": "general.debugOverlay",
+      "actionHold": "general.debugOverlayHelpMenu",
+      "label": "F3"
+    },
+     {
+      "action": "general.playersList",
+      "actionHold": "",
+      "icon": "pixelarticons:users",
+      "label": "TAB"
+    },
+    {
+      "action": "general.chat",
+      "actionHold": "",
+      "label": ""
+    },
+    {
+      "action": "ui.back",
+      "actionHold": "",
+      "label": ""
+    }
   ]
 }
