@@ -46,6 +46,7 @@ export const contro = new ControMax({
       jump: ['Space', 'A'],
       inventory: ['KeyE', 'X'],
       drop: ['KeyQ', 'B'],
+      dropStack: [null],
       sneak: ['ShiftLeft'],
       toggleSneakOrDown: [null, 'Right Stick'],
       sprint: ['ControlLeft', 'Left Stick'],
@@ -571,6 +572,12 @@ contro.on('trigger', ({ command }) => {
         if (item) {
           item.count--
           bot.inventory.updateSlot(slot, item.count > 0 ? item : null!)
+        }
+        break
+      }
+      case 'general.dropStack': {
+        if (bot.heldItem) {
+          void bot.tossStack(bot.heldItem)
         }
         break
       }

@@ -41,15 +41,20 @@
   "mobileButtons": [
     {
       "action": "general.drop",
-      "actionHold": "",
+      "actionHold": "general.dropStack",
       "label": "Q"
+    },
+    {
+      "action": "general.selectItem",
+      "actionHold": "",
+      "label": "S"
     },
     {
       "action": "general.debugOverlay",
       "actionHold": "general.debugOverlayHelpMenu",
       "label": "F3"
     },
-     {
+    {
       "action": "general.playersList",
       "actionHold": "",
       "icon": "pixelarticons:users",
