@@ -237,8 +237,12 @@ const inModalCommand = (command: Command, pressed: boolean) => {
   if (pressed && !gamepadUiCursorState.display) return
 
   if (pressed) {
-    if (command === 'ui.back' || command === 'ui.pauseMenu') {
+    if (command === 'ui.back') {
       hideCurrentModal()
+    }
+    if (command === 'ui.pauseMenu') {
+      // hide all modals
+      hideAllModals()
     }
     if (command === 'ui.leftClick' || command === 'ui.rightClick') {
       // in percent
@@ -426,7 +430,6 @@ const onTriggerOrReleased = (command: Command, pressed: boolean) => {
     }
   } else if (stringStartsWith(command, 'ui')) {
     switch (command) {
-      case 'ui.back':
       case 'ui.pauseMenu':
         if (pressed) {
           if (activeModalStack.length) {
@@ -436,6 +439,7 @@ const onTriggerOrReleased = (command: Command, pressed: boolean) => {
           }
         }
         break
+      case 'ui.back':
       case 'ui.toggleFullscreen':
       case 'ui.toggleMap':
       case 'ui.leftClick':

@@ -34,7 +34,7 @@ export default () => {
       switch (actionForStyle) {
         case 'general.chat':
           return styles['chat-btn']
-        case 'ui.back':
+        case 'ui.pauseMenu':
           return styles['pause-btn']
         case 'general.playersList':
           return styles['tab-btn']
