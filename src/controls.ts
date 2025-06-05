@@ -80,7 +80,7 @@ export const contro = new ControMax({
       pauseMenu: [null, 'Start']
     },
     communication: {
-      toggleMicrophone: ['KeyK'],
+      toggleMicrophone: ['KeyM'],
     },
     advanced: {
       lockUrl: ['KeyY'],
@@ -405,18 +405,7 @@ const onTriggerOrReleased = (command: Command, pressed: boolean) => {
         break
       case 'general.debugOverlay':
         if (pressed) {
-          hardcodedPressedKeys.add('F3')
-          const pressedKey = [...contro.pressedKeys].find(key => key !== 'F3')
-          if (pressedKey) {
-            const keybind = f3Keybinds.find((v) => v.key === pressedKey)
-            if (keybind && (keybind.enabled?.() ?? true)) {
-              void keybind.action()
-            }
-          } else {
-            miscUiState.showDebugHud = !miscUiState.showDebugHud
-          }
-        } else {
-          hardcodedPressedKeys.delete('F3')
+          miscUiState.showDebugHud = !miscUiState.showDebugHud
         }
         break
       case 'general.debugOverlayHelpMenu':
@@ -468,6 +457,9 @@ const alwaysPressedHandledCommand = (command: Command) => {
   }
   if (command === 'advanced.lockUrl') {
     lockUrl()
+  }
+  if (command === 'communication.toggleMicrophone') {
+    toggleMicrophoneMuted?.()
   }
 }
 
@@ -606,10 +598,6 @@ contro.on('trigger', ({ command }) => {
         }
         break
     }
-  }
-
-  if (command === 'communication.toggleMicrophone') {
-    // toggleMicrophoneMuted()
   }
 
   if (command === 'ui.toggleFullscreen') {
@@ -755,29 +743,17 @@ export const f3Keybinds: Array<{
   }
 ]
 
-const hardcodedPressedKeys = new Set<string>()
 document.addEventListener('keydown', (e) => {
   if (!isGameActive(false)) return
-  if (hardcodedPressedKeys.has('F3')) {
+  if (contro.pressedKeys.has('F3')) {
     const keybind = f3Keybinds.find((v) => v.key === e.code)
     if (keybind && (keybind.enabled?.() ?? true)) {
       void keybind.action()
       e.stopPropagation()
     }
-    return
   }
-
-  hardcodedPressedKeys.add(e.code)
 }, {
   capture: true,
-})
-document.addEventListener('keyup', (e) => {
-  hardcodedPressedKeys.delete(e.code)
-})
-document.addEventListener('visibilitychange', (e) => {
-  if (document.visibilityState === 'hidden') {
-    hardcodedPressedKeys.clear()
-  }
 })
 
 const isFlying = () => (bot.entity as any).flying
