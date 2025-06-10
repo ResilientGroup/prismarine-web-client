@@ -101,7 +101,7 @@ export default ({
     if (!/^[\w\d_]+$/i.test(currentPlayerName ?? '')) return ''
     return currentPlayerName
   }, [currentPlayerName])
-  
+
   const sendHistoryRef = useRef(JSON.parse(window.sessionStorage.chatHistory || '[]'))
   const [isInputFocused, setIsInputFocused] = useState(false)
   const spellCheckEnabled = false
