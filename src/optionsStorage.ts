@@ -75,6 +75,7 @@ const defaultOptions = {
   debugChatScroll: false,
   chatVanillaRestrictions: true,
   debugResponseTimeIndicator: false,
+  chatPingExtension: true,
   // antiAliasing: false,
 
   clipWorldBelowY: undefined as undefined | number, // will be removed

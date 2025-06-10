@@ -286,7 +286,10 @@ export const guiOptionsScheme: {
       chatOpacityOpened: {
       },
       chatSelect: {
+        text: 'Text Select',
       },
+      chatPingExtension: {
+      }
     },
     {
       custom () {
