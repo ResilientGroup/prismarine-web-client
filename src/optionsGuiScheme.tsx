@@ -362,7 +362,7 @@ export const guiOptionsScheme: {
     },
     {
       custom () {
-        return <UiToggleButton name='effects-indicators' />
+        return <UiToggleButton name='effects-indicators' label='Effects & Indicators' />
       },
     },
     {
