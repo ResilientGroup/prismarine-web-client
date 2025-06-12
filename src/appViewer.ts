@@ -83,6 +83,7 @@ export interface GraphicsBackend {
   setRendering: (rendering: boolean) => void
   getDebugOverlay?: () => Record<string, any>
   updateCamera: (pos: Vec3 | null, yaw: number, pitch: number) => void
+  updateEntity: (e) => void
   setRoll?: (roll: number) => void
   soundSystem: SoundSystem | undefined
 
@@ -107,6 +108,7 @@ export class AppViewer {
   currentDisplay = null as 'menu' | 'world' | null
   inWorldRenderingConfig: WorldRendererConfig = proxy(defaultWorldRendererConfig)
   lastCamUpdate = 0
+  cameraEntity: number | undefined
   playerState = playerState
   rendererState = proxy(getDefaultRendererState())
   nonReactiveState: NonReactiveState = getDefaultRendererState()

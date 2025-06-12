@@ -70,6 +70,10 @@ export class WorldRendererThree extends WorldRendererCommon {
   }
   fountains: Fountain[] = []
 
+  private currentPosTween: tweenJs.Tween<THREE.Vector3>
+  private currentRotTween: tweenJs.Tween<{ pitch: number, yaw: number }>
+  //private currentRotTween: tweenJs.Tween<THREE.Euler>
+
   get tilesRendered () {
     return Object.values(this.sectionObjects).reduce((acc, obj) => acc + (obj as any).tilesCount, 0)
   }
@@ -449,10 +453,28 @@ export class WorldRendererThree extends WorldRendererCommon {
         pos.y -= this.camera.position.y // Fix Y position of camera in world
       }
 
-      new tweenJs.Tween(this.cameraObject.position).to({ x: pos.x, y: pos.y, z: pos.z }, 50).start()
+      this.currentPosTween?.stop()
+      this.currentPosTween = new tweenJs.Tween(this.cameraObject.position).to({ x: pos.x, y: pos.y, z: pos.z }, appViewer.cameraEntity ? 150 : 50).start()
       // this.freeFlyState.position = pos
     }
-    this.cameraShake.setBaseRotation(pitch, yaw)
+
+    if (appViewer.cameraEntity) {
+      const rotation = this.cameraShake.getBaseRotation()
+      // wrap in the correct direction
+      let yawOffset = 0
+      const halfPi = Math.PI / 2
+      if (rotation.yaw < halfPi && yaw > Math.PI + halfPi) {
+        yawOffset = -Math.PI * 2
+      } else if (yaw < halfPi && rotation.yaw > Math.PI + halfPi) {
+        yawOffset = Math.PI * 2
+      }
+      this.currentRotTween?.stop()
+      this.currentRotTween = new tweenJs.Tween(rotation).to({ pitch, yaw: yaw + yawOffset }, 100)
+        .onUpdate(params => this.cameraShake.setBaseRotation(params.pitch, params.yaw - yawOffset)).start()
+    } else {
+      this.currentRotTween?.stop()
+      this.cameraShake.setBaseRotation(pitch, yaw)
+    }
   }
 
   debugChunksVisibilityOverride () {

@@ -132,6 +132,9 @@ const setSprinting = (state: boolean) => {
 }
 
 contro.on('movementUpdate', ({ vector, soleVector, gamepadIndex }) => {
+  // Don't allow movement while spectating an entity
+  if (appViewer.cameraEntity !== undefined) return
+
   if (gamepadIndex !== undefined && gamepadUiCursorState.display) {
     const deadzone = 0.1 // TODO make deadzone configurable
     if (Math.abs(soleVector.x) < deadzone && Math.abs(soleVector.z) < deadzone) {
@@ -340,6 +343,9 @@ const cameraRotationControls = {
     cameraRotationControls.updateMovement()
   },
   handleCommand (command: string, pressed: boolean) {
+    // Don't allow movement while spectating an entity
+    if (appViewer.cameraEntity !== undefined) return
+
     const directionMap = {
       'general.rotateCameraLeft': 'left',
       'general.rotateCameraRight': 'right',
@@ -359,8 +365,12 @@ const cameraRotationControls = {
 window.cameraRotationControls = cameraRotationControls
 
 const setSneaking = (state: boolean) => {
+  if (appViewer.cameraEntity !== undefined) {
+    appViewer.cameraEntity = undefined
+  }
   gameAdditionalState.isSneaking = state
   bot.setControlState('sneak', state)
+
 }
 
 const onTriggerOrReleased = (command: Command, pressed: boolean) => {
@@ -371,6 +381,7 @@ const onTriggerOrReleased = (command: Command, pressed: boolean) => {
     // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
     switch (command) {
       case 'general.jump':
+        if (appViewer.cameraEntity !== undefined) break
         // if (viewer.world.freeFlyMode) {
         //   const moveSpeed = 0.5
         //   viewer.world.freeFlyState.position.add(new Vec3(0, pressed ? moveSpeed : 0, 0))
@@ -379,6 +390,11 @@ const onTriggerOrReleased = (command: Command, pressed: boolean) => {
         // }
         break
       case 'general.sneak':
+        bot._client.write('entity_action', {
+          entityId: bot.entity.id,
+          actionId: pressed ? 0 : 1,
+          jumpBoost: 0
+        })
         // if (viewer.world.freeFlyMode) {
         //   const moveSpeed = 0.5
         //   viewer.world.freeFlyState.position.add(new Vec3(0, pressed ? -moveSpeed : 0, 0))
@@ -545,10 +561,15 @@ contro.on('trigger', ({ command }) => {
         // no-op
         break
       case 'general.swapHands': {
-        bot._client.write('entity_action', {
-          entityId: bot.entity.id,
-          actionId: 6,
-          jumpBoost: 0
+        if (appViewer.cameraEntity !== undefined) break
+        bot._client.write('block_dig', {
+          'status': 6,
+          'location': {
+            'x': 0,
+            'z': 0,
+            'y': 0
+          },
+          'face': 0,
         })
         break
       }
@@ -556,10 +577,12 @@ contro.on('trigger', ({ command }) => {
         // handled in onTriggerOrReleased
         break
       case 'general.inventory':
+        if (appViewer.cameraEntity !== undefined) break
         document.exitPointerLock?.()
         openPlayerInventory()
         break
       case 'general.drop': {
+        if (appViewer.cameraEntity !== undefined) break
         // if (bot.heldItem/* && ctrl */) bot.tossStack(bot.heldItem)
         bot._client.write('block_dig', {
           'status': 4,
@@ -593,12 +616,15 @@ contro.on('trigger', ({ command }) => {
         showModal({ reactType: 'chat' })
         break
       case 'general.selectItem':
+        if (appViewer.cameraEntity !== undefined) break
         void selectItem()
         break
       case 'general.nextHotbarSlot':
+        if (appViewer.cameraEntity !== undefined) break
         cycleHotbarSlot(1)
         break
       case 'general.prevHotbarSlot':
+        if (appViewer.cameraEntity !== undefined) break
         cycleHotbarSlot(-1)
         break
       case 'general.zoom':

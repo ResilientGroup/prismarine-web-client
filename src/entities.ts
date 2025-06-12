@@ -96,12 +96,23 @@ customEvents.on('gameLoaded', () => {
     }
   })
 
+  const updateCamera = (entity: Entity) => {
+    if (bot.game.gameMode !== 'spectator') return
+    bot.entity.position = entity.position
+    void bot.look(entity.yaw, entity.pitch, true)
+    bot.entity.yaw = entity.yaw
+    bot.entity.pitch = entity.pitch
+  }
+
   bot.on('entityGone', (entity) => {
     bot.tracker.stopTrackingEntity(entity, true)
   })
 
   bot.on('entityMoved', (e) => {
     entityData(e)
+    if (appViewer.cameraEntity === e.id) {
+      updateCamera(e)
+    }
   })
   bot._client.on('entity_velocity', (packet) => {
     const e = bot.entities[packet.entityId]
@@ -115,15 +126,40 @@ customEvents.on('gameLoaded', () => {
     }
   }
 
-  bot.on('entitySpawn', entityData)
+  bot.on('entitySpawn', (e) => {
+    entityData(e)
+    if (appViewer.cameraEntity === e.id) {
+      updateCamera(e)
+    }
+  })
   bot.on('entityUpdate', entityData)
   bot.on('entityEquip', entityData)
+
+  bot._client.on('camera', (packet) => {
+    if (bot.player.entity.id === packet.cameraId) {
+      if (appViewer.cameraEntity) {
+        const entity = bot.entities[appViewer.cameraEntity]
+        appViewer.cameraEntity = undefined
+        if (entity) {
+          appViewer.backend?.updateEntity(entity)
+        }
+      }
+    } else if (bot.game.gameMode === 'spectator') {
+      const entity = bot.entities[packet.cameraId]
+      appViewer.cameraEntity = packet.cameraId
+      if (entity) {
+        updateCamera(entity)
+        appViewer.backend?.updateEntity(entity)
+      }
+    }
+  })
 
   bot._client.on('player_info', (packet) => {
     for (const playerEntry of packet.data) {
       // Switch player nametag visibility based on gamemode (spectator doesn't show nametags)
       if (playerEntry.gamemode && playerEntry.uuid === bot.player.uuid) {
         getThreeJsRendererMethods()?.togglePlayerNametags(playerEntry.gamemode !== 3)
+        appViewer.cameraEntity = undefined
       }
       // Texture override from packet properties
       if (!playerEntry.player && !playerEntry.properties) continue

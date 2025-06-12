@@ -129,6 +129,9 @@ const createGraphicsBackend: GraphicsBackendLoader = (initOptions: GraphicsInitO
     updateCamera (pos: Vec3 | null, yaw: number, pitch: number) {
       worldRenderer?.setFirstPersonCamera(pos, yaw, pitch)
     },
+    updateEntity (e) {
+      worldRenderer?.updateEntity(e)
+    },
     get soundSystem () {
       return worldRenderer?.soundSystem
     },
