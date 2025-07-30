@@ -8,6 +8,7 @@ declare const bot: Omit<import('mineflayer').Bot, 'world' | '_client'> & {
   _client: Omit<import('minecraft-protocol').Client, 'on'> & {
     write: typeof import('./generatedClientPackets').clientWrite
     on: typeof import('./generatedServerPackets').clientOn
+    logProxy: (msg: string) => void
   }
 }
 declare const __type_bot: typeof bot

@@ -9,6 +9,7 @@ export type AppQsParams = {
   name?: string
   version?: string
   proxy?: string
+  proxyLogging?: string
   username?: string
   lockConnect?: string
   autoConnect?: string

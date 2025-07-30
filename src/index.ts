@@ -273,6 +273,7 @@ export async function connect (connectOptions: ConnectOptions) {
     }
 
     setLoadingScreenStatus(`Error encountered. ${err}`, true)
+    bot._client.logProxy(`Error encountered: ${JSON.stringify(err, null, 2)}`)
     appStatusState.showReconnect = true
     onPossibleErrorDisconnect()
     destroyAll()
@@ -586,6 +587,7 @@ export async function connect (connectOptions: ConnectOptions) {
       'mapDownloader-saveToFile': false,
       // "mapDownloader-saveInternal": false, // do not save into memory, todo must be implemeneted as we do really care of ram
     }) as unknown as typeof __type_bot
+    bot._client.logProxy = appQueryParams.proxyLogging ? net['logProxy'] : () => { }
     window.bot = bot
 
     if (connectOptions.viewerWsConnect) {
@@ -623,6 +625,7 @@ export async function connect (connectOptions: ConnectOptions) {
         }
         bot._client.socket.on('connect', () => {
           console.log('Proxy WebSocket connection established')
+          bot._client.logProxy('Connected!')
           //@ts-expect-error
           bot._client.socket._ws.addEventListener('close', () => {
             console.log('WebSocket connection closed')
@@ -669,6 +672,7 @@ export async function connect (connectOptions: ConnectOptions) {
 
   bot.on('kicked', (kickReason) => {
     console.log('You were kicked!', kickReason)
+    bot._client.logProxy(`Got kicked with reason: ${JSON.stringify(kickReason)}`)
     const { formatted: kickReasonFormatted, plain: kickReasonString } = parseFormattedMessagePacket(kickReason)
     // close all modals
     for (const modal of activeModalStack) {
@@ -693,6 +697,7 @@ export async function connect (connectOptions: ConnectOptions) {
   bot.on('end', (endReason) => {
     if (ended) return
     console.log('disconnected for', endReason)
+    bot._client.logProxy(`Disconnected with end reason: ${JSON.stringify(endReason)}`)
     if (endReason === 'socketClosed') {
       endReason = lastKnownKickReason ?? 'Connection with proxy server lost'
     }
@@ -759,6 +764,7 @@ export async function connect (connectOptions: ConnectOptions) {
     void waitForChunksToLoad().then(() => {
       window.worldLoadTime = (Date.now() - loadWorldStart) / 1000
       console.log('All chunks done and ready! Time from renderer connect to ready', (Date.now() - loadWorldStart) / 1000, 's')
+      bot._client.logProxy(`Chunks loaded in ${(Date.now() - loadWorldStart) / 1000}s`)
       document.dispatchEvent(new Event('cypress-world-ready'))
     })
 
