@@ -154,8 +154,8 @@ importers:
         specifier: ^2.0.4
         version: 2.0.4
       net-browserify:
-        specifier: github:zardoy/prismarinejs-net-browserify
-        version: https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/e754999ffdea67853bc9b10553b5e9908b40f618
+        specifier: github:ResilientGroup/prismarinejs-net-browserify#feat/proxy-logging
+        version: https://codeload.github.com/ResilientGroup/prismarinejs-net-browserify/tar.gz/113c8c586d0f1e5cfe46f146c8ca86a1afeaec58
       node-gzip:
         specifier: ^1.1.2
         version: 1.1.2
@@ -6855,8 +6855,8 @@ packages:
   neo-async@2.6.2:
     resolution: {integrity: sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==}
 
-  net-browserify@https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/e754999ffdea67853bc9b10553b5e9908b40f618:
-    resolution: {tarball: https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/e754999ffdea67853bc9b10553b5e9908b40f618}
+  net-browserify@https://codeload.github.com/ResilientGroup/prismarinejs-net-browserify/tar.gz/113c8c586d0f1e5cfe46f146c8ca86a1afeaec58:
+    resolution: {tarball: https://codeload.github.com/ResilientGroup/prismarinejs-net-browserify/tar.gz/113c8c586d0f1e5cfe46f146c8ca86a1afeaec58}
     version: 0.2.4
 
   nice-try@1.0.5:
@@ -17586,7 +17586,7 @@ snapshots:
 
   neo-async@2.6.2: {}
 
-  net-browserify@https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/e754999ffdea67853bc9b10553b5e9908b40f618:
+  net-browserify@https://codeload.github.com/ResilientGroup/prismarinejs-net-browserify/tar.gz/113c8c586d0f1e5cfe46f146c8ca86a1afeaec58:
     dependencies:
       body-parser: 1.20.3
       express: 4.21.2

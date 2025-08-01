@@ -37,7 +37,7 @@ COPY server.js /app/server.js
 # Install express
 RUN npm i -g pnpm@10.8.0
 RUN npm init -yp
-RUN pnpm i express github:zardoy/prismarinejs-net-browserify compression cors
+RUN pnpm i express github:ResilientGroup/prismarinejs-net-browserify#feat/proxy-logging compression cors
 EXPOSE 8080
 VOLUME /app/public
 ENTRYPOINT ["node", "server.js", "--prod"]
